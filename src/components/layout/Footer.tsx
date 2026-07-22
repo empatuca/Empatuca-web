@@ -1,5 +1,6 @@
 import { siteConfig } from "../../../siteConfig";
 import { Instagram, Facebook, MessageCircle } from "lucide-react"; // using MessageCircle for TikTok approx
+import { Link } from "react-router-dom";
 
 export function Footer() {
   return (
@@ -34,7 +35,7 @@ export function Footer() {
             <li><a href="#inicio" className="hover:text-white transition-colors">Inicio</a></li>
             <li><a href="#menu" className="hover:text-white transition-colors">Nuestro Menú</a></li>
             <li><a href="#nosotros" className="hover:text-white transition-colors">Historia</a></li>
-            <li><a href="/cocina" className="hover:text-white transition-colors">Acceso Cocina</a></li>
+            <li><Link to="/cocina" className="hover:text-white transition-colors">Acceso Cocina</Link></li>
           </ul>
         </div>
 
