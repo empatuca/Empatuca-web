@@ -1,5 +1,4 @@
 import { motion } from "motion/react";
-import patronImg from "../../assets/patron_m.png";
 
 export function AboutSection() {
   return (
@@ -8,7 +7,7 @@ export function AboutSection() {
       <div 
         className="absolute inset-0 z-0 opacity-30 pointer-events-none" 
         style={{ 
-          backgroundImage: `url(${patronImg})`, 
+          backgroundImage: `url(/patron_m.svg)`, 
           backgroundSize: '150px',
           backgroundRepeat: 'repeat',
           backgroundPosition: 'center'

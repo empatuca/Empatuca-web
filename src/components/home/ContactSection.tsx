@@ -1,6 +1,5 @@
 import { siteConfig } from "../../../siteConfig";
 import { MapPin, Clock, Mail } from "lucide-react";
-import patronImg from "../../assets/patron_m.png";
 
 export function ContactSection() {
   return (
@@ -9,7 +8,7 @@ export function ContactSection() {
       <div 
         className="absolute inset-0 z-0 opacity-30 pointer-events-none" 
         style={{ 
-          backgroundImage: `url(${patronImg})`, 
+          backgroundImage: `url(/patron_m.svg)`, 
           backgroundSize: '150px',
           backgroundRepeat: 'repeat',
           backgroundPosition: 'center'
