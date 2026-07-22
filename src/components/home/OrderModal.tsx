@@ -155,7 +155,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
           </DialogDescription>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 text-gray-900">
           {/* STEP 1: Tipo de Pedido */}
           {step === 1 && (
             <div className="space-y-6">
@@ -164,7 +164,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                   type="button"
                   variant="outline"
                   onClick={() => setOrderType('llevar')}
-                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'llevar' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-100 hover:border-gray-200 text-[#0D0D0D]'}`}
+                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'llevar' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
                 >
                   <ShoppingBag className="h-6 w-6" />
                   <span>Para Llevar</span>
@@ -173,7 +173,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                   type="button"
                   variant="outline"
                   onClick={() => setOrderType('delivery')}
-                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'delivery' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-100 hover:border-gray-200 text-[#0D0D0D]'}`}
+                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'delivery' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
                 >
                   <MapPin className="h-6 w-6" />
                   <span>Delivery</span>
@@ -182,7 +182,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                   type="button"
                   variant="outline"
                   onClick={() => setOrderType('mesa')}
-                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'mesa' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-100 hover:border-gray-200 text-[#0D0D0D]'}`}
+                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'mesa' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
                 >
                   <Utensils className="h-6 w-6" />
                   <span>En Mesa</span>

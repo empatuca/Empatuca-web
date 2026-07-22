@@ -19,12 +19,13 @@ export function MenuSection() {
   };
 
   return (
-    <section id="menu" className="py-20 md:py-24 bg-white flex flex-col shrink-0 text-[#0D0D0D]">
+    <section id="menu" className="py-20 md:py-24 bg-white flex flex-col shrink-0 text-[#0D0D0D] reveal-on-scroll">
       <div className="container mx-auto px-4 md:px-12">
         <Tabs defaultValue={categories[0]} className="w-full">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-6">
             <div>
               <h2 className="text-3xl md:text-4xl font-black tracking-tight uppercase mb-2">Nuestro Menú</h2>
+              <div className="h-[3px] w-[60px] bg-[#fac124] mt-2 mb-4"></div>
               <p className="text-sm text-gray-500">
                 Fritas al momento, siempre fresquitas
               </p>
@@ -54,18 +55,18 @@ export function MenuSection() {
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.05, duration: 0.4 }}
                   >
-                    <div className="border-2 border-gray-100 rounded-2xl p-4 hover:border-[#5a0606] transition-colors h-full flex flex-col group cursor-pointer" onClick={() => handleOrder(product)}>
+                    <div className="border border-gray-100 rounded-2xl p-4 border-b-4 border-b-transparent hover:border-b-[#fac124] hover:shadow-lg transition-all duration-200 h-full flex flex-col group cursor-pointer bg-white" onClick={() => handleOrder(product)}>
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-black text-lg leading-tight uppercase">{product.name}</h3>
                         {product.prices.empatuca && (
-                           <span className="bg-[#fac124] text-[#5a0606] text-[10px] font-black px-2 py-1 rounded tracking-wider uppercase">TOP</span>
+                           <span className="bg-[#fac124] text-[#5a0606] text-[10px] font-black px-2 py-1 rounded tracking-wider uppercase shrink-0 ml-2">TOP</span>
                         )}
                       </div>
                       
                       <p className="text-xs text-gray-500 mb-6 flex-grow">{product.description}</p>
                       
                       <div className="flex justify-between items-center mt-auto">
-                        <span className="font-bold">
+                        <span className="font-black text-xl text-[#fac124]">
                            ${product.prices.empanita ? product.prices.empanita.toFixed(2) : (product.prices.estandar || 0).toFixed(2)} 
                            {product.prices.empatuca ? ` - $${product.prices.empatuca.toFixed(2)}` : ''}
                         </span>

@@ -3,10 +3,11 @@ import { MapPin, Clock, Mail } from "lucide-react";
 
 export function ContactSection() {
   return (
-    <section id="contacto" className="py-20 md:py-32 bg-[#0D0D0D] border-t border-white/5">
+    <section id="contacto" className="py-20 md:py-32 bg-[#0D0D0D] border-t border-white/5 reveal-on-scroll">
       <div className="container mx-auto px-4 md:px-12">
         <div className="text-center max-w-3xl mx-auto mb-12">
           <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tighter uppercase">Encuéntranos</h2>
+          <div className="h-[3px] w-[60px] bg-[#fac124] mt-2 mb-6 mx-auto"></div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 bg-[#111111] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">

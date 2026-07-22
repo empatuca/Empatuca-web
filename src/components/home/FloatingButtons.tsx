@@ -22,7 +22,7 @@ export function FloatingButtons() {
       {/* Floating WhatsApp */}
       <button 
         onClick={handleWhatsApp}
-        className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-transform"
+        className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-transform whatsapp-pulse"
         title="Pedir por WhatsApp"
       >
         <MessageCircle className="h-7 w-7" />

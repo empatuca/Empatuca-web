@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 
 export function AboutSection() {
   return (
-    <section id="nosotros" className="py-20 md:py-32 bg-[#0D0D0D] border-t border-white/5">
+    <section id="nosotros" className="py-20 md:py-32 bg-[#0D0D0D] border-t border-white/5 reveal-on-scroll">
       <div className="container mx-auto px-4 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
@@ -35,6 +35,7 @@ export function AboutSection() {
           <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-tight uppercase">
             22 años amasando la tradición
           </h2>
+          <div className="h-[3px] w-[60px] bg-[#fac124] mt-2 mb-6"></div>
           <div className="space-y-4 text-lg text-white/60 leading-relaxed">
             <p>
               Todo empezó hace más de dos décadas con una receta familiar que rápidamente se convirtió en el secreto mejor guardado del barrio. La gente no venía por empanadas, venía por "las tucas".

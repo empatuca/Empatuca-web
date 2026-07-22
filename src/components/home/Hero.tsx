@@ -8,7 +8,8 @@ export function Hero() {
   };
 
   return (
-    <section id="inicio" className="relative w-full min-h-[85vh] flex items-center bg-[#0D0D0D] overflow-hidden">
+    <section id="inicio" className="relative w-full min-h-[85vh] flex items-center bg-[#0D0D0D] overflow-hidden reveal-on-scroll">
+      <img src="/logo_M.svg" alt="" className="absolute top-1/2 left-1/2 w-[450px] opacity-5 pointer-events-none animate-spin-slow" />
       <div className="container mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10 py-12">
         {/* Text Column (55%) */}
         <motion.div 
@@ -21,7 +22,10 @@ export function Hero() {
             22 años de receta familiar
           </span>
           
-          <img src="/slogan.svg" alt="¿Antojo de algo rico y grande, ahora mismo?" className="h-12 w-auto mb-6 max-h-[48px]" />
+          <h1 className="text-4xl md:text-5xl xl:text-6xl font-black leading-[0.95] mb-6 tracking-tighter text-white uppercase">
+            ¿Antojo de algo<br/><span className="text-[#fac124]">rico y grande</span>,<br/>ahora mismo?
+          </h1>
+          <img src="/slogan.svg" alt="¿Antojo de algo rico y grande, ahora mismo?" className="h-9 w-auto mb-6 max-h-[36px] animate-fade-in opacity-0" />
           <p className="text-lg md:text-xl text-white/60 mb-8 max-w-md leading-snug">
             Las empanadas pequeñas ya no llenan. Empatuca es la respuesta inmediata al hambre de verdad. Receta familiar desde hace 22 años.
           </p>

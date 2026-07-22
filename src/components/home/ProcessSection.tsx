@@ -25,10 +25,11 @@ export function ProcessSection() {
   ];
 
   return (
-    <section id="proceso" className="py-20 md:py-32 bg-[#111111] border-t border-white/5">
+    <section id="proceso" className="py-20 md:py-32 bg-[#111111] border-t border-white/5 reveal-on-scroll">
       <div className="container mx-auto px-4 md:px-12">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tighter uppercase">Tan fácil como sabroso</h2>
+          <div className="h-[3px] w-[60px] bg-[#fac124] mt-2 mb-6 mx-auto"></div>
           <p className="text-lg text-white/60">
             Olvídate de las filas largas y de esperar a que te atiendan. Modernizamos la tradición.
           </p>

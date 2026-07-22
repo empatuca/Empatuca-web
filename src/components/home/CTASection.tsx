@@ -7,7 +7,7 @@ export function CTASection() {
   };
 
   return (
-    <section className="py-24 md:py-32 bg-[#5a0606] text-white relative overflow-hidden border-t border-white/5">
+    <section className="py-24 md:py-32 bg-[#5a0606] text-white relative overflow-hidden border-t border-white/5 reveal-on-scroll">
       {/* Decorative patterns */}
       <div className="absolute top-0 right-0 w-[40%] h-full bg-[#0D0D0D]/20 rounded-full blur-[100px] -z-10 translate-x-1/2"></div>
       <div className="absolute bottom-0 left-0 w-[40%] h-[50%] bg-[#fac124]/10 rounded-full blur-[100px] -z-10 -translate-x-1/2"></div>
@@ -16,6 +16,7 @@ export function CTASection() {
         <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter max-w-3xl mx-auto uppercase">
           Tu antojo no puede esperar
         </h2>
+        <div className="h-[3px] w-[60px] bg-[#fac124] mt-2 mb-8 mx-auto"></div>
         <p className="text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto">
           Pedido en segundos. Sin filas ni esperas. Pídela por WhatsApp o desde nuestro menú digital.
         </p>

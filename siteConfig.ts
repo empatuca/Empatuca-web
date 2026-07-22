@@ -16,7 +16,7 @@ export const siteConfig = {
   menu: [
     {
       id: "ev-queso",
-      name: "De Queso",
+      name: "🧀 De Queso",
       category: "Empanadas de Verde",
       description: "Nuestra clásica masa de verde crocante rellena del mejor queso local.",
       prices: {
@@ -26,7 +26,7 @@ export const siteConfig = {
     },
     {
       id: "ev-carne",
-      name: "De Carne",
+      name: "🥩 De Carne",
       category: "Empanadas de Verde",
       description: "Masa de verde rellena de carne mechada jugosa y sazonada con la receta de la casa.",
       prices: {
@@ -36,7 +36,7 @@ export const siteConfig = {
     },
     {
       id: "ev-pollo",
-      name: "De Pollo",
+      name: "🍗 De Pollo",
       category: "Empanadas de Verde",
       description: "Masa de verde rellena de pollo desmechado con el toque especial de la familia.",
       prices: {
@@ -46,7 +46,7 @@ export const siteConfig = {
     },
     {
       id: "eh-queso",
-      name: "De Queso",
+      name: "🧀 De Queso",
       category: "Empanadas de Harina",
       description: "Masa tradicional de harina frita doradita con abundante queso derretido.",
       prices: {
@@ -56,7 +56,7 @@ export const siteConfig = {
     },
     {
       id: "eh-mixta",
-      name: "Mixta (Jamón y Queso)",
+      name: "🥪 Mixta (Jamón y Queso)",
       category: "Empanadas de Harina",
       description: "La combinación perfecta de jamón y queso en nuestra masa de harina frita.",
       prices: {
@@ -66,7 +66,7 @@ export const siteConfig = {
     },
     {
       id: "eh-pollo",
-      name: "De Pollo",
+      name: "🍗 De Pollo",
       category: "Empanadas de Harina",
       description: "Delicioso pollo desmechado envuelto en masa de harina crocante.",
       prices: {
@@ -76,7 +76,7 @@ export const siteConfig = {
     },
     {
       id: "eh-carne",
-      name: "De Carne",
+      name: "🥩 De Carne",
       category: "Empanadas de Harina",
       description: "Carne sazonada en su punto exacto, dentro de nuestra masa de harina clásica.",
       prices: {
@@ -86,7 +86,7 @@ export const siteConfig = {
     },
     {
       id: "beb-mora",
-      name: "Jugo de Mora",
+      name: "🥤 Jugo de Mora",
       category: "Bebidas",
       description: "Jugo natural refrescante de mora.",
       prices: {
@@ -95,7 +95,7 @@ export const siteConfig = {
     },
     {
       id: "beb-maracuya",
-      name: "Jugo de Maracuyá",
+      name: "🥤 Jugo de Maracuyá",
       category: "Bebidas",
       description: "Jugo natural de la fruta de la pasión.",
       prices: {
@@ -104,7 +104,7 @@ export const siteConfig = {
     },
     {
       id: "beb-gaseosa",
-      name: "Gaseosa",
+      name: "🥤 Gaseosa",
       category: "Bebidas",
       description: "Gaseosa helada a elección.",
       prices: {
@@ -113,7 +113,7 @@ export const siteConfig = {
     },
     {
       id: "beb-yogurt",
-      name: "Yogurt Tradicional",
+      name: "🥤 Yogurt Tradicional",
       category: "Bebidas",
       description: "El clásico acompañante de tus empanadas.",
       prices: {
