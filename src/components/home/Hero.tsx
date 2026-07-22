@@ -11,9 +11,9 @@ export function Hero() {
     <section id="inicio" className="relative w-full min-h-[85vh] flex items-center bg-[#0D0D0D] overflow-hidden reveal-on-scroll">
       {/* Background decorations */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <img src="/logo_M.svg" alt="" className="absolute -top-20 -left-20 md:-top-32 md:-left-32 w-[300px] md:w-[500px] opacity-10 animate-spin-slow" />
-        <img src="/logo_M.svg" alt="" className="absolute top-1/4 -right-20 md:-right-40 w-[250px] md:w-[400px] opacity-10 animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '35s' }} />
-        <img src="/logo_M.svg" alt="" className="absolute -bottom-20 left-1/4 md:-bottom-40 md:left-1/3 w-[300px] md:w-[450px] opacity-10 animate-spin-slow" style={{ animationDuration: '45s' }} />
+        <img src="/logo_M.svg" alt="" className="absolute -top-20 -left-20 md:-top-32 md:-left-32 w-[300px] md:w-[500px] opacity-20 animate-spin-slow" />
+        <img src="/logo_M.svg" alt="" className="absolute top-1/4 -right-20 md:-right-40 w-[250px] md:w-[400px] opacity-20 animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '35s' }} />
+        <img src="/logo_M.svg" alt="" className="absolute -bottom-20 left-1/4 md:-bottom-40 md:left-1/3 w-[300px] md:w-[450px] opacity-20 animate-spin-slow" style={{ animationDuration: '45s' }} />
       </div>
       
       <div className="container mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10 py-12">

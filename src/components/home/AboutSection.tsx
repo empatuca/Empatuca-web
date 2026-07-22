@@ -1,13 +1,14 @@
 import { motion } from "motion/react";
+import patronImg from "../../assets/patron_m.png";
 
 export function AboutSection() {
   return (
     <section id="nosotros" className="py-20 md:py-32 bg-[#0D0D0D] border-t border-white/5 reveal-on-scroll relative">
       {/* Pattern watermark background */}
       <div 
-        className="absolute inset-0 z-0 opacity-30" 
+        className="absolute inset-0 z-0 opacity-30 pointer-events-none" 
         style={{ 
-          backgroundImage: 'url(/patron_m.png)', 
+          backgroundImage: `url(${patronImg})`, 
           backgroundSize: '150px',
           backgroundRepeat: 'repeat',
           backgroundPosition: 'center'
