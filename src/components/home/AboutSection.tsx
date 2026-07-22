@@ -2,8 +2,13 @@ import { motion } from "motion/react";
 
 export function AboutSection() {
   return (
-    <section id="nosotros" className="py-20 md:py-32 bg-[#0D0D0D] border-t border-white/5 reveal-on-scroll">
-      <div className="container mx-auto px-4 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+    <section id="nosotros" className="py-20 md:py-32 bg-[#0D0D0D] border-t border-white/5 reveal-on-scroll relative">
+      {/* Pattern watermark background */}
+      <div 
+        className="absolute inset-0 z-0 opacity-10" 
+        style={{ backgroundImage: 'url(/patron_m.png)', backgroundSize: '150px' }}
+      ></div>
+      <div className="container mx-auto px-4 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}

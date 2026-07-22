@@ -152,7 +152,7 @@ export default function Cocina() {
             </div>
             <h1 className="text-xl font-black uppercase tracking-tight">Vista de Cocina</h1>
           </div>
-          <a href="/" className="text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors">← Volver al sitio</a>
+          <a href="#" className="text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors">← Volver al sitio</a>
         </div>
       </header>
 
