@@ -42,11 +42,14 @@ export function Footer() {
             <li>{siteConfig.hours}</li>
             <li>{siteConfig.email}</li>
           </ul>
-          <img src="/slogan.png" alt={siteConfig.tagline} className="h-6 w-auto max-h-[24px]" />
         </div>
       </div>
       
-      <div className="container mx-auto px-4 md:px-12 mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs font-medium text-white/40 gap-4 uppercase tracking-widest">
+      <div className="container mx-auto px-4 md:px-12 mt-12 mb-8 flex justify-center">
+        <img src="/slogan.png" alt={siteConfig.tagline} className="h-12 md:h-16 w-auto" />
+      </div>
+
+      <div className="container mx-auto px-4 md:px-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs font-medium text-white/40 gap-4 uppercase tracking-widest">
         <p>© {new Date().getFullYear()} {siteConfig.name}. Todos los derechos reservados.</p>
         <p>Desarrollado por <a href="https://aevo.placeholder" className="text-[#fac124] hover:text-white transition-colors font-bold">AEVO</a></p>
       </div>

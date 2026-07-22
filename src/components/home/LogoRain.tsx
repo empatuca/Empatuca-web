@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { createPortal } from "react-dom";
 
 export function LogoRain({ active }: { active: boolean }) {
   const [drops, setDrops] = useState<any[]>([]);
@@ -21,8 +22,10 @@ export function LogoRain({ active }: { active: boolean }) {
     }
   }, [active]);
 
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[150] overflow-hidden">
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
       <AnimatePresence>
         {drops.map(drop => (
           <motion.img
@@ -52,6 +55,7 @@ export function LogoRain({ active }: { active: boolean }) {
           />
         ))}
       </AnimatePresence>
-    </div>
+    </div>,
+    document.body
   );
 }
