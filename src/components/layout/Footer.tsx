@@ -7,13 +7,13 @@ export function Footer() {
       <div className="container mx-auto px-4 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="col-span-1 md:col-span-2">
           <div className="flex items-center gap-2 mb-4">
-             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#5a0606] text-[#fac124]">
-              <span className="font-bold text-xl leading-none mt-1">M</span>
-            </div>
-            <span className="text-2xl font-bold tracking-tight text-white uppercase">{siteConfig.name}</span>
+            <img src="/logo.svg" alt="Empatuca Logo" className="h-[40px] w-auto" />
+          </div>
+          <div className="mb-6">
+            <img src="/slogan.svg" alt={siteConfig.tagline} className="h-8 w-auto max-h-[32px]" />
           </div>
           <p className="text-white/60 mb-6 max-w-sm">
-            {siteConfig.tagline}. La receta familiar de 22 años que conquistó Santo Domingo.
+            La receta familiar de 22 años que conquistó Santo Domingo.
           </p>
           <div className="flex gap-4">
             <a href={`https://instagram.com/${siteConfig.instagram}`} target="_blank" rel="noreferrer" className="text-white/40 hover:text-[#fac124] transition-colors">

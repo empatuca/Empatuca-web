@@ -164,7 +164,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                   type="button"
                   variant="outline"
                   onClick={() => setOrderType('llevar')}
-                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'llevar' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-100 hover:border-gray-200'}`}
+                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'llevar' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-100 hover:border-gray-200 text-[#0D0D0D]'}`}
                 >
                   <ShoppingBag className="h-6 w-6" />
                   <span>Para Llevar</span>
@@ -173,7 +173,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                   type="button"
                   variant="outline"
                   onClick={() => setOrderType('delivery')}
-                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'delivery' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-100 hover:border-gray-200'}`}
+                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'delivery' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-100 hover:border-gray-200 text-[#0D0D0D]'}`}
                 >
                   <MapPin className="h-6 w-6" />
                   <span>Delivery</span>
@@ -182,7 +182,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                   type="button"
                   variant="outline"
                   onClick={() => setOrderType('mesa')}
-                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'mesa' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-100 hover:border-gray-200'}`}
+                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'mesa' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-100 hover:border-gray-200 text-[#0D0D0D]'}`}
                 >
                   <Utensils className="h-6 w-6" />
                   <span>En Mesa</span>
@@ -233,7 +233,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                 <div key={index} className="border border-gray-100 p-4 rounded-xl space-y-4 shadow-sm">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-lg">{item.name}</h4>
+                      <h4 className="font-bold text-lg text-[#0D0D0D]">{item.name}</h4>
                       <p className="text-sm text-gray-500">{item.size} • ${item.price.toFixed(2)} c/u</p>
                     </div>
                     <div className="font-bold text-lg text-[#5a0606]">

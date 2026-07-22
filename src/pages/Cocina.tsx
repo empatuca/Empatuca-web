@@ -108,8 +108,8 @@ export default function Cocina() {
         <Card className="w-full max-w-sm bg-white rounded-3xl border-none shadow-2xl">
           <CardContent className="p-8 space-y-6">
             <div className="text-center space-y-2">
-               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#fac124] text-[#5a0606] mb-4">
-                <span className="font-bold text-2xl mt-1">M</span>
+               <div className="mx-auto flex h-12 w-12 items-center justify-center mb-4">
+                 <img src="/logo_M.svg" alt="M" className="h-full w-auto" />
               </div>
               <h1 className="text-2xl font-bold text-[#0D0D0D]">Acceso Cocina</h1>
               <p className="text-gray-500 text-sm">Ingresa tu PIN de 4 dígitos (Prueba: 1234)</p>
@@ -147,8 +147,8 @@ export default function Cocina() {
       <header className="bg-[#0D0D0D] text-white p-4 shadow-xl border-b border-white/5 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#5a0606] text-[#fac124]">
-              <span className="font-bold text-lg mt-1">M</span>
+             <div className="flex h-8 w-8 items-center justify-center">
+               <img src="/logo_M.svg" alt="M" className="h-full w-auto" />
             </div>
             <h1 className="text-xl font-black uppercase tracking-tight">Vista de Cocina</h1>
           </div>

@@ -10,10 +10,7 @@ export function Navbar() {
     <nav className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#0D0D0D] shrink-0">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
         <a href="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#5a0606] text-[#fac124]">
-            <span className="font-bold text-xl leading-none mt-1">M</span>
-          </div>
-          <span className="text-2xl font-bold tracking-tight text-white uppercase">{siteConfig.name}</span>
+          <img src="/logo.svg" alt="Empatuca Logo" className="h-[40px] w-auto" />
         </a>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-white/70">
