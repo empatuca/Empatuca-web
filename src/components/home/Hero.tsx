@@ -31,7 +31,6 @@ export function Hero() {
           <h1 className="text-4xl md:text-5xl xl:text-6xl font-black leading-[0.95] mb-6 tracking-tighter text-white uppercase">
             ¿Antojo de algo<br/><span className="text-[#fac124]">rico y grande</span>,<br/>ahora mismo?
           </h1>
-          <img src="/slogan.svg" alt="¿Antojo de algo rico y grande, ahora mismo?" className="h-9 w-auto mb-6 max-h-[36px] animate-fade-in opacity-0" />
           <p className="text-lg md:text-xl text-white/60 mb-8 max-w-md leading-snug">
             Las empanadas pequeñas ya no llenan. Empatuca es la respuesta inmediata al hambre de verdad. Receta familiar desde hace 22 años.
           </p>

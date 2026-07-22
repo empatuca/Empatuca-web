@@ -42,7 +42,7 @@ export function Footer() {
             <li>{siteConfig.hours}</li>
             <li>{siteConfig.email}</li>
           </ul>
-          <img src="/slogan.svg" alt={siteConfig.tagline} className="h-6 w-auto max-h-[24px]" />
+          <img src="/slogan.png" alt={siteConfig.tagline} className="h-6 w-auto max-h-[24px]" />
         </div>
       </div>
       

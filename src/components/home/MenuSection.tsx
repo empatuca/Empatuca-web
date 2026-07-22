@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { OrderModal } from "./OrderModal";
+import { LogoRain } from "./LogoRain";
 
 export function MenuSection() {
   const [orderModalOpen, setOrderModalOpen] = useState(false);
@@ -86,6 +87,7 @@ export function MenuSection() {
         </Tabs>
       </div>
 
+      <LogoRain active={orderModalOpen} />
       <OrderModal 
         isOpen={orderModalOpen} 
         onClose={() => { setOrderModalOpen(false); setSelectedProduct(null); }} 
