@@ -6,8 +6,13 @@ export function ContactSection() {
     <section id="contacto" className="py-20 md:py-32 bg-[#0D0D0D] border-t border-white/5 reveal-on-scroll relative">
       {/* Pattern watermark background */}
       <div 
-        className="absolute inset-0 z-0 opacity-10" 
-        style={{ backgroundImage: 'url(/patron_m.png)', backgroundSize: '150px' }}
+        className="absolute inset-0 z-0 opacity-30" 
+        style={{ 
+          backgroundImage: 'url(/patron_m.png)', 
+          backgroundSize: '150px',
+          backgroundRepeat: 'repeat',
+          backgroundPosition: 'center'
+        }}
       ></div>
       <div className="container mx-auto px-4 md:px-12 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-12">
