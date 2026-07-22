@@ -9,9 +9,6 @@ export function Footer() {
           <div className="flex items-center gap-2 mb-4">
             <img src="/logo.svg" alt="Empatuca Logo" className="h-[40px] w-auto" />
           </div>
-          <div className="mb-6">
-            <img src="/slogan.svg" alt={siteConfig.tagline} className="h-6 w-auto max-h-[24px] animate-fade-in opacity-0" />
-          </div>
           <p className="text-white/60 mb-6 max-w-sm">
             La receta familiar de 22 años que conquistó Santo Domingo.
           </p>
@@ -40,11 +37,12 @@ export function Footer() {
 
         <div>
           <h4 className="font-black text-sm mb-4 text-[#fac124] uppercase tracking-widest">Contacto</h4>
-          <ul className="space-y-2 text-white/60 font-medium text-sm leading-relaxed">
+          <ul className="space-y-2 text-white/60 font-medium text-sm leading-relaxed mb-6">
             <li>{siteConfig.address}</li>
             <li>{siteConfig.hours}</li>
             <li>{siteConfig.email}</li>
           </ul>
+          <img src="/slogan.svg" alt={siteConfig.tagline} className="h-6 w-auto max-h-[24px]" />
         </div>
       </div>
       

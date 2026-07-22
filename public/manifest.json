@@ -2,10 +2,10 @@
   "name": "Empatuca",
   "short_name": "Empatuca",
   "icons": [
-    { "src": "/logo_M.svg", "sizes": "192x192", "type": "image/svg+xml" },
-    { "src": "/logo_M.svg", "sizes": "512x512", "type": "image/svg+xml" }
+    { "src": "/app-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
-  "theme_color": "#5a0606",
+  "theme_color": "#0D0D0D",
   "background_color": "#0D0D0D",
   "display": "standalone",
   "start_url": "/"
