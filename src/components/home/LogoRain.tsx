@@ -7,16 +7,28 @@ export function LogoRain({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (active) {
-      // Create a bunch of drops
-      const newDrops = Array.from({ length: 40 }).map((_, i) => ({
-        id: i,
-        x: Math.random() * 100, // percentage x position
-        delay: Math.random() * 0.5,
-        duration: 1 + Math.random() * 1.5, // 1 to 2.5 seconds
-        size: 20 + Math.random() * 30, // 20px to 50px
-        rotation: -20 + Math.random() * 40
-      }));
-      setDrops(newDrops);
+      // Create drops with distributed positions to prevent overlap
+      const totalDrops = 35;
+      const newDrops = Array.from({ length: totalDrops }).map((_, i) => {
+        // Distribute X positions evenly across screen, with a little random jitter
+        const segment = 100 / totalDrops;
+        const xPos = (i * segment) + (Math.random() * segment);
+        
+        return {
+          id: i,
+          x: xPos,
+          // Stagger delays widely (0 to 1.5 seconds) so they don't fall all at once
+          delay: Math.random() * 1.5,
+          // Vary duration (speed) significantly (1.5 to 3.5 seconds)
+          duration: 1.5 + Math.random() * 2,
+          // Vary size significantly (15px to 80px)
+          size: 15 + Math.random() * 65,
+          // Random rotation
+          rotation: -45 + Math.random() * 90
+        };
+      });
+      // Shuffle array so they don't fall sequentially left-to-right
+      setDrops(newDrops.sort(() => Math.random() - 0.5));
     } else {
       setDrops([]);
     }

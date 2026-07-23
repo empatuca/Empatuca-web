@@ -44,7 +44,7 @@ export function ProcessSection() {
           <h2 className="text-3xl md:text-5xl font-black text-[#0D0D0D] mb-6 tracking-tighter uppercase">Tan fácil como sabroso</h2>
           <div className="h-[4px] w-[80px] bg-[#fac124] mt-2 mb-6 mx-auto md:mx-0"></div>
           <p className="text-lg text-gray-700 max-w-xl font-medium">
-            Olvídate de las filas largas y de esperar a que te atiendan. Modernizamos la tradición de tu barrio.
+            Olvídate de las filas largas y de esperar a que te atiendan. Modernizamos la tradición de tu zona.
           </p>
         </div>
 

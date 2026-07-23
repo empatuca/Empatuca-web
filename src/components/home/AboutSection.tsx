@@ -2,17 +2,7 @@ import { motion } from "motion/react";
 
 export function AboutSection() {
   return (
-    <section id="nosotros" className="py-20 md:py-32 bg-[#0D0D0D] border-t border-white/5 reveal-on-scroll relative">
-      {/* Pattern watermark background */}
-      <div 
-        className="absolute inset-0 z-0 opacity-30 pointer-events-none" 
-        style={{ 
-          backgroundImage: `url(/patron_m.svg)`, 
-          backgroundSize: '150px',
-          backgroundRepeat: 'repeat',
-          backgroundPosition: 'center'
-        }}
-      ></div>
+    <section id="nosotros" className="py-20 md:py-32 bg-gradient-to-b from-[#5a0606] to-[#0D0D0D] border-t border-white/5 reveal-on-scroll relative">
       <div className="container mx-auto px-4 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
@@ -48,13 +38,13 @@ export function AboutSection() {
           <div className="h-[3px] w-[60px] bg-[#fac124] mt-2 mb-6"></div>
           <div className="space-y-4 text-lg text-white/60 leading-relaxed">
             <p>
-              Todo empezó hace más de dos décadas con una receta familiar que rápidamente se convirtió en el secreto mejor guardado del barrio. La gente no venía por empanadas, venía por "las tucas".
+              Todo empezó hace más de dos décadas con una receta familiar que rápidamente se convirtió en el secreto mejor guardado de la zona. La gente no venía por empanadas, venía por "las tucas".
             </p>
             <p>
               Hoy, una nueva generación ha tomado esa misma masa, ese mismo sazón, y lo ha convertido en una marca propia. <strong className="text-white">Empatuca</strong> nace para darte lo que siempre has querido: una empanada que de verdad te llene, doradita por fuera, llena de sabor por dentro, y servida rápido.
             </p>
             <p>
-              No somos comida rápida corporativa. Somos la comida de tu barrio, evolucionada.
+              No somos comida rápida corporativa. Somos la comida de tu zona, evolucionada.
             </p>
           </div>
         </motion.div>
