@@ -12,7 +12,7 @@ export function AboutSection() {
           className="relative h-[400px] md:h-[600px] rounded-[2rem] overflow-hidden border border-white/10"
         >
           <img 
-            src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80" 
+            src="/historia.png" 
             alt="Ambiente de nuestro restaurante Empatuca" 
             className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
           />

@@ -54,7 +54,7 @@ export function Hero() {
         >
           <div className="aspect-square bg-[#5a0606] rounded-[2rem] md:rounded-[4rem] transform rotate-3 overflow-hidden shadow-2xl border-4 border-[#fac124]/20 relative">
             <img 
-              src="https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80" 
+              src="/empanada%20de%20harina.png" 
               alt="Empanadas doradas y crujientes Empatuca" 
               className="object-cover w-full h-full -rotate-3 scale-110"
             />
@@ -62,8 +62,8 @@ export function Hero() {
           
           {/* Floating badge over image */}
           <div className="absolute -bottom-6 -left-2 md:-left-6 bg-[#fac124] text-[#5a0606] p-4 md:p-6 rounded-2xl shadow-2xl rotate-[-4deg] z-20">
-            <p className="font-black text-2xl md:text-3xl">$1.25</p>
-            <p className="text-[10px] uppercase font-bold tracking-widest">La Empatuca Grande</p>
+            <p className="font-black text-2xl md:text-3xl">$0.75</p>
+            <p className="text-[10px] uppercase font-bold tracking-widest">Empatuca de Harina</p>
           </div>
         </motion.div>
       </div>

@@ -3,11 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Utensils, ShoppingBag, Plus, Minus, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { MapPin, ShoppingBag, Plus, Minus, ArrowRight, CheckCircle2, Utensils } from "lucide-react";
 import { supabase, localOrders, notifyLocalListeners } from "../../lib/supabase";
+import { siteConfig } from "../../../siteConfig";
 
 type Step = 1 | 2 | 3 | 4;
-type OrderType = 'mesa' | 'delivery' | 'llevar';
+type OrderType = 'delivery' | 'llevar' | 'mesa';
 
 interface OrderItem {
   id: string;
@@ -17,69 +19,96 @@ interface OrderItem {
   quantity: number;
 }
 
-export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolean, onClose: () => void, initialProduct: any }) {
+export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }: { isOpen: boolean, onClose: () => void, initialProduct: any, isAdmin?: boolean }) {
   const [step, setStep] = useState<Step>(1);
   const [orderType, setOrderType] = useState<OrderType>('llevar');
-  const [tableNumber, setTableNumber] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<'efectivo' | 'transferencia'>('efectivo');
   const [address, setAddress] = useState("");
+  const [tableNumber, setTableNumber] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [items, setItems] = useState<OrderItem[]>([]);
+  
+  const [aderezos, setAderezos] = useState({
+    ensalada: true,
+    mayonesa: true,
+    aji: true,
+    salsa: true
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
 
-  // Reset state when modal opens with a new product
   useEffect(() => {
     if (isOpen && initialProduct) {
       setStep(1);
       
-      // Determine default size and price
-      let defaultSize = "Empatuca";
-      let defaultPrice = initialProduct.prices.empatuca || 0;
+      const newItems: OrderItem[] = [];
       
-      if (!initialProduct.prices.empatuca) {
-        if (initialProduct.prices.empanita) {
-          defaultSize = "Empanita";
-          defaultPrice = initialProduct.prices.empanita;
-        } else if (initialProduct.prices.estandar) {
-          defaultSize = "Estándar";
-          defaultPrice = initialProduct.prices.estandar;
-        }
+      if (initialProduct.prices.empatuca) {
+        newItems.push({
+          id: `${initialProduct.id}-empatuca`,
+          name: initialProduct.name,
+          size: "Empatuca",
+          price: initialProduct.prices.empatuca,
+          quantity: 1
+        });
+      }
+      
+      if (initialProduct.prices.empanita) {
+        newItems.push({
+          id: `${initialProduct.id}-empanita`,
+          name: initialProduct.name,
+          size: "Empanita",
+          price: initialProduct.prices.empanita,
+          quantity: 0
+        });
       }
 
-      setItems([{
-        id: initialProduct.id,
-        name: initialProduct.name,
-        size: defaultSize,
-        price: defaultPrice,
-        quantity: 1
-      }]);
+      if (!initialProduct.prices.empatuca && initialProduct.prices.estandar) {
+        newItems.push({
+          id: `${initialProduct.id}-estandar`,
+          name: initialProduct.name,
+          size: "Estándar",
+          price: initialProduct.prices.estandar,
+          quantity: 1
+        });
+      }
+
+      siteConfig.menu.filter(item => item.category === 'Bebidas').forEach(drink => {
+        if (drink.id !== initialProduct.id) {
+          newItems.push({
+            id: `${drink.id}-estandar`,
+            name: drink.name,
+            size: "Estándar",
+            price: drink.prices.estandar || 0,
+            quantity: 0
+          });
+        }
+      });
+
+      setItems(newItems);
     }
   }, [isOpen, initialProduct]);
 
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  const updateQuantity = (index: number, delta: number) => {
-    const newItems = [...items];
-    const newQuantity = newItems[index].quantity + delta;
-    if (newQuantity > 0) {
-      newItems[index].quantity = newQuantity;
-      setItems(newItems);
-    }
-  };
-
-  const changeSize = (index: number, newSize: string, newPrice: number) => {
-    const newItems = [...items];
-    newItems[index].size = newSize;
-    newItems[index].price = newPrice;
-    setItems(newItems);
+  const updateQuantity = (id: string, delta: number) => {
+    setItems(items.map(item => {
+      if (item.id === id) {
+        const newQuantity = Math.max(0, item.quantity + delta);
+        return { ...item, quantity: newQuantity };
+      }
+      return item;
+    }));
   };
 
   const handleNext = () => {
     if (step === 1) {
-      if (orderType === 'mesa' && !tableNumber) return;
-      if (orderType === 'delivery' && !address) return;
+      if (total === 0) return;
       setStep(2);
     } else if (step === 2) {
+      if (orderType === 'delivery' && !address) return;
+      if (orderType === 'mesa' && !tableNumber) return;
       setStep(3);
     }
   };
@@ -88,12 +117,16 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
     if (!customerName) return;
     setIsSubmitting(true);
     
+    const selectedItems = items.filter(i => i.quantity > 0);
+
     const newOrder = {
       nombre_cliente: customerName,
       tipo: orderType,
+      metodo_pago: paymentMethod,
       mesa: orderType === 'mesa' ? parseInt(tableNumber) : null,
       direccion_delivery: orderType === 'delivery' ? address : null,
-      productos: items,
+      productos: selectedItems,
+      aderezos,
       total: total,
       estado: 'nuevo'
     };
@@ -108,7 +141,6 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
         if (error) throw error;
         setOrderId(data?.[0]?.numero_pedido || Math.floor(Math.random() * 1000));
       } else {
-        // Fallback local mode
         const mockOrderId = Math.floor(Math.random() * 1000);
         const completeOrder = {
           ...newOrder,
@@ -120,7 +152,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
         notifyLocalListeners();
         setOrderId(mockOrderId);
       }
-      setStep(4); // Success step
+      setStep(4);
     } catch (err) {
       console.error("Error al guardar pedido:", err);
       alert("Hubo un error al enviar tu pedido. Por favor intenta de nuevo.");
@@ -136,30 +168,138 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
       setOrderId(null);
       setCustomerName("");
       setAddress("");
-      setTableNumber("");
+      setAderezos({
+        ensalada: true,
+        mayonesa: true,
+        aji: true,
+        salsa: true
+      });
     }, 300);
   };
 
+  const mainProductItems = items.filter(i => i.id.startsWith(initialProduct?.id));
+  const drinkItems = items.filter(i => !i.id.startsWith(initialProduct?.id));
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && resetAndClose()}>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden rounded-[2rem] bg-white border-none shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-        <div className="bg-[#5a0606] p-6 text-white relative">
+      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden rounded-[2rem] bg-white border-none shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-h-[90vh] flex flex-col">
+        <div className="bg-[#5a0606] p-6 text-white relative shrink-0">
           <DialogTitle className="text-2xl font-bold tracking-tight">
             {step === 4 ? "¡Pedido Confirmado!" : "Tu Pedido"}
           </DialogTitle>
           <DialogDescription className="text-white/80 mt-1">
-            {step === 1 && "Paso 1: ¿Cómo quieres recibir tu comida?"}
-            {step === 2 && "Paso 2: Revisa tu orden"}
+            {step === 1 && "Paso 1: Arma tu pedido"}
+            {step === 2 && "Paso 2: ¿Cómo quieres recibir tu comida?"}
             {step === 3 && "Paso 3: Confirma tus datos"}
             {step === 4 && "¡Gracias por preferir a Empatuca!"}
           </DialogDescription>
         </div>
 
-        <div className="p-6 text-gray-900">
-          {/* STEP 1: Tipo de Pedido */}
-          {step === 1 && (
+        <div className="p-6 text-gray-900 overflow-y-auto">
+          {/* STEP 1: Arma tu pedido */}
+          {step === 1 && initialProduct && (
+            <div className="space-y-8">
+              <div>
+                <h3 className="font-bold text-xl mb-4 text-[#0D0D0D] border-b pb-2">{initialProduct.name}</h3>
+                <div className="space-y-4">
+                  {mainProductItems.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-gray-800">{item.size}</span>
+                        <p className="text-sm text-gray-500">${item.price.toFixed(2)} c/u</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => updateQuantity(item.id, -1)}>
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="font-bold text-xl w-6 text-center">{item.quantity}</span>
+                        <Button variant="outline" size="icon" className="h-10 w-10 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(item.id, 1)}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {initialProduct.category.includes('Empanadas') && (
+                <div>
+                  <h3 className="font-bold text-lg mb-3 text-[#0D0D0D] border-b pb-2">Acompañantes / Aderezos</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox checked={aderezos.ensalada} onCheckedChange={(c) => setAderezos({...aderezos, ensalada: !!c})} />
+                      <span className="text-sm font-medium">Ensalada</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox checked={aderezos.mayonesa} onCheckedChange={(c) => setAderezos({...aderezos, mayonesa: !!c})} />
+                      <span className="text-sm font-medium">Mayonesa</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox checked={aderezos.aji} onCheckedChange={(c) => setAderezos({...aderezos, aji: !!c})} />
+                      <span className="text-sm font-medium">Ají de la casa</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox checked={aderezos.salsa} onCheckedChange={(c) => setAderezos({...aderezos, salsa: !!c})} />
+                      <span className="text-sm font-medium">Salsa de Tomate</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">¿Algo para tomar?</h3>
+                <div className="space-y-4">
+                  {drinkItems.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-gray-800">{item.name}</span>
+                        <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(item.id, -1)}>
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="font-bold text-lg w-4 text-center">{item.quantity}</span>
+                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(item.id, 1)}>
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
+                <span className="text-lg text-gray-500 font-medium">Subtotal:</span>
+                <span className="text-2xl font-bold text-[#5a0606]">${total.toFixed(2)}</span>
+              </div>
+              <Button 
+                onClick={handleNext} 
+                className="w-full h-14 rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg"
+                disabled={total === 0}
+              >
+                Siguiente <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+          )}
+
+          {/* STEP 2: Tipo de Pedido */}
+          {step === 2 && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {isAdmin && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOrderType('mesa')}
+                    className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'mesa' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
+                  >
+                    <Utensils className="h-6 w-6" />
+                    <span>En Mesa</span>
+                  </Button>
+                )}
+
                 <Button
                   type="button"
                   variant="outline"
@@ -178,24 +318,16 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                   <MapPin className="h-6 w-6" />
                   <span>Delivery</span>
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOrderType('mesa')}
-                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'mesa' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
-                >
-                  <Utensils className="h-6 w-6" />
-                  <span>En Mesa</span>
-                </Button>
               </div>
 
+              
               {orderType === 'mesa' && (
                 <div className="space-y-3 animate-in slide-in-from-top-2">
                   <Label htmlFor="table" className="text-base font-semibold">Número de Mesa</Label>
                   <Input 
                     id="table" 
-                    placeholder="Ej: 3" 
-                    type="number" 
+                    type="number"
+                    placeholder="Ej. 1, 2, 3..." 
                     className="h-14 text-lg rounded-xl"
                     value={tableNumber}
                     onChange={(e) => setTableNumber(e.target.value)}
@@ -216,80 +348,18 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                 </div>
               )}
 
-              <Button 
-                onClick={handleNext} 
-                className="w-full h-14 rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg mt-6"
-                disabled={(orderType === 'mesa' && !tableNumber) || (orderType === 'delivery' && !address)}
-              >
-                Siguiente <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-          )}
-
-          {/* STEP 2: Resumen de Productos */}
-          {step === 2 && initialProduct && (
-            <div className="space-y-6">
-              {items.map((item, index) => (
-                <div key={index} className="border border-gray-100 p-4 rounded-xl space-y-4 shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-bold text-lg text-[#0D0D0D]">{item.name}</h4>
-                      <p className="text-sm text-gray-500">{item.size} • ${item.price.toFixed(2)} c/u</p>
-                    </div>
-                    <div className="font-bold text-lg text-[#5a0606]">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </div>
-                  </div>
-
-                  {/* Size selector if it's an empanada */}
-                  {initialProduct.prices.empanita && initialProduct.prices.empatuca && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant={item.size === "Empanita" ? "default" : "outline"}
-                        onClick={() => changeSize(index, "Empanita", initialProduct.prices.empanita)}
-                        className={`flex-1 h-10 ${item.size === "Empanita" ? "bg-[#5a0606] hover:bg-[#5a0606] text-white" : ""}`}
-                        size="sm"
-                      >
-                        Empanita
-                      </Button>
-                      <Button
-                        variant={item.size === "Empatuca" ? "default" : "outline"}
-                        onClick={() => changeSize(index, "Empatuca", initialProduct.prices.empatuca)}
-                        className={`flex-1 h-10 ${item.size === "Empatuca" ? "bg-[#5a0606] hover:bg-[#5a0606] text-white" : ""}`}
-                        size="sm"
-                      >
-                        Empatuca
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Quantity selector */}
-                  <div className="flex items-center justify-between border-t border-gray-50 pt-4 mt-2">
-                    <span className="font-medium">Cantidad</span>
-                    <div className="flex items-center gap-3">
-                      <Button variant="outline" size="icon" className="h-10 w-10 rounded-full" onClick={() => updateQuantity(index, -1)}>
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="font-bold text-xl w-6 text-center">{item.quantity}</span>
-                      <Button variant="outline" size="icon" className="h-10 w-10 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(index, 1)}>
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex justify-between items-center py-4 px-2 border-t border-gray-100">
-                <span className="text-lg text-gray-500 font-medium">Total a pagar:</span>
-                <span className="text-3xl font-bold text-[#5a0606]">${total.toFixed(2)}</span>
-              </div>
-
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-4">
                 <Button variant="outline" onClick={() => setStep(1)} className="h-14 flex-1 rounded-xl font-semibold">
                   Volver
                 </Button>
-                <Button onClick={handleNext} className="h-14 flex-[2] rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg">
-                  Confirmar Pedido
+                <Button 
+                  onClick={handleNext} 
+                  className="w-full h-14 flex-[2] rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg disabled:opacity-50 transition-all"
+                  disabled={(orderType === 'delivery' && !address) || (orderType === 'mesa' && !tableNumber)}
+                >
+                  {orderType === 'delivery' && !address 
+                    ? 'Ingresa tu dirección' 
+                    : <span className="flex items-center justify-center">Siguiente <ArrowRight className="ml-2 h-5 w-5" /></span>}
                 </Button>
               </div>
             </div>
@@ -301,7 +371,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6">
                 <h4 className="font-bold text-gray-700 mb-2">Resumen</h4>
                 <ul className="text-sm text-gray-600 space-y-1 mb-3">
-                  {items.map((item, i) => (
+                  {items.filter(i => i.quantity > 0).map((item, i) => (
                     <li key={i}>{item.quantity}x {item.name} ({item.size})</li>
                   ))}
                 </ul>
@@ -325,6 +395,33 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                 />
               </div>
 
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">Método de Pago</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPaymentMethod('efectivo')}
+                    className={`h-12 rounded-xl border-2 transition-all ${paymentMethod === 'efectivo' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
+                  >
+                    Efectivo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPaymentMethod('transferencia')}
+                    className={`h-12 rounded-xl border-2 transition-all ${paymentMethod === 'transferencia' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
+                  >
+                    Transferencia
+                  </Button>
+                </div>
+                {paymentMethod === 'transferencia' && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    * Si eliges transferencia, por favor recuerda enviar el comprobante de pago por WhatsApp.
+                  </p>
+                )}
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <Button variant="outline" onClick={() => setStep(2)} className="h-14 flex-1 rounded-xl font-semibold">
                   Volver
@@ -334,7 +431,7 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
                   disabled={!customerName || isSubmitting}
                   className="h-14 flex-[2] rounded-xl bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-lg shadow-lg shadow-[#5a0606]/20"
                 >
-                  {isSubmitting ? "Enviando..." : "Enviar a Cocina"}
+                  {isSubmitting ? (isAdmin ? "Enviando..." : "Confirmando...") : (isAdmin ? "Enviar a Cocina" : "Confirmar Pedido")}
                 </Button>
               </div>
             </div>
@@ -349,16 +446,32 @@ export function OrderModal({ isOpen, onClose, initialProduct }: { isOpen: boolea
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold text-[#0D0D0D]">Pedido Recibido</h3>
                 <p className="text-gray-600 max-w-[250px] mx-auto">
-                  Tu pedido ya está en cocina y se preparará lo más pronto posible.
+                  Tu pedido ya está en cola.
                 </p>
               </div>
               
-              <div className="bg-gray-50 px-8 py-4 rounded-2xl border border-gray-100">
+              <div className="bg-gray-50 px-8 py-4 rounded-2xl border border-gray-100 w-full max-w-sm">
                 <p className="text-sm text-gray-500 font-medium mb-1">Tu número de orden es:</p>
                 <p className="text-4xl font-black text-[#5a0606]">#{orderId}</p>
               </div>
 
-              <Button onClick={resetAndClose} className="w-full h-14 rounded-xl font-semibold bg-[#FAFAFA] text-[#0D0D0D] border border-gray-200 hover:bg-gray-100 mt-4">
+              {paymentMethod === 'transferencia' ? (
+                <Button 
+                  onClick={() => {
+                    const msg = `Hola, acabo de realizar el pedido #${orderId} a nombre de ${customerName}. Adjunto mi comprobante de transferencia.`;
+                    window.open(`https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
+                  }} 
+                  className="w-full h-14 rounded-xl font-semibold bg-[#25D366] hover:bg-[#20b858] text-white shadow-lg mt-4"
+                >
+                  Enviar comprobante por WhatsApp
+                </Button>
+              ) : (
+                <p className="text-sm text-gray-500 italic max-w-sm mx-auto mt-4">
+                  Recuerda realizar el pago en efectivo al momento de recibir tu pedido.
+                </p>
+              )}
+
+              <Button onClick={resetAndClose} className="w-full h-14 rounded-xl font-semibold bg-[#FAFAFA] text-[#0D0D0D] border border-gray-200 hover:bg-gray-100 mt-2">
                 Volver al menú
               </Button>
             </div>

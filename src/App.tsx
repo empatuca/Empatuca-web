@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Home from "./pages/Home";
 import Cocina from "./pages/Cocina";
+import Admin from "./pages/Admin";
 
 export default function App() {
   const [currentHash, setCurrentHash] = useState(window.location.hash);
@@ -43,6 +44,10 @@ export default function App() {
 
     return () => observer.disconnect();
   }, [currentHash, isLoading]);
+
+  if (currentHash === "#admin") {
+    return <Admin />;
+  }
 
   if (currentHash === "#cocina") {
     return <Cocina />;

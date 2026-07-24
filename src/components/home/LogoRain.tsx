@@ -7,12 +7,19 @@ export function LogoRain({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (active) {
+      // Adjust quantity and size based on screen width
+      const isMobile = window.innerWidth < 768;
+      const totalDrops = isMobile ? 10 : 35;
+      
       // Create drops with distributed positions to prevent overlap
-      const totalDrops = 35;
       const newDrops = Array.from({ length: totalDrops }).map((_, i) => {
         // Distribute X positions evenly across screen, with a little random jitter
         const segment = 100 / totalDrops;
         const xPos = (i * segment) + (Math.random() * segment);
+        
+        // Adjust sizing limits based on screen size
+        const minSize = isMobile ? 15 : 15;
+        const sizeRange = isMobile ? 30 : 65;
         
         return {
           id: i,
@@ -21,8 +28,8 @@ export function LogoRain({ active }: { active: boolean }) {
           delay: Math.random() * 1.5,
           // Vary duration (speed) significantly (1.5 to 3.5 seconds)
           duration: 1.5 + Math.random() * 2,
-          // Vary size significantly (15px to 80px)
-          size: 15 + Math.random() * 65,
+          // Vary size significantly
+          size: minSize + Math.random() * sizeRange,
           // Random rotation
           rotation: -45 + Math.random() * 90
         };

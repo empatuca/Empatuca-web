@@ -8,7 +8,7 @@ import { motion } from "motion/react";
 import { OrderModal } from "./OrderModal";
 import { LogoRain } from "./LogoRain";
 
-export function MenuSection() {
+export function MenuSection({ isAdmin = false }: { isAdmin?: boolean }) {
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
@@ -92,6 +92,7 @@ export function MenuSection() {
         isOpen={orderModalOpen} 
         onClose={() => { setOrderModalOpen(false); setSelectedProduct(null); }} 
         initialProduct={selectedProduct}
+        isAdmin={isAdmin}
       />
     </section>
   );

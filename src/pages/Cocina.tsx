@@ -210,6 +210,18 @@ export default function Cocina() {
                       </li>
                     ))}
                   </ul>
+                  {order.aderezos && (
+                    <div className="mt-2 text-xs font-medium text-gray-500 bg-black/5 p-2 rounded-lg">
+                      <p className="font-bold mb-1">Aderezos:</p>
+                      <p>
+                        {order.aderezos.ensalada ? '✅ Ensalada ' : '❌ Ensalada '}
+                        {order.aderezos.mayonesa ? '✅ Mayonesa ' : '❌ Mayonesa '}
+                        <br/>
+                        {order.aderezos.aji ? '✅ Ají ' : '❌ Ají '}
+                        {order.aderezos.salsa ? '✅ Salsa' : '❌ Salsa'}
+                      </p>
+                    </div>
+                  )}
                   {order.tipo === 'delivery' && (
                     <div className="mt-3 pt-2 border-t border-gray-100 text-xs">
                       <span className="font-bold">Dir:</span> {order.direccion_delivery}
