@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MapPin, ShoppingBag, Plus, Minus, ArrowRight, CheckCircle2, Utensils } from "lucide-react";
+import { MapPin, ShoppingBag, Plus, Minus, ArrowRight, CheckCircle2, Utensils, Info, MessageCircle, Check } from "lucide-react";
 import { supabase, localOrders, notifyLocalListeners } from "../../lib/supabase";
 import { siteConfig } from "../../../siteConfig";
 
@@ -17,6 +17,9 @@ interface OrderItem {
   size: string;
   price: number;
   quantity: number;
+  isVariant?: boolean;
+  baseId?: string;
+  variantImage?: string;
 }
 
 export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }: { isOpen: boolean, onClose: () => void, initialProduct: any, isAdmin?: boolean }) {
@@ -30,6 +33,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
   const drinksRef = useRef<HTMLDivElement>(null);
 
   const [wantsDrink, setWantsDrink] = useState<boolean | null>(null);
+  const [activeVariantProduct, setActiveVariantProduct] = useState<any>(null);
   
   useEffect(() => {
     if (wantsDrink === true && drinksRef.current) {
@@ -88,13 +92,28 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
 
       siteConfig.menu.filter(item => item.category === 'Bebidas').forEach(drink => {
         if (drink.id !== initialProduct.id) {
-          newItems.push({
-            id: `${drink.id}-estandar`,
-            name: drink.name,
-            size: "Estándar",
-            price: drink.prices.estandar || 0,
-            quantity: 0
-          });
+          if (drink.variants) {
+            drink.variants.forEach(variant => {
+              newItems.push({
+                id: `${drink.id}-estandar-${variant.id}`,
+                name: `${drink.name.replace('🥤', '').trim()} - ${variant.name}`,
+                size: "Estándar",
+                price: drink.prices.estandar || 0,
+                quantity: 0,
+                isVariant: true,
+                baseId: drink.id,
+                variantImage: variant.image
+              });
+            });
+          } else {
+            newItems.push({
+              id: `${drink.id}-estandar`,
+              name: drink.name,
+              size: "Estándar",
+              price: drink.prices.estandar || 0,
+              quantity: 0
+            });
+          }
         }
       });
 
@@ -164,7 +183,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         notifyLocalListeners();
         setOrderId(mockOrderId);
       }
-      setStep(4);
+      setStep(5);
     } catch (err) {
       console.error("Error al guardar pedido:", err);
       alert("Hubo un error al enviar tu pedido. Por favor intenta de nuevo.");
@@ -237,7 +256,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                 </div>
               </div>
 
-              {initialProduct.category.includes('Empanadas') && (
+              {initialProduct?.category?.includes('Empanadas') && (
                 <div>
                   <h3 className="font-bold text-lg mb-3 text-[#0D0D0D] border-b pb-2">Acompañantes / Aderezos</h3>
                   <div className="grid grid-cols-2 gap-3">
@@ -265,76 +284,24 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                 </div>
               )}
 
-              {initialProduct.category.includes('Empanadas') && (
-                <div>
-                  <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">¿Deseas acompañar con una bebida?</h3>
-                  <div className="flex gap-3 mb-4">
-                    <Button 
-                      variant={wantsDrink === false ? "default" : "outline"}
-                      onClick={() => {
-                        setWantsDrink(false);
-                        if (total > 0 && wantsDrink === null) {
-                          setTimeout(() => setStep(2), 150); // slight delay to show selection
-                        }
-                      }} 
-                      className={`flex-1 h-12 rounded-xl transition-all ${wantsDrink === false ? 'bg-[#5a0606] hover:bg-[#4a0505] text-white border-none' : 'border-gray-200 text-gray-700'}`}
-                    >
-                      No, gracias
-                    </Button>
-                    <Button 
-                      variant={wantsDrink === true ? "default" : "outline"}
-                      onClick={() => setWantsDrink(true)} 
-                      className={`flex-1 h-12 rounded-xl transition-all ${wantsDrink === true ? 'bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold border-none' : 'border-gray-200 text-gray-700'}`}
-                    >
-                      Sí, claro
-                    </Button>
-                  </div>
-                  
-                  {wantsDrink === true && (
-                    <div ref={drinksRef} className="space-y-4 animate-in fade-in slide-in-from-top-2 pt-2">
-                      {drinkItems.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between">
-                          <div>
-                            <span className="font-bold text-gray-800">{item.name}</span>
-                            <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(item.id, -1)}>
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <span className="font-bold text-lg w-4 text-center">{item.quantity}</span>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(item.id, 1)}>
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              
               <div className="pt-4 border-t border-gray-100 flex flex-col gap-4">
                 <div className="flex justify-between items-center">
                   <span className="text-lg text-gray-500 font-medium">Subtotal:</span>
                   <span className="text-2xl font-bold text-[#5a0606]">${total.toFixed(2)}</span>
                 </div>
-                  <Button 
-                    onClick={handleNext} 
-                    className="w-full h-14 rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg"
-                    disabled={total === 0}
-                  >
-                    Siguiente <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
+                <Button 
+                  onClick={handleNext} 
+                  className="w-full h-14 rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg"
+                  disabled={total === 0}
+                >
+                  Siguiente <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </div>
-
             </div>
           )}
 
-          
           {/* STEP 2: Bebidas */}
-          {step === 5 && (
+          {step === 2 && (
             <div className="space-y-6">
               <div>
                 <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">¿Deseas acompañar con una bebida?</h3>
@@ -360,26 +327,59 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                 
                 {wantsDrink === true && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                    {drinkItems.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between">
-                        <div>
-                          <span className="font-bold text-gray-800">{item.name}</span>
-                          <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
+                    {siteConfig.menu.filter(item => item.category === 'Bebidas' && item.id !== initialProduct?.id).map((drink) => {
+                      const drinkQuantity = drink.variants 
+                        ? items.filter(i => i.baseId === drink.id).reduce((sum, i) => sum + i.quantity, 0)
+                        : (items.find(i => i.id === `${drink.id}-estandar`)?.quantity || 0);
+
+                      const selectedVariants = drink.variants ? items.filter(i => i.baseId === drink.id && i.quantity > 0) : [];
+
+                      return (
+                        <div key={drink.id} className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="font-bold text-gray-800">{drink.name}</span>
+                              <p className="text-sm text-gray-500">${drink.prices.estandar?.toFixed(2)}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {drink.variants ? (
+                                 <Button variant="outline" className="h-8 rounded-full bg-[#FAFAFA] px-4 font-bold" onClick={() => setActiveVariantProduct(drink)}>
+                                   Elegir <Plus className="h-3 w-3 ml-2" />
+                                 </Button>
+                              ) : (
+                                <>
+                                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(`${drink.id}-estandar`, -1)}>
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                  <span className="font-bold text-lg w-4 text-center">{drinkQuantity}</span>
+                                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(`${drink.id}-estandar`, 1)}>
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          {selectedVariants.map(variant => (
+                            <div key={variant.id} className="flex items-center justify-between pl-6 py-1 border-t border-dashed border-gray-200">
+                               <span className="text-sm font-medium text-gray-600">↳ {variant.name.split('- ')[1] || variant.name}</span>
+                               <div className="flex items-center gap-3">
+                                  <Button variant="outline" size="icon" className="h-6 w-6 rounded-full" onClick={() => updateQuantity(variant.id, -1)}>
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                  <span className="font-bold text-sm w-4 text-center">{variant.quantity}</span>
+                                  <Button variant="outline" size="icon" className="h-6 w-6 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(variant.id, 1)}>
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                               </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(item.id, -1)}>
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="font-bold text-lg w-4 text-center">{item.quantity}</span>
-                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(item.id, 1)}>
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
+
               <div className="pt-4 border-t border-gray-100 flex flex-col gap-4">
                 <div className="flex justify-between items-center">
                   <span className="text-lg text-gray-500 font-medium">Subtotal:</span>
@@ -403,7 +403,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
           )}
 
           {/* STEP 3: Tipo de Pedido */}
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-6">
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -418,7 +418,6 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                     <span>En Mesa</span>
                   </Button>
                 )}
-
                 <Button
                   type="button"
                   variant="outline"
@@ -432,13 +431,12 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                   type="button"
                   variant="outline"
                   onClick={() => setOrderType('delivery')}
-                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'delivery' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
+                  className={`h-24 flex flex-col gap-2 rounded-xl border-2 transition-all ${orderType === 'delivery' ? 'border-[#fac124] bg-[#fac124]/10 text-[#0D0D0D]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
                 >
                   <MapPin className="h-6 w-6" />
                   <span>Delivery</span>
                 </Button>
               </div>
-
               
               {orderType === 'mesa' && (
                 <div className="space-y-3 animate-in slide-in-from-top-2">
@@ -455,117 +453,139 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
               )}
 
               {orderType === 'delivery' && (
-                <div className="space-y-3 animate-in slide-in-from-top-2">
-                  <Label htmlFor="address" className="text-base font-semibold">Dirección de entrega</Label>
-                  <Input 
-                    id="address" 
-                    placeholder="Calle principal, intersección y referencia" 
-                    className="h-14 text-lg rounded-xl"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                  />
+                <div className="space-y-4 animate-in slide-in-from-top-2 bg-blue-50 p-4 rounded-2xl">
+                  <div className="flex items-start gap-3">
+                    <Info className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                    <p className="text-sm text-blue-800 leading-relaxed">
+                      El costo de delivery varía según tu ubicación en Santo Domingo y se calculará por WhatsApp.
+                    </p>
+                  </div>
+                  <div className="space-y-3 pt-2">
+                    <Label htmlFor="address" className="text-base font-semibold text-blue-900">Dirección de Entrega</Label>
+                    <Input 
+                      id="address" 
+                      placeholder="Calle, Barrio, Referencia..." 
+                      className="h-14 text-base rounded-xl border-blue-200 bg-white"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
+                  </div>
                 </div>
               )}
 
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" onClick={() => setStep(initialProduct?.category.includes('Empanadas') ? 2 : 1)} className="h-14 flex-1 rounded-xl font-semibold">
+              <div className="pt-4 border-t border-gray-100 flex gap-3">
+                <Button variant="outline" onClick={() => setStep(2)} className="h-14 flex-1 rounded-xl font-semibold">
                   Volver
                 </Button>
                 <Button 
-                  onClick={handleNext} 
-                  className="w-full h-14 flex-[2] rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg disabled:opacity-50 transition-all"
-                  disabled={(orderType === 'delivery' && !address) || (orderType === 'mesa' && !tableNumber)}
+                  onClick={() => setStep(4)} 
+                  disabled={!orderType || (orderType === 'mesa' && !tableNumber) || (orderType === 'delivery' && !address)}
+                  className="h-14 flex-[2] rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg"
                 >
-                  {orderType === 'delivery' && !address 
-                    ? 'Ingresa tu dirección' 
-                    : <span className="flex items-center justify-center">Siguiente <ArrowRight className="ml-2 h-5 w-5" /></span>}
+                  Siguiente <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             </div>
           )}
 
           {/* STEP 4: Confirmación Final */}
-          {step === 3 && (
+          {step === 4 && (
             <div className="space-y-6">
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6">
-                <h4 className="font-bold text-gray-700 mb-2">Resumen</h4>
-                <ul className="text-sm text-gray-600 space-y-1 mb-3">
-                  {items.filter(i => i.quantity > 0).map((item, i) => (
-                    <li key={i}>{item.quantity}x {item.name} ({item.size})</li>
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                <h4 className="font-bold text-[#0D0D0D] mb-3 pb-2 border-b border-gray-200">Resumen del pedido</h4>
+                <ul className="space-y-3 mb-4">
+                  {items.filter(i => i.quantity > 0).map((item) => (
+                    <li key={item.id} className="flex justify-between items-start text-sm">
+                      <div className="flex-1">
+                        <span className="font-bold text-gray-800">{item.quantity}x</span> {item.name} {item.isVariant ? '' : `(${item.size})`}
+                      </div>
+                      <span className="font-bold text-gray-700 whitespace-nowrap ml-4">${(item.price * item.quantity).toFixed(2)}</span>
+                    </li>
                   ))}
                 </ul>
-                <div className="flex justify-between items-center border-t border-gray-200 pt-2 font-bold text-gray-800">
-                  <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
-                <div className="mt-2 text-xs text-gray-500 uppercase tracking-wide font-semibold">
-                  Modalidad: {orderType === 'mesa' ? `Mesa ${tableNumber}` : orderType === 'delivery' ? `Delivery` : 'Para llevar'}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="name" className="text-base font-semibold">Tu Nombre</Label>
-                <Input 
-                  id="name" 
-                  placeholder="¿Cómo te llamas?" 
-                  className="h-14 text-lg rounded-xl focus-visible:ring-[#5a0606]"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-base font-semibold">Método de Pago</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setPaymentMethod('efectivo')}
-                    className={`h-12 rounded-xl border-2 transition-all ${paymentMethod === 'efectivo' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
-                  >
-                    Efectivo
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setPaymentMethod('transferencia')}
-                    className={`h-12 rounded-xl border-2 transition-all ${paymentMethod === 'transferencia' ? 'border-[#5a0606] bg-[#5a0606]/5 text-[#5a0606]' : 'border-gray-200 hover:border-gray-300 bg-white text-gray-900'}`}
-                  >
-                    Transferencia
-                  </Button>
-                </div>
-                {paymentMethod === 'transferencia' && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    * Si eliges transferencia, por favor recuerda enviar el comprobante de pago por WhatsApp.
-                  </p>
+                
+                {initialProduct?.category?.includes('Empanadas') && (
+                  <div className="mb-4 pt-3 border-t border-gray-200 text-sm">
+                    <span className="font-semibold text-gray-700 block mb-1">Aderezos:</span>
+                    <span className="text-gray-600">
+                      {[
+                        aderezos.ensalada && 'Ensalada', 
+                        aderezos.mayonesa && 'Mayonesa', 
+                        aderezos.aji && 'Ají', 
+                        aderezos.salsa_pina && 'Piña', 
+                        aderezos.salsa_rosada && 'Rosada'
+                      ].filter(Boolean).join(', ') || 'Ninguno'}
+                    </span>
+                  </div>
                 )}
+                
+                <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+                  <span className="font-bold text-gray-600 uppercase tracking-wide text-xs">Total a pagar</span>
+                  <span className="text-2xl font-black text-[#5a0606]">${total.toFixed(2)}</span>
+                </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label htmlFor="name" className="text-base font-semibold">Tu Nombre</Label>
+                  <Input 
+                    id="name" 
+                    placeholder="¿Cómo te llamamos?" 
+                    className="h-14 text-base rounded-xl"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Método de Pago</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setPaymentMethod('efectivo')}
+                      className={`h-16 flex items-center justify-center gap-2 rounded-xl border-2 transition-all ${paymentMethod === 'efectivo' ? 'border-[#fac124] bg-[#fac124]/10 text-[#0D0D0D]' : 'border-gray-200 text-gray-700'}`}
+                    >
+                      <span>Efectivo</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setPaymentMethod('transferencia')}
+                      className={`h-16 flex items-center justify-center gap-2 rounded-xl border-2 transition-all ${paymentMethod === 'transferencia' ? 'border-[#fac124] bg-[#fac124]/10 text-[#0D0D0D]' : 'border-gray-200 text-gray-700'}`}
+                    >
+                      <span>Transferencia</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 flex gap-3">
                 <Button variant="outline" onClick={() => setStep(3)} className="h-14 flex-1 rounded-xl font-semibold">
                   Volver
                 </Button>
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={!customerName || isSubmitting}
-                  className="h-14 flex-[2] rounded-xl bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-lg shadow-lg shadow-[#5a0606]/20"
+                  disabled={!customerName.trim() || !paymentMethod || isSubmitting}
+                  className="h-14 flex-[2] rounded-xl bg-[#25D366] hover:bg-[#20b858] text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all"
                 >
-                  {isSubmitting ? "Confirmando..." : "Confirmar Pedido"}
+                  {isSubmitting ? "Procesando..." : "Enviar Pedido"} <MessageCircle className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             </div>
           )}
 
           {/* STEP 5: Success */}
-          {step === 4 && (
-            <div className="flex flex-col items-center justify-center py-8 text-center space-y-6 animate-in zoom-in-95 duration-500">
-              <div className="h-24 w-24 bg-[#25D366]/10 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="h-12 w-12 text-[#25D366]" />
+          {step === 5 && (
+            <div className="flex flex-col items-center justify-center text-center space-y-6 py-8 animate-in zoom-in-95 duration-500">
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-2">
+                <Check className="h-12 w-12 text-green-600" />
               </div>
+              
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold text-[#0D0D0D]">Pedido Recibido</h3>
-                <p className="text-gray-600 max-w-[250px] mx-auto">
-                  Tu pedido ya está en cola.
+                <h3 className="text-2xl font-black text-[#0D0D0D]">¡Recibimos tu pedido!</h3>
+                <p className="text-gray-500 max-w-sm mx-auto">
+                  Por favor, termina de confirmarlo enviando el mensaje por WhatsApp que se acaba de abrir en tu celular.
                 </p>
               </div>
               
@@ -596,7 +616,48 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
             </div>
           )}
         </div>
+        
+        {/* Variants Sub-modal */}
+        {activeVariantProduct && (
+          <div className="absolute inset-0 z-50 bg-white flex flex-col animate-in slide-in-from-bottom-full duration-300">
+            <div className="bg-[#5a0606] p-4 text-white flex items-center justify-between shrink-0 shadow-md">
+              <h3 className="font-bold text-xl tracking-tight">Elige el sabor</h3>
+              <Button variant="ghost" className="text-white hover:bg-white/20 p-2 h-auto" onClick={() => setActiveVariantProduct(null)}>
+                Cerrar
+              </Button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1 bg-gray-50">
+              <p className="text-gray-600 mb-6 font-medium text-center">Toca la imagen para agregar {activeVariantProduct.name.replace('🥤', '').trim()}</p>
+              <div className="grid grid-cols-2 gap-4">
+                {activeVariantProduct.variants.map((v: any) => {
+                  const variantId = `${activeVariantProduct.id}-estandar-${v.id}`;
+                  const variantQuantity = items.find(i => i.id === variantId)?.quantity || 0;
+                  return (
+                    <div 
+                      key={v.id} 
+                      onClick={() => updateQuantity(variantId, 1)}
+                      className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer border-2 border-transparent hover:border-[#fac124] hover:shadow-lg transition-all relative group"
+                    >
+                      {variantQuantity > 0 && (
+                        <div className="absolute -top-3 -right-3 bg-[#fac124] text-[#5a0606] font-black w-8 h-8 rounded-full flex items-center justify-center shadow-md animate-in zoom-in">
+                          {variantQuantity}
+                        </div>
+                      )}
+                      <img src={`https://placehold.co/200x200/5a0606/fac124?text=${encodeURIComponent(v.name)}`} alt={v.name} className="w-24 h-24 object-cover rounded-xl mb-3 shadow-sm group-hover:scale-105 transition-transform" />
+                      <span className="font-bold text-center text-sm">{v.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="p-4 border-t border-gray-200 bg-white shrink-0">
+              <Button className="w-full h-14 rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg" onClick={() => setActiveVariantProduct(null)}>
+                Listo
+              </Button>
+            </div>
+          </div>
+        )}
       </DialogContent>
-    </Dialog>
+      </Dialog>
   );
 }

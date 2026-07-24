@@ -13,12 +13,7 @@ export function FloatingButtons() {
           Conectar con: Google AI Studio (Gemini)
           Variables: API_KEY, SYSTEM_PROMPT, BUSINESS_DATA
           Este componente está listo para recibir la integración */}
-      <button 
-        className="fixed bottom-20 left-4 z-50 h-12 w-12 rounded-full bg-[#0D0D0D] text-white flex items-center justify-center shadow-lg opacity-50 hover:opacity-100 transition-opacity"
-        title="Asistente Empatuca"
-      >
-        <span className="font-bold text-xs">AI</span>
-      </button>
+      
 
       {/* Floating WhatsApp */}
       <motion.button 

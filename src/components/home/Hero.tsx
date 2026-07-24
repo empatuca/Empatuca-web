@@ -40,15 +40,13 @@ export function Hero() {
             <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">de</motion.span>{" "}
             <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">algo</motion.span>
             <br/>
-            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block text-[#fac124]">rico</motion.span>{" "}
-            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block text-[#fac124]">y</motion.span>{" "}
-            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block text-[#fac124]">grande,</motion.span>
+            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block text-[#fac124]">delicioso,</motion.span>
             <br/>
             <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">ahora</motion.span>{" "}
             <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">mismo?</motion.span>
           </motion.h1>
           <p className="text-lg md:text-xl text-white/60 mb-8 max-w-md leading-snug">
-            Las empanadas pequeñas ya no llenan. Empatuca es la respuesta inmediata al hambre de verdad. Receta familiar desde hace 22 años.
+            Descubre por qué llevamos 22 años siendo el secreto mejor guardado. ¡Pruébalas doraditas, inmensas y listas para sorprenderte en cada mordisco!
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
@@ -58,8 +56,8 @@ export function Hero() {
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="outline" size="lg" className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-[#0D0D0D] rounded-xl px-8 h-14 text-base md:text-lg font-bold transition-all duration-200 uppercase w-full sm:w-auto" asChild>
-                <a href="#menu">Ver el menú</a>
+              <Button onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' })} variant="outline" size="lg" className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-[#0D0D0D] rounded-xl px-8 h-14 text-base md:text-lg font-bold transition-all duration-200 uppercase w-full sm:w-auto">
+                Ver el menú
               </Button>
             </motion.div>
           </div>

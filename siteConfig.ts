@@ -119,6 +119,11 @@ export const siteConfig = {
       prices: {
         estandar: 0.50,
       },
+      variants: [
+        { id: 'coca', name: 'Coca-Cola', image: '/coca.png' },
+        { id: 'fioravanti', name: 'Fioravanti', image: '/fioravanti.png' },
+        { id: 'sprite', name: 'Sprite', image: '/sprite.png' },
+      ]
     },
     {
       id: "beb-yogurt",
@@ -128,6 +133,11 @@ export const siteConfig = {
       prices: {
         estandar: 0.75,
       },
+      variants: [
+        { id: 'mora', name: 'Mora', image: '/yogurt_mora.png' },
+        { id: 'fresa', name: 'Fresa', image: '/yogurt_fresa.png' },
+        { id: 'durazno', name: 'Durazno', image: '/yogurt_durazno.png' },
+      ]
     },
   ],
   stats: [
