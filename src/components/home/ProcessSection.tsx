@@ -55,11 +55,12 @@ export function ProcessSection() {
           {steps.map((step, i) => (
             <motion.div 
               key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15, duration: 0.5 }}
-              className="flex flex-col items-center text-center space-y-4 relative bg-[#0D0D0D] p-8 rounded-[2rem] shadow-2xl border border-white/5 border-b-4 border-b-transparent hover:border-b-[#fac124] hover:-translate-y-2 transition-all duration-300 h-full group"
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              whileHover={{ scale: 1.05, y: -10 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ delay: i * 0.15, type: "spring", stiffness: 100 }}
+              className="flex flex-col items-center text-center space-y-4 relative bg-[#0D0D0D] p-8 rounded-[2rem] shadow-2xl border border-white/5 border-b-4 border-b-[#fac124] transition-colors h-full group"
             >
               <div className="w-20 h-20 rounded-2xl rotate-3 group-hover:rotate-6 transition-transform bg-[#fac124] flex items-center justify-center text-3xl font-black text-[#5a0606] shadow-sm mb-2 shrink-0">
                 {step.number}

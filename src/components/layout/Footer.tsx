@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import { siteConfig } from "../../../siteConfig";
 import { Instagram, Facebook, MessageCircle } from "lucide-react"; // using MessageCircle for TikTok approx
 

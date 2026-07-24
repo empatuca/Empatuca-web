@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { MapPin, ShoppingBag, Plus, Minus, ArrowRight, CheckCircle2, Utensils } 
 import { supabase, localOrders, notifyLocalListeners } from "../../lib/supabase";
 import { siteConfig } from "../../../siteConfig";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 type OrderType = 'delivery' | 'llevar' | 'mesa';
 
 interface OrderItem {
@@ -27,12 +27,24 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
   const [tableNumber, setTableNumber] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [items, setItems] = useState<OrderItem[]>([]);
+  const drinksRef = useRef<HTMLDivElement>(null);
+
+  const [wantsDrink, setWantsDrink] = useState<boolean | null>(null);
+  
+  useEffect(() => {
+    if (wantsDrink === true && drinksRef.current) {
+      setTimeout(() => {
+        drinksRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
+    }
+  }, [wantsDrink]);
   
   const [aderezos, setAderezos] = useState({
     ensalada: true,
     mayonesa: true,
     aji: true,
-    salsa: true
+    salsa_pina: true,
+    salsa_rosada: true
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -168,11 +180,13 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
       setOrderId(null);
       setCustomerName("");
       setAddress("");
+      setWantsDrink(null);
       setAderezos({
         ensalada: true,
         mayonesa: true,
         aji: true,
-        salsa: true
+        salsa_pina: true,
+        salsa_rosada: true
       });
     }, 300);
   };
@@ -189,9 +203,10 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
           </DialogTitle>
           <DialogDescription className="text-white/80 mt-1">
             {step === 1 && "Paso 1: Arma tu pedido"}
-            {step === 2 && "Paso 2: ¿Cómo quieres recibir tu comida?"}
-            {step === 3 && "Paso 3: Confirma tus datos"}
-            {step === 4 && "¡Gracias por preferir a Empatuca!"}
+            {step === 2 && "Paso 2: ¿Algo para tomar?"}
+            {step === 3 && "Paso 3: ¿Cómo quieres recibir tu comida?"}
+            {step === 4 && "Paso 4: Confirma tus datos"}
+            {step === 5 && "¡Gracias por preferir a Empatuca!"}
           </DialogDescription>
         </div>
 
@@ -239,51 +254,155 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                       <span className="text-sm font-medium">Ají de la casa</span>
                     </label>
                     <label className="flex items-center space-x-2 cursor-pointer">
-                      <Checkbox checked={aderezos.salsa} onCheckedChange={(c) => setAderezos({...aderezos, salsa: !!c})} />
-                      <span className="text-sm font-medium">Salsa de Tomate</span>
+                      <Checkbox checked={aderezos.salsa_pina} onCheckedChange={(c) => setAderezos({...aderezos, salsa_pina: !!c})} />
+                      <span className="text-sm font-medium">Salsa de Piña</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox checked={aderezos.salsa_rosada} onCheckedChange={(c) => setAderezos({...aderezos, salsa_rosada: !!c})} />
+                      <span className="text-sm font-medium">Salsa Rosada</span>
                     </label>
                   </div>
                 </div>
               )}
 
-              <div>
-                <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">¿Algo para tomar?</h3>
-                <div className="space-y-4">
-                  {drinkItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between">
-                      <div>
-                        <span className="font-bold text-gray-800">{item.name}</span>
-                        <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(item.id, -1)}>
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="font-bold text-lg w-4 text-center">{item.quantity}</span>
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(item.id, 1)}>
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
+              {initialProduct.category.includes('Empanadas') && (
+                <div>
+                  <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">¿Deseas acompañar con una bebida?</h3>
+                  <div className="flex gap-3 mb-4">
+                    <Button 
+                      variant={wantsDrink === false ? "default" : "outline"}
+                      onClick={() => {
+                        setWantsDrink(false);
+                        if (total > 0 && wantsDrink === null) {
+                          setTimeout(() => setStep(2), 150); // slight delay to show selection
+                        }
+                      }} 
+                      className={`flex-1 h-12 rounded-xl transition-all ${wantsDrink === false ? 'bg-[#5a0606] hover:bg-[#4a0505] text-white border-none' : 'border-gray-200 text-gray-700'}`}
+                    >
+                      No, gracias
+                    </Button>
+                    <Button 
+                      variant={wantsDrink === true ? "default" : "outline"}
+                      onClick={() => setWantsDrink(true)} 
+                      className={`flex-1 h-12 rounded-xl transition-all ${wantsDrink === true ? 'bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold border-none' : 'border-gray-200 text-gray-700'}`}
+                    >
+                      Sí, claro
+                    </Button>
+                  </div>
+                  
+                  {wantsDrink === true && (
+                    <div ref={drinksRef} className="space-y-4 animate-in fade-in slide-in-from-top-2 pt-2">
+                      {drinkItems.map((item) => (
+                        <div key={item.id} className="flex items-center justify-between">
+                          <div>
+                            <span className="font-bold text-gray-800">{item.name}</span>
+                            <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(item.id, -1)}>
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="font-bold text-lg w-4 text-center">{item.quantity}</span>
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(item.id, 1)}>
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
+              )}
+
+              
+              <div className="pt-4 border-t border-gray-100 flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg text-gray-500 font-medium">Subtotal:</span>
+                  <span className="text-2xl font-bold text-[#5a0606]">${total.toFixed(2)}</span>
+                </div>
+                  <Button 
+                    onClick={handleNext} 
+                    className="w-full h-14 rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg"
+                    disabled={total === 0}
+                  >
+                    Siguiente <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
               </div>
 
-              <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
-                <span className="text-lg text-gray-500 font-medium">Subtotal:</span>
-                <span className="text-2xl font-bold text-[#5a0606]">${total.toFixed(2)}</span>
-              </div>
-              <Button 
-                onClick={handleNext} 
-                className="w-full h-14 rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg"
-                disabled={total === 0}
-              >
-                Siguiente <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
             </div>
           )}
 
-          {/* STEP 2: Tipo de Pedido */}
+          
+          {/* STEP 2: Bebidas */}
+          {step === 5 && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">¿Deseas acompañar con una bebida?</h3>
+                <div className="flex gap-3 mb-4">
+                  <Button 
+                    variant={wantsDrink === false ? "default" : "outline"}
+                    onClick={() => {
+                      setWantsDrink(false);
+                      setTimeout(() => setStep(3), 150);
+                    }} 
+                    className={`flex-1 h-12 rounded-xl transition-all ${wantsDrink === false ? 'bg-[#5a0606] hover:bg-[#4a0505] text-white border-none' : 'border-gray-200 text-gray-700'}`}
+                  >
+                    No, gracias
+                  </Button>
+                  <Button 
+                    variant={wantsDrink === true ? "default" : "outline"}
+                    onClick={() => setWantsDrink(true)} 
+                    className={`flex-1 h-12 rounded-xl transition-all ${wantsDrink === true ? 'bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold border-none' : 'border-gray-200 text-gray-700'}`}
+                  >
+                    Sí, claro
+                  </Button>
+                </div>
+                
+                {wantsDrink === true && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                    {drinkItems.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between">
+                        <div>
+                          <span className="font-bold text-gray-800">{item.name}</span>
+                          <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(item.id, -1)}>
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="font-bold text-lg w-4 text-center">{item.quantity}</span>
+                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(item.id, 1)}>
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="pt-4 border-t border-gray-100 flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg text-gray-500 font-medium">Subtotal:</span>
+                  <span className="text-2xl font-bold text-[#5a0606]">${total.toFixed(2)}</span>
+                </div>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setStep(1)} className="h-14 flex-1 rounded-xl font-semibold">
+                    Volver
+                  </Button>
+                  {wantsDrink !== null && (
+                    <Button 
+                      onClick={() => setStep(3)} 
+                      className="h-14 flex-[2] rounded-xl bg-[#fac124] hover:bg-[#eab308] text-[#0D0D0D] font-bold text-lg"
+                    >
+                      Siguiente <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: Tipo de Pedido */}
           {step === 2 && (
             <div className="space-y-6">
               
@@ -349,7 +468,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
               )}
 
               <div className="flex gap-3 pt-4">
-                <Button variant="outline" onClick={() => setStep(1)} className="h-14 flex-1 rounded-xl font-semibold">
+                <Button variant="outline" onClick={() => setStep(initialProduct?.category.includes('Empanadas') ? 2 : 1)} className="h-14 flex-1 rounded-xl font-semibold">
                   Volver
                 </Button>
                 <Button 
@@ -365,7 +484,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
             </div>
           )}
 
-          {/* STEP 3: Confirmación Final */}
+          {/* STEP 4: Confirmación Final */}
           {step === 3 && (
             <div className="space-y-6">
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6">
@@ -423,7 +542,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button variant="outline" onClick={() => setStep(2)} className="h-14 flex-1 rounded-xl font-semibold">
+                <Button variant="outline" onClick={() => setStep(3)} className="h-14 flex-1 rounded-xl font-semibold">
                   Volver
                 </Button>
                 <Button 
@@ -431,13 +550,13 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                   disabled={!customerName || isSubmitting}
                   className="h-14 flex-[2] rounded-xl bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-lg shadow-lg shadow-[#5a0606]/20"
                 >
-                  {isSubmitting ? (isAdmin ? "Enviando..." : "Confirmando...") : (isAdmin ? "Enviar a Cocina" : "Confirmar Pedido")}
+                  {isSubmitting ? "Confirmando..." : "Confirmar Pedido"}
                 </Button>
               </div>
             </div>
           )}
 
-          {/* STEP 4: Success */}
+          {/* STEP 5: Success */}
           {step === 4 && (
             <div className="flex flex-col items-center justify-center py-8 text-center space-y-6 animate-in zoom-in-95 duration-500">
               <div className="h-24 w-24 bg-[#25D366]/10 rounded-full flex items-center justify-center">

@@ -25,7 +25,25 @@ export function MenuSection({ isAdmin = false }: { isAdmin?: boolean }) {
         <Tabs defaultValue={categories[0]} className="w-full">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-6">
             <div>
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight uppercase mb-2">Nuestro Menú</h2>
+              <motion.h2 
+                className="text-3xl md:text-4xl font-black tracking-tight uppercase mb-2 flex flex-wrap"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={{
+                  visible: { transition: { staggerChildren: 0.05 } }
+                }}
+              >
+                {"Nuestro Menú".split("").map((char, index) => (
+                  <motion.span 
+                    key={index} 
+                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                    className={char === " " ? "w-2" : ""}
+                  >
+                    {char}
+                  </motion.span>
+                ))}
+              </motion.h2>
               <div className="h-[3px] w-[60px] bg-[#fac124] mt-2 mb-4"></div>
               <p className="text-sm text-gray-500">
                 Fritas al momento, siempre fresquitas
@@ -56,7 +74,7 @@ export function MenuSection({ isAdmin = false }: { isAdmin?: boolean }) {
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.05, duration: 0.4 }}
                   >
-                    <div className="border border-gray-100 rounded-2xl p-4 border-b-4 border-b-transparent hover:border-b-[#fac124] hover:shadow-lg transition-all duration-200 h-full flex flex-col group cursor-pointer bg-white" onClick={() => handleOrder(product)}>
+                    <motion.div whileHover={{ scale: 1.02, y: -5 }} className="border border-gray-100 rounded-2xl p-4 border-b-4 border-b-transparent hover:border-b-[#fac124] hover:shadow-xl transition-all duration-200 h-full flex flex-col group cursor-pointer bg-white" onClick={() => handleOrder(product)}>
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-black text-lg leading-tight uppercase">{product.name}</h3>
                         {product.prices.empatuca && (
@@ -78,7 +96,7 @@ export function MenuSection({ isAdmin = false }: { isAdmin?: boolean }) {
                           +
                         </button>
                       </div>
-                    </div>
+                    </motion.div>
                   </motion.div>
                 ))}
               </div>

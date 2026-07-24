@@ -28,20 +28,40 @@ export function Hero() {
             22 años de receta familiar
           </span>
           
-          <h1 className="text-4xl md:text-5xl xl:text-6xl font-black leading-[0.95] mb-6 tracking-tighter text-white uppercase">
-            ¿Antojo de algo<br/><span className="text-[#fac124]">rico y grande</span>,<br/>ahora mismo?
-          </h1>
+          <motion.h1 
+            className="text-4xl md:text-5xl xl:text-6xl font-black leading-[0.95] mb-6 tracking-tighter text-white uppercase"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.1 } }
+            }}
+          >
+            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">¿Antojo</motion.span>{" "}
+            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">de</motion.span>{" "}
+            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">algo</motion.span>
+            <br/>
+            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block text-[#fac124]">rico</motion.span>{" "}
+            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block text-[#fac124]">y</motion.span>{" "}
+            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block text-[#fac124]">grande,</motion.span>
+            <br/>
+            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">ahora</motion.span>{" "}
+            <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">mismo?</motion.span>
+          </motion.h1>
           <p className="text-lg md:text-xl text-white/60 mb-8 max-w-md leading-snug">
             Las empanadas pequeñas ya no llenan. Empatuca es la respuesta inmediata al hambre de verdad. Receta familiar desde hace 22 años.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button onClick={handleWhatsApp} size="lg" className="bg-[#25D366] hover:bg-[#20b858] text-white rounded-xl px-8 h-14 text-base md:text-lg font-black shadow-xl uppercase">
-              Quiero mi Tuca ahora
-            </Button>
-            <Button variant="outline" size="lg" className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-[#0D0D0D] rounded-xl px-8 h-14 text-base md:text-lg font-bold transition-all duration-200 uppercase" asChild>
-              <a href="#menu">Ver el menú</a>
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button onClick={handleWhatsApp} size="lg" className="bg-[#25D366] hover:bg-[#20b858] text-white rounded-xl px-8 h-14 text-base md:text-lg font-black shadow-xl uppercase w-full sm:w-auto">
+                Quiero mi Tuca ahora
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button variant="outline" size="lg" className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-[#0D0D0D] rounded-xl px-8 h-14 text-base md:text-lg font-bold transition-all duration-200 uppercase w-full sm:w-auto" asChild>
+                <a href="#menu">Ver el menú</a>
+              </Button>
+            </motion.div>
           </div>
         </motion.div>
 
@@ -61,10 +81,22 @@ export function Hero() {
           </div>
           
           {/* Floating badge over image */}
-          <div className="absolute -bottom-6 -left-2 md:-left-6 bg-[#fac124] text-[#5a0606] p-4 md:p-6 rounded-2xl shadow-2xl rotate-[-4deg] z-20">
-            <p className="font-black text-2xl md:text-3xl">$0.75</p>
+          <motion.div 
+            className="absolute -bottom-6 -left-2 md:-left-6 bg-[#fac124] text-[#5a0606] p-4 md:p-6 rounded-2xl shadow-2xl z-20 origin-bottom-left"
+            initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
+            animate={{ opacity: 1, scale: 1, rotate: -4 }}
+            transition={{ type: "spring", stiffness: 200, delay: 0.6 }}
+            whileHover={{ scale: 1.1, rotate: 0 }}
+          >
+            <motion.p 
+              className="font-black text-2xl md:text-3xl"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
+            >
+              $0.75
+            </motion.p>
             <p className="text-[10px] uppercase font-bold tracking-widest">Empatuca de Harina</p>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>

@@ -84,6 +84,15 @@ export const siteConfig = {
         empatuca: 1.25,
       },
     },
+        {
+      id: "beb-cafe",
+      name: "☕ Café Americano",
+      category: "Bebidas",
+      description: "Café calientito, ideal para acompañar tus empanadas.",
+      prices: {
+        estandar: 0.75,
+      },
+    },
     {
       id: "beb-mora",
       name: "🥤 Jugo de Mora",

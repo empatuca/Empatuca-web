@@ -218,7 +218,9 @@ export default function Cocina() {
                         {order.aderezos.mayonesa ? '✅ Mayonesa ' : '❌ Mayonesa '}
                         <br/>
                         {order.aderezos.aji ? '✅ Ají ' : '❌ Ají '}
-                        {order.aderezos.salsa ? '✅ Salsa' : '❌ Salsa'}
+                        {order.aderezos.salsa_pina ? '✅ Salsa de Piña ' : '❌ Salsa de Piña '}
+                        <br/>
+                        {order.aderezos.salsa_rosada ? '✅ Salsa Rosada' : '❌ Salsa Rosada'}
                       </p>
                     </div>
                   )}

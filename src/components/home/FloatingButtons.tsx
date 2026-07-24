@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import { siteConfig } from "../../../siteConfig";
 import { MessageCircle } from "lucide-react";
 
@@ -20,13 +21,20 @@ export function FloatingButtons() {
       </button>
 
       {/* Floating WhatsApp */}
-      <button 
+      <motion.button 
         onClick={handleWhatsApp}
-        className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-transform whatsapp-pulse"
+        className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-2xl"
         title="Pedir por WhatsApp"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.1, rotate: 10 }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ type: "spring", stiffness: 300, damping: 10 }}
       >
-        <MessageCircle className="h-7 w-7" />
-      </button>
+        <motion.div animate={{ rotate: [0, -10, 10, -10, 10, 0] }} transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}>
+          <MessageCircle className="h-7 w-7" />
+        </motion.div>
+      </motion.button>
     </>
   );
 }
