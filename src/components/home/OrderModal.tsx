@@ -47,7 +47,6 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
     ensalada: true,
     mayonesa: true,
     aji: true,
-    salsa_pina: true,
     salsa_rosada: true
   });
 
@@ -90,29 +89,50 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         });
       }
 
-      siteConfig.menu.filter(item => item.category === 'Bebidas').forEach(drink => {
-        if (drink.id !== initialProduct.id) {
-          if (drink.variants) {
-            drink.variants.forEach(variant => {
+      siteConfig.menu.forEach(item => {
+        if (item.id !== initialProduct.id) {
+          if (item.category.includes('Empanadas')) {
+            if (item.prices.empatuca) {
               newItems.push({
-                id: `${drink.id}-estandar-${variant.id}`,
-                name: `${drink.name.replace('🥤', '').trim()} - ${variant.name}`,
-                size: "Estándar",
-                price: drink.prices.estandar || 0,
-                quantity: 0,
-                isVariant: true,
-                baseId: drink.id,
-                variantImage: variant.image
+                id: `${item.id}-empatuca`,
+                name: item.name,
+                size: "Empatuca",
+                price: item.prices.empatuca,
+                quantity: 0
               });
-            });
-          } else {
-            newItems.push({
-              id: `${drink.id}-estandar`,
-              name: drink.name,
-              size: "Estándar",
-              price: drink.prices.estandar || 0,
-              quantity: 0
-            });
+            }
+            if (item.prices.empanita) {
+              newItems.push({
+                id: `${item.id}-empanita`,
+                name: item.name,
+                size: "Empanita",
+                price: item.prices.empanita,
+                quantity: 0
+              });
+            }
+          } else if (item.category === 'Bebidas') {
+            if (item.variants) {
+              item.variants.forEach(variant => {
+                newItems.push({
+                  id: `${item.id}-estandar-${variant.id}`,
+                  name: `${item.name.replace('🥤', '').trim()} - ${variant.name}`,
+                  size: "Estándar",
+                  price: item.prices.estandar || 0,
+                  quantity: 0,
+                  isVariant: true,
+                  baseId: item.id,
+                  variantImage: variant.image
+                });
+              });
+            } else {
+              newItems.push({
+                id: `${item.id}-estandar`,
+                name: item.name,
+                size: "Estándar",
+                price: item.prices.estandar || 0,
+                quantity: 0
+              });
+            }
           }
         }
       });
@@ -133,6 +153,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
     }));
   };
 
+  const isInitialDrink = initialProduct?.category === 'Bebidas';
   const handleNext = () => {
     if (step === 1) {
       if (total === 0) return;
@@ -149,44 +170,45 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
     setIsSubmitting(true);
     
     const selectedItems = items.filter(i => i.quantity > 0);
+    const orderIdValue = Math.floor(Math.random() * 1000);
+    setOrderId(orderIdValue);
 
-    const newOrder = {
-      nombre_cliente: customerName,
-      tipo: orderType,
-      metodo_pago: paymentMethod,
-      mesa: orderType === 'mesa' ? parseInt(tableNumber) : null,
-      direccion_delivery: orderType === 'delivery' ? address : null,
-      productos: selectedItems,
-      aderezos,
-      total: total,
-      estado: 'nuevo'
-    };
+    let msg = `Hola, quiero hacer un pedido (#${orderIdValue}):\n\n`;
+    selectedItems.forEach(item => {
+      msg += `- ${item.quantity}x ${item.name} ${item.isVariant ? '' : `(${item.size})`} (${(item.price * item.quantity).toFixed(2)})\n`;
+    });
+    msg += `\n`;
+
+    if (initialProduct?.category?.includes('Empanadas')) {
+      const aderezosList = [
+        aderezos.ensalada && 'Ensalada', 
+        aderezos.mayonesa && 'Mayonesa', 
+        aderezos.aji && 'Ají', 
+        aderezos.salsa_rosada && 'Rosada'
+      ].filter(Boolean).join(', ');
+      msg += `Aderezos: ${aderezosList || 'Ninguno'}\n`;
+    }
+
+    msg += `\n*Detalles del pedido:*\n`;
+    msg += `Nombre: ${customerName}\n`;
+    msg += `Tipo: ${orderType === 'llevar' ? 'Para Llevar' : orderType === 'delivery' ? 'Delivery' : 'En Mesa'}\n`;
+    
+    if (orderType === 'mesa') msg += `Mesa: ${tableNumber}\n`;
+    if (orderType === 'delivery') msg += `Dirección: ${address}\n`;
+
+    msg += `Pago: ${paymentMethod === 'efectivo' ? 'Efectivo' : 'Transferencia'}\n`;
+    msg += `Total a pagar: ${total.toFixed(2)}\n`;
+
+    if (paymentMethod === 'transferencia') {
+      msg += `\nAdjunto mi comprobante de transferencia.`;
+    }
 
     try {
-      if (supabase) {
-        const { data, error } = await supabase
-          .from('pedidos')
-          .insert([newOrder])
-          .select('numero_pedido');
-          
-        if (error) throw error;
-        setOrderId(data?.[0]?.numero_pedido || Math.floor(Math.random() * 1000));
-      } else {
-        const mockOrderId = Math.floor(Math.random() * 1000);
-        const completeOrder = {
-          ...newOrder,
-          id: crypto.randomUUID(),
-          numero_pedido: mockOrderId,
-          created_at: new Date().toISOString()
-        };
-        localOrders.unshift(completeOrder);
-        notifyLocalListeners();
-        setOrderId(mockOrderId);
-      }
+      window.open(`https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
       setStep(5);
     } catch (err) {
-      console.error("Error al guardar pedido:", err);
-      alert("Hubo un error al enviar tu pedido. Por favor intenta de nuevo.");
+      console.error("Error al redirigir a WhatsApp:", err);
+      alert("Hubo un error al procesar tu pedido. Por favor intenta de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -204,8 +226,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         ensalada: true,
         mayonesa: true,
         aji: true,
-        salsa_pina: true,
-        salsa_rosada: true
+            salsa_rosada: true
       });
     }, 300);
   };
@@ -272,10 +293,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                       <Checkbox checked={aderezos.aji} onCheckedChange={(c) => setAderezos({...aderezos, aji: !!c})} />
                       <span className="text-sm font-medium">Ají de la casa</span>
                     </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <Checkbox checked={aderezos.salsa_pina} onCheckedChange={(c) => setAderezos({...aderezos, salsa_pina: !!c})} />
-                      <span className="text-sm font-medium">Salsa de Piña</span>
-                    </label>
+
                     <label className="flex items-center space-x-2 cursor-pointer">
                       <Checkbox checked={aderezos.salsa_rosada} onCheckedChange={(c) => setAderezos({...aderezos, salsa_rosada: !!c})} />
                       <span className="text-sm font-medium">Salsa Rosada</span>
@@ -304,7 +322,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">¿Deseas acompañar con una bebida?</h3>
+                <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">{isInitialDrink ? '¿Deseas acompañar con unas empanadas?' : '¿Deseas acompañar con una bebida?'}</h3>
                 <div className="flex gap-3 mb-4">
                   <Button 
                     variant={wantsDrink === false ? "default" : "outline"}
@@ -327,7 +345,43 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                 
                 {wantsDrink === true && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                    {siteConfig.menu.filter(item => item.category === 'Bebidas' && item.id !== initialProduct?.id).map((drink) => {
+                    {siteConfig.menu.filter(item => (isInitialDrink ? item.category.includes('Empanadas') : item.category === 'Bebidas') && item.id !== initialProduct?.id).map((drink) => {
+
+                      if (isInitialDrink) {
+                        return (
+                          <div key={drink.id} className="flex flex-col gap-2 p-3 border rounded-xl bg-gray-50">
+                            <span className="font-bold text-gray-800">{drink.name}</span>
+                            {drink.prices.empatuca && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500">Empatuca - ${drink.prices.empatuca.toFixed(2)}</span>
+                                <div className="flex items-center gap-3">
+                                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(`${drink.id}-empatuca`, -1)}>
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                  <span className="font-bold text-lg w-4 text-center">{items.find(i => i.id === `${drink.id}-empatuca`)?.quantity || 0}</span>
+                                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(`${drink.id}-empatuca`, 1)}>
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                            {drink.prices.empanita && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500">Empanita - ${drink.prices.empanita.toFixed(2)}</span>
+                                <div className="flex items-center gap-3">
+                                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(`${drink.id}-empanita`, -1)}>
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                  <span className="font-bold text-lg w-4 text-center">{items.find(i => i.id === `${drink.id}-empanita`)?.quantity || 0}</span>
+                                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#FAFAFA]" onClick={() => updateQuantity(`${drink.id}-empanita`, 1)}>
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
                       const drinkQuantity = drink.variants 
                         ? items.filter(i => i.baseId === drink.id).reduce((sum, i) => sum + i.quantity, 0)
                         : (items.find(i => i.id === `${drink.id}-estandar`)?.quantity || 0);
@@ -512,8 +566,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                         aderezos.ensalada && 'Ensalada', 
                         aderezos.mayonesa && 'Mayonesa', 
                         aderezos.aji && 'Ají', 
-                        aderezos.salsa_pina && 'Piña', 
-                        aderezos.salsa_rosada && 'Rosada'
+                                        aderezos.salsa_rosada && 'Rosada'
                       ].filter(Boolean).join(', ') || 'Ninguno'}
                     </span>
                   </div>

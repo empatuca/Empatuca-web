@@ -90,7 +90,7 @@ export const siteConfig = {
       category: "Bebidas",
       description: "Café calientito, ideal para acompañar tus empanadas.",
       prices: {
-        estandar: 0.75,
+        estandar: 0.50,
       },
     },
     {
@@ -125,20 +125,7 @@ export const siteConfig = {
         { id: 'sprite', name: 'Sprite', image: '/sprite.png' },
       ]
     },
-    {
-      id: "beb-yogurt",
-      name: "🥤 Yogurt Tradicional",
-      category: "Bebidas",
-      description: "El clásico acompañante de tus empanadas.",
-      prices: {
-        estandar: 0.75,
-      },
-      variants: [
-        { id: 'mora', name: 'Mora', image: '/yogurt_mora.png' },
-        { id: 'fresa', name: 'Fresa', image: '/yogurt_fresa.png' },
-        { id: 'durazno', name: 'Durazno', image: '/yogurt_durazno.png' },
-      ]
-    },
+
   ],
   stats: [
     { value: "22", label: "Años de receta familiar" },
