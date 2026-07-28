@@ -11,7 +11,7 @@ export function Footer() {
             <img src="/logo.svg" alt="Empatuca Logo" className="h-[40px] w-auto" />
           </div>
           <p className="text-white/60 mb-6 max-w-sm">
-            La receta familiar de 22 años que conquistó Santo Domingo.
+            Empanadas doraditas y listas para sorprenderte en cada mordisco.
           </p>
           <div className="flex gap-4">
             <a href={`https://instagram.com/${siteConfig.instagram}`} target="_blank" rel="noreferrer" className="text-white/40 hover:text-[#fac124] transition-colors">

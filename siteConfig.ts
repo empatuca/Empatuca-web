@@ -128,7 +128,7 @@ export const siteConfig = {
 
   ],
   stats: [
-    { value: "22", label: "Años de receta familiar" },
+    { value: "100%", label: "Sabor irresistible" },
     { value: "+3.000", label: "Platos vendidos" },
     { value: "7", label: "Días a la semana" },
     { value: "100%", label: "Delivery propio" }

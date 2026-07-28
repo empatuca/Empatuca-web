@@ -25,7 +25,7 @@ export function Hero() {
           className="lg:col-span-6 xl:col-span-7 flex flex-col justify-center"
         >
           <span className="inline-block px-3 py-1 bg-[#fac124] text-[#5a0606] text-[10px] font-black uppercase tracking-widest rounded-sm mb-4 w-fit">
-            22 años de receta familiar
+            Sabor irresistible todos los días
           </span>
           
           <motion.h1 
@@ -46,7 +46,7 @@ export function Hero() {
             <motion.span variants={{ hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } }} className="inline-block">mismo?</motion.span>
           </motion.h1>
           <p className="text-lg md:text-xl text-white/60 mb-8 max-w-md leading-snug">
-            Descubre por qué llevamos 22 años siendo el secreto mejor guardado. ¡Pruébalas doraditas, inmensas y listas para sorprenderte en cada mordisco!
+            ¡Pruébalas doraditas, inmensas y listas para sorprenderte en cada mordisco!
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">

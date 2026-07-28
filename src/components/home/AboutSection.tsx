@@ -36,12 +36,12 @@ export function AboutSection() {
             Nuestra Historia
           </motion.div>
           <motion.h2 variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-tight uppercase">
-            22 años amasando la tradición
+            Amasando la tradición
           </motion.h2>
           <motion.div variants={{ hidden: { opacity: 0, scale: 0 }, visible: { opacity: 1, scale: 1 } }} className="h-[3px] w-[60px] bg-[#fac124] mt-2 mb-6"></motion.div>
           <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="space-y-4 text-lg text-white/60 leading-relaxed">
             <p>
-              Todo empezó hace más de dos décadas con una receta familiar que rápidamente se convirtió en el secreto mejor guardado de la zona. La gente no venía por empanadas, venía por "las tucas".
+              Todo empezó con una preparación especial que rápidamente se convirtió en un clásico de la zona. La gente no venía por empanadas, venía por "las tucas".
             </p>
             <p>
               Hoy, una nueva generación ha tomado esa misma masa, ese mismo sazón, y lo ha convertido en una marca propia. <strong className="text-white">Empatuca</strong> nace para darte lo que siempre has querido: una empanada que de verdad te llene, doradita por fuera, llena de sabor por dentro, y servida rápido.
