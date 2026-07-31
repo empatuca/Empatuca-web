@@ -384,7 +384,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">{isInitialDrink ? '¿Deseas acompañar con unas empanadas?' : '¿Deseas acompañar con una bebida?'}</h3>
+                <h3 className="font-bold text-lg mb-4 text-[#0D0D0D] border-b pb-2">{'¿Deseas agregar algo más del menú?'}</h3>
                 <div className="flex gap-3 mb-4">
                   <Button 
                     variant={wantsDrink === false ? "default" : "outline"}
@@ -407,12 +407,12 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                 
                 {wantsDrink === true && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                    {siteConfig.menu.filter(item => (isInitialDrink ? item.category.includes('Empanadas') : item.category === 'Bebidas') && item.id !== initialProduct?.id).map((drink) => {
+                    {siteConfig.menu.filter(item => item.id !== initialProduct?.id).map((drink) => {
 
-                      if (isInitialDrink) {
+                      if (drink.category.includes('Empanadas')) {
                         return (
                           <div key={drink.id} className="flex flex-col gap-2 p-3 border rounded-xl bg-gray-50">
-                            <span className="font-bold text-gray-800">{drink.name}</span>
+                            <span className="font-bold text-gray-800">{drink.name} {drink.category.includes('Verde') ? '(Verde)' : '(Harina)'}</span>
                             {drink.prices.empatuca && (
                               <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-500">Empatuca - ${drink.prices.empatuca.toFixed(2)}</span>
