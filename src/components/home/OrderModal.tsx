@@ -213,12 +213,24 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         productos: selectedItems,
         estado: 'nuevo',
         aderezos: initialProduct?.category?.includes('Empanadas') ? aderezos : null,
+        total: total,
+        metodo_pago: paymentMethod,
       };
 
       if (supabase) {
-        const { error } = await supabase.from('pedidos').insert([orderData]);
+        let { error } = await supabase.from('pedidos').insert([orderData]);
+        
+        if (error && error.message && error.message.includes('aderezos')) {
+          const { aderezos, ...fallbackData } = orderData;
+          const retry = await supabase.from('pedidos').insert([fallbackData]);
+          error = retry.error;
+        }
+
         if (error) {
           console.error("Error al guardar en Supabase:", error);
+          alert("Error al procesar el pedido. Intenta nuevamente. Detalle: " + error.message);
+          setIsSubmitting(false);
+          return;
         }
       } else {
         localOrders.push({
@@ -229,7 +241,6 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         notifyLocalListeners();
       }
 
-      window.open(`https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
       setStep(5);
     } catch (err) {
       console.error("Error al redirigir a WhatsApp:", err);
