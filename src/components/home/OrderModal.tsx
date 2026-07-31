@@ -207,6 +207,8 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
       const orderData: any = {
         numero_pedido: orderIdValue,
         nombre_cliente: customerName,
+        tipo: orderType,
+        mesa: orderType === 'mesa' ? parseInt(tableNumber) || null : null,
         direccion_delivery: orderType === 'delivery' ? address : (orderType === 'mesa' ? `Mesa ${tableNumber}` : 'Para Llevar'),
         productos: selectedItems,
         estado: 'nuevo',
