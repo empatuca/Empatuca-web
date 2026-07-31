@@ -52,17 +52,19 @@ export default function App() {
     return () => observer.disconnect();
   }, [currentHash, isLoading]);
 
+  const isStaffRoute = ["#mesa", "#caja", "#cocina"].includes(currentHash);
+  if (isStaffRoute) {
+    if (localStorage.getItem('empatuca_staff_auth') !== 'true') {
+      window.location.hash = '#personal';
+      return null;
+    }
+    if (currentHash === "#mesa") return <Mesa />;
+    if (currentHash === "#caja") return <Caja />;
+    if (currentHash === "#cocina") return <Cocina />;
+  }
+  
   if (currentHash === "#personal") {
     return <StaffLogin />;
-  }
-  if (currentHash === "#mesa") {
-    return <Mesa />;
-  }
-  if (currentHash === "#caja") {
-    return <Caja />;
-  }
-  if (currentHash === "#cocina") {
-    return <Cocina />;
   }
 
   return (

@@ -17,22 +17,11 @@ interface Order {
 }
 
 export default function Cocina() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [pin, setPin] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pin === "1234") {
-      setIsAuthenticated(true);
-    } else {
-      alert("PIN incorrecto");
-    }
-  };
 
   useEffect(() => {
-    if (!isAuthenticated) return;
 
     if (supabase) {
       setLoading(true);
@@ -94,7 +83,7 @@ export default function Cocina() {
         if (index > -1) localListeners.splice(index, 1);
       };
     }
-  }, [isAuthenticated]);
+  }, []);
 
   const markAsReady = async (id: string, currentStatus: string) => {
     if (currentStatus === 'listo') return;
@@ -113,37 +102,7 @@ export default function Cocina() {
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center p-4">
-        <Card className="w-full max-w-sm bg-white rounded-3xl border-none shadow-2xl">
-          <CardContent className="p-8 space-y-6">
-            <div className="text-center space-y-2">
-               <div className="mx-auto flex h-12 w-12 items-center justify-center mb-4">
-                 <img src="/logo_M.svg" alt="M" className="h-full w-auto" />
-              </div>
-              <h1 className="text-2xl font-bold text-[#0D0D0D]">Acceso Cocina</h1>
-              <p className="text-gray-500 text-sm">Ingresa tu PIN de 4 dígitos (Prueba: 1234)</p>
-            </div>
-            
-            <form onSubmit={handleLogin} className="space-y-4">
-              <input 
-                type="password" 
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                className="w-full text-center text-3xl tracking-[1em] h-16 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5a0606]"
-                maxLength={4}
-                autoFocus
-              />
-              <Button type="submit" className="w-full h-14 bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-lg rounded-xl">
-                Ingresar
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+
 
   // Sort orders: new/en_preparacion first, then listos
   const sortedOrders = [...orders].sort((a, b) => {

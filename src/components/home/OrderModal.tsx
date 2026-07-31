@@ -579,7 +579,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                     id="table" 
                     type="number"
                     placeholder="Ej. 1, 2, 3..." 
-                    className="h-14 text-lg rounded-xl"
+                    className="h-14 text-lg rounded-xl text-black"
                     value={tableNumber}
                     onChange={(e) => setTableNumber(e.target.value)}
                   />
@@ -599,7 +599,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                     <Input 
                       id="address" 
                       placeholder="Calle, Barrio, Referencia..." 
-                      className="h-14 text-base rounded-xl border-blue-200 bg-white"
+                      className="h-14 text-base rounded-xl border-blue-200 bg-white text-black"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                     />
@@ -664,7 +664,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                   <Input 
                     id="name" 
                     placeholder="¿Cómo te llamamos?" 
-                    className="h-14 text-base rounded-xl"
+                    className="h-14 text-base rounded-xl text-black"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                   />

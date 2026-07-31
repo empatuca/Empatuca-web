@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
 import { PlusCircle, Clock, CheckCircle2 } from "lucide-react";
-import { MenuSection } from "../components/home/MenuSection";
+import { WaitersPOS } from "../components/home/WaitersPOS";
 import { Button } from "@/components/ui/button";
 
 export default function Mesa() {
@@ -93,7 +93,7 @@ export default function Mesa() {
       </header>
 
       {view === 'nuevo' ? (
-         <MenuSection isAdmin={true} />
+         <WaitersPOS onCancel={() => setView('pedidos')} />
       ) : (
          <div className="container mx-auto p-4 md:p-8">
             {loading ? (

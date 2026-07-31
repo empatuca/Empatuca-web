@@ -11,7 +11,8 @@ export default function StaffLogin() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === "1234") {
+    if (pin === "1718737099CBSC1997") {
+      localStorage.setItem('empatuca_staff_auth', 'true');
       window.location.hash = `#${selectedRole}`;
     } else {
       alert("PIN incorrecto");
@@ -39,8 +40,7 @@ export default function StaffLogin() {
               type="password" 
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              className="w-full text-center text-3xl tracking-[1em] h-16 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5a0606]"
-              maxLength={4}
+              className="w-full text-center text-xl tracking-widest h-16 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5a0606] text-black"
               autoFocus
             />
             <button type="submit" className="w-full h-14 bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-lg rounded-xl">
