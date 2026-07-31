@@ -45,7 +45,18 @@ export default function Cocina() {
           .limit(50);
           
         if (!error && data) {
-          setOrders(data);
+          const parsedData = data.map(order => {
+            let parsedAderezos = order.aderezos;
+            if (typeof parsedAderezos === 'string') {
+              try { parsedAderezos = JSON.parse(parsedAderezos); } catch (e) {}
+            }
+            let parsedProductos = order.productos;
+            if (typeof parsedProductos === 'string') {
+               try { parsedProductos = JSON.parse(parsedProductos); } catch (e) {}
+            }
+            return { ...order, aderezos: parsedAderezos, productos: parsedProductos };
+          });
+          setOrders(parsedData);
         }
         setLoading(false);
       };
@@ -173,7 +184,9 @@ export default function Cocina() {
             <Card 
               key={order.id} 
               className={`rounded-2xl border-none shadow-sm transition-all overflow-hidden ${
-                order.estado === 'listo' 
+                order.estado === 'pendiente_caja'
+                ? 'bg-gray-200 opacity-50'
+                : order.estado === 'listo' 
                 ? 'bg-gray-50 opacity-60' 
                 : 'bg-[#fac124]' // Amarillo alerta para nuevos pedidos
               }`}
@@ -211,17 +224,18 @@ export default function Cocina() {
                     ))}
                   </ul>
                   {order.aderezos && (
-                    <div className="mt-2 text-xs font-medium text-gray-500 bg-black/5 p-2 rounded-lg">
+                    <div className="mt-2 text-xs font-medium text-gray-700 bg-black/5 p-2 rounded-lg">
                       <p className="font-bold mb-1">Aderezos:</p>
-                      <p>
-                        {order.aderezos.ensalada ? '✅ Ensalada ' : '❌ Ensalada '}
-                        {order.aderezos.mayonesa ? '✅ Mayonesa ' : '❌ Mayonesa '}
-                        <br/>
-                        {order.aderezos.aji ? '✅ Ají ' : '❌ Ají '}
-                        {order.aderezos.salsa_pina ? '✅ Salsa de Piña ' : '❌ Salsa de Piña '}
-                        <br/>
-                        {order.aderezos.salsa_rosada ? '✅ Salsa Rosada' : '❌ Salsa Rosada'}
-                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {Object.entries(order.aderezos).map(([key, value]) => {
+                          if (value) {
+                            const name = key === 'salsa_rosada' ? 'Salsa Rosada' : key.charAt(0).toUpperCase() + key.slice(1);
+                            return <span key={key} className="bg-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm">{name}</span>;
+                          }
+                          return null;
+                        })}
+                        {Object.values(order.aderezos).every(v => !v) && <span className="text-gray-400">Sin aderezos</span>}
+                      </div>
                     </div>
                   )}
                   {order.tipo === 'delivery' && (
@@ -231,7 +245,11 @@ export default function Cocina() {
                   )}
                 </div>
 
-                {order.estado !== 'listo' && (
+                {order.estado === 'pendiente_caja' ? (
+                  <div className="w-full h-14 bg-gray-300 text-gray-500 font-bold text-sm rounded-xl flex items-center justify-center uppercase tracking-widest">
+                    Esperando Pago...
+                  </div>
+                ) : order.estado !== 'listo' && (
                   <Button 
                     onClick={() => markAsReady(order.id, order.estado)}
                     className="w-full h-14 bg-[#0D0D0D] hover:bg-gray-800 text-white font-bold text-lg rounded-xl shadow-lg"

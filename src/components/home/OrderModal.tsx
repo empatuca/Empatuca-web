@@ -59,10 +59,16 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
       
       const newItems: OrderItem[] = [];
       
+      const getFormattedName = (item: any) => {
+        if (item.category?.includes('Verde')) return `${item.name} (Verde)`;
+        if (item.category?.includes('Harina')) return `${item.name} (Harina)`;
+        return item.name;
+      };
+
       if (initialProduct.prices.empatuca) {
         newItems.push({
           id: `${initialProduct.id}-empatuca`,
-          name: initialProduct.name,
+          name: getFormattedName(initialProduct),
           size: "Empatuca",
           price: initialProduct.prices.empatuca,
           quantity: 1
@@ -72,7 +78,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
       if (initialProduct.prices.empanita) {
         newItems.push({
           id: `${initialProduct.id}-empanita`,
-          name: initialProduct.name,
+          name: getFormattedName(initialProduct),
           size: "Empanita",
           price: initialProduct.prices.empanita,
           quantity: 0
@@ -82,7 +88,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
       if (!initialProduct.prices.empatuca && initialProduct.prices.estandar) {
         newItems.push({
           id: `${initialProduct.id}-estandar`,
-          name: initialProduct.name,
+          name: getFormattedName(initialProduct),
           size: "Estándar",
           price: initialProduct.prices.estandar,
           quantity: 1
@@ -95,7 +101,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
             if (item.prices.empatuca) {
               newItems.push({
                 id: `${item.id}-empatuca`,
-                name: item.name,
+                name: getFormattedName(item),
                 size: "Empatuca",
                 price: item.prices.empatuca,
                 quantity: 0
@@ -104,7 +110,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
             if (item.prices.empanita) {
               newItems.push({
                 id: `${item.id}-empanita`,
-                name: item.name,
+                name: getFormattedName(item),
                 size: "Empanita",
                 price: item.prices.empanita,
                 quantity: 0
@@ -211,7 +217,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         mesa: orderType === 'mesa' ? parseInt(tableNumber) || null : null,
         direccion_delivery: orderType === 'delivery' ? address : (orderType === 'mesa' ? `Mesa ${tableNumber}` : 'Para Llevar'),
         productos: selectedItems,
-        estado: 'nuevo',
+        estado: isAdmin ? 'nuevo' : 'pendiente_caja',
         aderezos: initialProduct?.category?.includes('Empanadas') ? (typeof aderezos === 'object' ? JSON.stringify(aderezos) : aderezos) : null,
         total: total,
         metodo_pago: paymentMethod,

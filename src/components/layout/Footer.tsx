@@ -32,7 +32,7 @@ export function Footer() {
             <li><a href="#inicio" className="hover:text-white transition-colors">Inicio</a></li>
             <li><a href="#menu" className="hover:text-white transition-colors">Nuestro Menú</a></li>
             <li><a href="#nosotros" className="hover:text-white transition-colors">Historia</a></li>
-            <li><a href="#cocina" className="hover:text-white transition-colors">Acceso Cocina</a></li>
+            <li><a href="#personal" className="hover:text-white transition-colors">Acceso Personal</a></li>
           </ul>
         </div>
 
