@@ -86,7 +86,7 @@ export const siteConfig = {
     },
         {
       id: "beb-cafe",
-      name: "☕ Café Americano",
+      name: "☕ Café Tradicional",
       category: "Bebidas",
       description: "Café calientito, ideal para acompañar tus empanadas.",
       prices: {
