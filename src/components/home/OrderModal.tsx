@@ -219,8 +219,6 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         const { error } = await supabase.from('pedidos').insert([orderData]);
         if (error) {
           console.error("Error al guardar en Supabase:", error);
-          alert("Error de base de datos: " + error.message + "\n\nPor favor, asegúrate de haber ejecutado el script SQL en Supabase para crear la tabla 'pedidos' y deshabilitar RLS.");
-          return;
         }
       } else {
         localOrders.push({
@@ -231,6 +229,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         notifyLocalListeners();
       }
 
+      window.open(`https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
       setStep(5);
     } catch (err) {
       console.error("Error al redirigir a WhatsApp:", err);
