@@ -33,6 +33,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
   const drinksRef = useRef<HTMLDivElement>(null);
 
   const [wantsDrink, setWantsDrink] = useState<boolean | null>(null);
+  const [extraCategory, setExtraCategory] = useState<string | null>(null);
   const [activeVariantProduct, setActiveVariantProduct] = useState<any>(null);
   
   useEffect(() => {
@@ -56,6 +57,8 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
   useEffect(() => {
     if (isOpen && initialProduct) {
       setStep(1);
+      setWantsDrink(null);
+      setExtraCategory(null);
       
       const newItems: OrderItem[] = [];
       
@@ -407,8 +410,20 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                 
                 {wantsDrink === true && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                    {siteConfig.menu.filter(item => item.id !== initialProduct?.id).map((drink) => {
-
+                    {!extraCategory ? (
+                      <div className="grid grid-cols-1 gap-3">
+                        {['Empanadas de Verde', 'Empanadas de Harina', 'Bebidas'].map(cat => (
+                          <Button key={cat} variant="outline" onClick={() => setExtraCategory(cat)} className="h-16 justify-between font-bold text-lg rounded-xl border-2 hover:border-[#fac124] hover:bg-[#fac124]/10 transition-colors bg-white">
+                            {cat} <ArrowRight className="h-5 w-5 text-gray-400" />
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-4 animate-in slide-in-from-right-2">
+                        <Button variant="ghost" onClick={() => setExtraCategory(null)} className="mb-2 -ml-4 text-gray-500 font-bold uppercase tracking-wider text-xs hover:text-black">
+                          ← Volver a categorías
+                        </Button>
+                        {siteConfig.menu.filter(item => item.id !== initialProduct?.id && item.category === extraCategory).map((drink) => {
                       if (drink.category.includes('Empanadas')) {
                         return (
                           <div key={drink.id} className="flex flex-col gap-2 p-3 border rounded-xl bg-gray-50">
@@ -444,6 +459,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                           </div>
                         );
                       }
+
                       const drinkQuantity = drink.variants 
                         ? items.filter(i => i.baseId === drink.id).reduce((sum, i) => sum + i.quantity, 0)
                         : (items.find(i => i.id === `${drink.id}-estandar`)?.quantity || 0);
@@ -492,6 +508,8 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                         </div>
                       );
                     })}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
