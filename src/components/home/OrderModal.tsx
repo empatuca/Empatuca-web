@@ -220,6 +220,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         if (error) {
           console.error("Error al guardar en Supabase:", error);
           alert("Error de base de datos: " + error.message + "\n\nPor favor, asegúrate de haber ejecutado el script SQL en Supabase para crear la tabla 'pedidos' y deshabilitar RLS.");
+          return;
         }
       } else {
         localOrders.push({
@@ -230,7 +231,6 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         notifyLocalListeners();
       }
 
-      window.open(`https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
       setStep(5);
     } catch (err) {
       console.error("Error al redirigir a WhatsApp:", err);
@@ -664,7 +664,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
               <div className="space-y-2">
                 <h3 className="text-2xl font-black text-[#0D0D0D]">¡Recibimos tu pedido!</h3>
                 <p className="text-gray-500 max-w-sm mx-auto">
-                  Por favor, termina de confirmarlo enviando el mensaje por WhatsApp que se acaba de abrir en tu celular.
+                  Tu pedido ha sido enviado a la cocina y pronto estará en preparación.
                 </p>
               </div>
               
