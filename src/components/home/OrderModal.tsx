@@ -218,17 +218,15 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
       };
 
       if (supabase) {
-        let { error } = await supabase.from('pedidos').insert([orderData]);
-        
-        if (error && error.message && error.message.includes('aderezos')) {
-          const { aderezos, ...fallbackData } = orderData;
-          const retry = await supabase.from('pedidos').insert([fallbackData]);
-          error = retry.error;
-        }
+        const { error } = await supabase.from('pedidos').insert([orderData]);
 
         if (error) {
           console.error("Error al guardar en Supabase:", error);
-          alert("Error al procesar el pedido. Intenta nuevamente. Detalle: " + error.message);
+          let errorMessage = error.message;
+          if (errorMessage && errorMessage.includes('schema cache')) {
+            errorMessage += "\n\nSolución: Ve a Supabase > SQL Editor y ejecuta:\nNOTIFY pgrst, 'reload schema';";
+          }
+          alert("Error al guardar en Supabase:\n" + errorMessage);
           setIsSubmitting(false);
           return;
         }
