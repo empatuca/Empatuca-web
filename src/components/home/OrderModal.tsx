@@ -204,29 +204,49 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
     }
 
     try {
-      const orderData = {
+      const orderData: any = {
         numero_pedido: orderIdValue,
         nombre_cliente: customerName,
-        tipo: orderType,
-        mesa: orderType === 'mesa' ? parseInt(tableNumber) || null : null,
-        direccion_delivery: orderType === 'delivery' ? address : null,
+        direccion_delivery: orderType === 'delivery' ? address : (orderType === 'mesa' ? `Mesa ${tableNumber}` : 'Para Llevar'),
         productos: selectedItems,
         estado: 'nuevo',
-        aderezos: initialProduct?.category?.includes('Empanadas') ? aderezos : null,
+        aderezos: initialProduct?.category?.includes('Empanadas') ? (typeof aderezos === 'object' ? JSON.stringify(aderezos) : aderezos) : null,
         total: total,
         metodo_pago: paymentMethod,
       };
 
       if (supabase) {
-        const { error } = await supabase.from('pedidos').insert([orderData]);
+        // Asegurar que productos sea compatible con JSONB (array normal, si la columna es JSONB funciona directo)
+        // En algunos casos Supabase prefiere JSON serializado si la columna es de texto.
+        
+        const payload = { ...orderData };
+        let { error } = await supabase.from('pedidos').insert([payload]);
 
         if (error) {
-          console.error("Error al guardar en Supabase:", error);
-          let errorMessage = error.message;
+          // Si el error es sobre el tipo de dato de productos (texto en lugar de jsonb)
+          if (error.message && error.message.includes('invalid input syntax')) {
+            payload.productos = JSON.stringify(payload.productos);
+            const retry = await supabase.from('pedidos').insert([payload]);
+            error = retry.error;
+          }
+        }
+
+        if (error) {
+          let errorMessage = error.message || JSON.stringify(error);
+          
+          if (error.code === '42501' || errorMessage.includes('permission denied') || errorMessage.includes('RLS')) {
+             alert("🔐 Error de Permisos en Supabase (RLS)\n\nLa tabla 'pedidos' tiene Row Level Security activado y no permite insertar datos.\n\nPara solucionarlo:\n1. Ve a tu panel de Supabase\n2. Entra al Table Editor -> pedidos\n3. Haz clic donde dice 'RLS' en la parte superior derecha\n4. Selecciona 'Disable RLS' (o crea una política que permita INSERT a roles 'anon').");
+             setIsSubmitting(false);
+             return;
+          }
+          
+          console.warn("Error al guardar en Supabase:", error);
+
           if (errorMessage && errorMessage.includes('schema cache')) {
             errorMessage += "\n\nSolución: Ve a Supabase > SQL Editor y ejecuta:\nNOTIFY pgrst, 'reload schema';";
           }
-          alert("Error al guardar en Supabase:\n" + errorMessage);
+          
+          alert("Error al guardar en Supabase:\n" + errorMessage + "\n\nAsegúrate de que las columnas de tu tabla sean: id, numero_pedido, nombre_cliente, direccion_delivery, productos, total, estado, aderezos, metodo_pago, created_at.");
           setIsSubmitting(false);
           return;
         }
