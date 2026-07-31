@@ -40,7 +40,7 @@ export default function StaffLogin() {
               type="password" 
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              className="w-full text-center text-xl tracking-widest h-16 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5a0606] text-black"
+              className="w-full bg-white text-gray-900 text-center text-xl tracking-widest h-16 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5a0606]"
               autoFocus
             />
             <button type="submit" className="w-full h-14 bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-lg rounded-xl">

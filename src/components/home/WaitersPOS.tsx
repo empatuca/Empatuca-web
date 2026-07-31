@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { siteConfig } from "../../../siteConfig";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, CheckCircle2, ShoppingCart, Info, Check, Trash2, X } from "lucide-react";
+import { Plus, Minus, CheckCircle2, ShoppingCart, Info, Check, Trash2, X, ChevronUp } from "lucide-react";
 import { supabase, localOrders, notifyLocalListeners } from "../../lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ export function WaitersPOS({ onCancel }: { onCancel: () => void }) {
   const [aderezos, setAderezos] = useState({ ensalada: true, mayonesa: true, aji: true, salsa_rosada: true });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const updateQuantity = (id: string, name: string, size: string, price: number, delta: number) => {
     setItems(prev => {
@@ -115,7 +116,7 @@ export function WaitersPOS({ onCancel }: { onCancel: () => void }) {
                     <div className="flex items-center justify-between border-t border-dashed pt-2">
                       <span className="text-sm font-semibold text-gray-600">Empatuca (${product.prices.empatuca.toFixed(2)})</span>
                       <div className="flex items-center gap-3">
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(`${product.id}-empatuca`, product.name, "Empatuca", product.prices.empatuca, -1)}>
+                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-gray-100 text-gray-700 border-none" onClick={() => updateQuantity(`${product.id}-empatuca`, product.name, "Empatuca", product.prices.empatuca, -1)}>
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span className="font-bold text-lg w-4 text-center">{items.find(i => i.id === `${product.id}-empatuca`)?.quantity || 0}</span>
@@ -129,7 +130,7 @@ export function WaitersPOS({ onCancel }: { onCancel: () => void }) {
                     <div className="flex items-center justify-between border-t border-dashed pt-2">
                       <span className="text-sm font-semibold text-gray-600">Empanita (${product.prices.empanita.toFixed(2)})</span>
                       <div className="flex items-center gap-3">
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(`${product.id}-empanita`, product.name, "Empanita", product.prices.empanita, -1)}>
+                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-gray-100 text-gray-700 border-none" onClick={() => updateQuantity(`${product.id}-empanita`, product.name, "Empanita", product.prices.empanita, -1)}>
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span className="font-bold text-lg w-4 text-center">{items.find(i => i.id === `${product.id}-empanita`)?.quantity || 0}</span>
@@ -143,7 +144,7 @@ export function WaitersPOS({ onCancel }: { onCancel: () => void }) {
                     <div className="flex items-center justify-between border-t border-dashed pt-2">
                       <span className="text-sm font-semibold text-gray-600">Unidad (${product.prices.estandar.toFixed(2)})</span>
                       <div className="flex items-center gap-3">
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateQuantity(`${product.id}-estandar`, product.name, "Unidad", product.prices.estandar, -1)}>
+                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-gray-100 text-gray-700 border-none" onClick={() => updateQuantity(`${product.id}-estandar`, product.name, "Unidad", product.prices.estandar, -1)}>
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span className="font-bold text-lg w-4 text-center">{items.find(i => i.id === `${product.id}-estandar`)?.quantity || 0}</span>
@@ -160,11 +161,31 @@ export function WaitersPOS({ onCancel }: { onCancel: () => void }) {
         ))}
       </div>
 
+            {/* MOBILE CART OVERLAY */}
+      {isCartOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden" 
+          onClick={() => setIsCartOpen(false)}
+        />
+      )}
+
       {/* CART */}
-      <div className="flex-1 bg-white rounded-3xl shadow-xl border-2 border-gray-100 flex flex-col overflow-hidden max-w-sm shrink-0">
-        <div className="bg-[#5a0606] text-white p-4 font-black uppercase flex items-center justify-between">
-           <span className="flex items-center gap-2"><ShoppingCart className="h-5 w-5" /> Orden</span>
-           <span>${total.toFixed(2)}</span>
+      <div className={`fixed md:relative bottom-0 left-0 right-0 z-50 md:z-auto w-full md:w-[350px] bg-white rounded-t-3xl md:rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-xl border-t-2 md:border-2 border-gray-100 flex flex-col shrink-0 transition-transform duration-300 ${isCartOpen ? 'translate-y-0 h-[85vh]' : 'translate-y-[calc(100%-72px)]'} md:translate-y-0 md:h-auto`}>
+        <div 
+          className="bg-[#5a0606] text-white p-4 h-[72px] font-black uppercase flex items-center justify-between cursor-pointer md:cursor-default shrink-0"
+          onClick={() => setIsCartOpen(!isCartOpen)}
+        >
+           <div className="flex items-center gap-3">
+             <ShoppingCart className="h-6 w-6" />
+             <div className="flex flex-col leading-tight">
+               <span>Orden</span>
+               <span className="text-[10px] text-white/70 md:hidden normal-case">{items.length} productos</span>
+             </div>
+           </div>
+           <div className="flex items-center gap-3">
+             <span className="text-xl">${total.toFixed(2)}</span>
+             <ChevronUp className={`h-5 w-5 md:hidden transition-transform ${isCartOpen ? 'rotate-180' : ''}`} />
+           </div>
         </div>
         
         <div className="p-4 flex-1 overflow-y-auto bg-gray-50 space-y-4">
