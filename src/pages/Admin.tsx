@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { MenuSection } from "../components/home/MenuSection";
 
 export default function Admin() {

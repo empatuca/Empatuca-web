@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase, localOrders, localListeners } from "../lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

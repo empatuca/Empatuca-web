@@ -204,6 +204,32 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
     }
 
     try {
+      const orderData = {
+        numero_pedido: orderIdValue,
+        nombre_cliente: customerName,
+        tipo: orderType,
+        mesa: orderType === 'mesa' ? parseInt(tableNumber) || null : null,
+        direccion_delivery: orderType === 'delivery' ? address : null,
+        productos: selectedItems,
+        estado: 'nuevo',
+        aderezos: initialProduct?.category?.includes('Empanadas') ? aderezos : null,
+      };
+
+      if (supabase) {
+        const { error } = await supabase.from('pedidos').insert([orderData]);
+        if (error) {
+          console.error("Error al guardar en Supabase:", error);
+          alert("Error de base de datos: " + error.message + "\n\nPor favor, asegúrate de haber ejecutado el script SQL en Supabase para crear la tabla 'pedidos' y deshabilitar RLS.");
+        }
+      } else {
+        localOrders.push({
+          id: Math.random().toString(36).substr(2, 9),
+          ...orderData,
+          created_at: new Date().toISOString()
+        });
+        notifyLocalListeners();
+      }
+
       window.open(`https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
       setStep(5);
     } catch (err) {
