@@ -119,7 +119,7 @@ export function WaitersPOS({ onCancel }: { onCancel: () => void }) {
                         <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-gray-100 text-gray-700 border-none" onClick={() => updateQuantity(`${product.id}-empatuca`, product.name, "Empatuca", product.prices.empatuca, -1)}>
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="font-bold text-lg w-4 text-center">{items.find(i => i.id === `${product.id}-empatuca`)?.quantity || 0}</span>
+                        <span className="font-bold text-lg w-6 text-center text-black">{items.find(i => i.id === `${product.id}-empatuca`)?.quantity || 0}</span>
                         <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#fac124] text-black border-none" onClick={() => updateQuantity(`${product.id}-empatuca`, product.name, "Empatuca", product.prices.empatuca, 1)}>
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -133,7 +133,7 @@ export function WaitersPOS({ onCancel }: { onCancel: () => void }) {
                         <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-gray-100 text-gray-700 border-none" onClick={() => updateQuantity(`${product.id}-empanita`, product.name, "Empanita", product.prices.empanita, -1)}>
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="font-bold text-lg w-4 text-center">{items.find(i => i.id === `${product.id}-empanita`)?.quantity || 0}</span>
+                        <span className="font-bold text-lg w-6 text-center text-black">{items.find(i => i.id === `${product.id}-empanita`)?.quantity || 0}</span>
                         <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#fac124] text-black border-none" onClick={() => updateQuantity(`${product.id}-empanita`, product.name, "Empanita", product.prices.empanita, 1)}>
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -147,7 +147,7 @@ export function WaitersPOS({ onCancel }: { onCancel: () => void }) {
                         <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-gray-100 text-gray-700 border-none" onClick={() => updateQuantity(`${product.id}-estandar`, product.name, "Unidad", product.prices.estandar, -1)}>
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="font-bold text-lg w-4 text-center">{items.find(i => i.id === `${product.id}-estandar`)?.quantity || 0}</span>
+                        <span className="font-bold text-lg w-6 text-center text-black">{items.find(i => i.id === `${product.id}-estandar`)?.quantity || 0}</span>
                         <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#fac124] text-black border-none" onClick={() => updateQuantity(`${product.id}-estandar`, product.name, "Unidad", product.prices.estandar, 1)}>
                           <Plus className="h-4 w-4" />
                         </Button>
