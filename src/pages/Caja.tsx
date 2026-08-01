@@ -83,7 +83,11 @@ export default function Caja() {
              <DollarSign className="w-6 h-6 text-green-300" />
              <h1 className="text-xl font-black uppercase tracking-tight">Caja</h1>
           </div>
-          <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors">Salir</a>
+          <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors" onClick={() => {
+            localStorage.removeItem('empatuca_staff_auth');
+            localStorage.removeItem('empatuca_staff_role');
+            sessionStorage.removeItem('empatuca_staff_auth');
+          }}>Salir</a>
         </div>
       </header>
 

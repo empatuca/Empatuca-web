@@ -4,6 +4,15 @@ import { UtensilsCrossed, MonitorCheck, DollarSign } from "lucide-react";
 export default function StaffLogin() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [pin, setPin] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Check if already remembered
+  useEffect(() => {
+    const rememberedRole = localStorage.getItem("empatuca_staff_role");
+    if (rememberedRole && localStorage.getItem("empatuca_staff_auth") === "true") {
+      window.location.hash = `#${rememberedRole}`;
+    }
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -12,7 +21,12 @@ export default function StaffLogin() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (pin === "1718737099CBSC1997") {
-      localStorage.setItem('empatuca_staff_auth', 'true');
+      if (rememberMe) {
+        localStorage.setItem('empatuca_staff_auth', 'true');
+        localStorage.setItem('empatuca_staff_role', selectedRole || '');
+      } else {
+        sessionStorage.setItem('empatuca_staff_auth', 'true');
+      }
       window.location.hash = `#${selectedRole}`;
     } else {
       alert("PIN incorrecto");
@@ -43,6 +57,15 @@ export default function StaffLogin() {
               className="w-full bg-white text-gray-900 text-center text-xl tracking-widest h-16 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5a0606]"
               autoFocus
             />
+            <label className="flex items-center space-x-2 cursor-pointer mt-2">
+              <input 
+                type="checkbox" 
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-[#5a0606] rounded border-gray-300 focus:ring-[#5a0606]"
+              />
+              <span className="text-sm text-gray-600">Mantener sesión iniciada</span>
+            </label>
             <button type="submit" className="w-full h-14 bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-lg rounded-xl">
               Ingresar
             </button>

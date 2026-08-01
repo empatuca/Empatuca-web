@@ -54,7 +54,7 @@ export default function App() {
 
   const isStaffRoute = ["#mesa", "#caja", "#cocina"].includes(currentHash);
   if (isStaffRoute) {
-    if (localStorage.getItem('empatuca_staff_auth') !== 'true') {
+    if (localStorage.getItem('empatuca_staff_auth') !== 'true' && sessionStorage.getItem('empatuca_staff_auth') !== 'true') {
       window.location.hash = '#personal';
       return null;
     }

@@ -88,7 +88,11 @@ export default function Mesa() {
                 </button>
              )}
           </div>
-          <a href="#personal" className="text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors">Salir</a>
+          <a href="#personal" className="text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors" onClick={() => {
+            localStorage.removeItem('empatuca_staff_auth');
+            localStorage.removeItem('empatuca_staff_role');
+            sessionStorage.removeItem('empatuca_staff_auth');
+          }}>Salir</a>
         </div>
       </header>
 
