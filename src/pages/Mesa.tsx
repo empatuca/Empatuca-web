@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
 import { PlusCircle, Clock, CheckCircle2 } from "lucide-react";
 import { WaitersPOS } from "../components/home/WaitersPOS";
 import { Button } from "@/components/ui/button";
+import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
+import { Trash2 } from "lucide-react";
 
 export default function Mesa() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -57,6 +58,21 @@ export default function Mesa() {
       return () => window.removeEventListener('localOrdersUpdated', handleLocalUpdate);
     }
   }, [isSupabaseConfigured]);
+
+  
+  const deleteOrder = async (id: string) => {
+    if (confirm('¿Estás seguro de que deseas eliminar este pedido?')) {
+      if (isSupabaseConfigured && supabase) {
+        await supabase.from('pedidos').delete().eq('id', id);
+      } else {
+        const index = localOrders.findIndex(o => o.id === id);
+        if (index > -1) {
+          localOrders.splice(index, 1);
+          notifyLocalListeners();
+        }
+      }
+    }
+  };
 
   const markAsReady = async (id: string, currentStatus: string) => {
      // Mesa doesn't mark as ready, they just see it? 
@@ -125,10 +141,15 @@ export default function Mesa() {
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="font-black text-3xl">#{order.numero_pedido}</h3>
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-black text-3xl">#{order.numero_pedido}</h3>
+                          <button onClick={() => deleteOrder(order.id)} className="text-red-300 hover:text-red-500 transition-colors shrink-0" title="Eliminar/Rechazar Pedido">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
                         <p className="text-sm font-bold text-gray-600 uppercase mt-1">{order.nombre_cliente}</p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase \${
+                      <span className={`px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase ${
                          order.tipo === 'delivery' ? 'bg-purple-100 text-purple-800' :
                          order.tipo === 'mesa' ? 'bg-blue-100 text-blue-800' :
                          'bg-[#5a0606] text-white'

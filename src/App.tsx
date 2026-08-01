@@ -18,6 +18,10 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (window.location.hash && !['#mesa', '#caja', '#cocina', '#personal'].includes(window.location.hash)) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      setCurrentHash('');
+    }
   }, []);
 
   useEffect(() => {

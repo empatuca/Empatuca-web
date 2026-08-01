@@ -1,11 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
 import { Clock, CheckCircle2, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { requestNotificationPermission, sendNotification } from "../lib/notification";
+import { BellRing } from "lucide-react";
+import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
+import { Trash2 } from "lucide-react";
 
 export default function Caja() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [hasNotifPermission, setHasNotifPermission] = useState(false);
+  const [prevOrdersCount, setPrevOrdersCount] = useState(0);
+  const isInitialLoad = React.useRef(true);
+
+  useEffect(() => {
+    if ('Notification' in window) {
+      setHasNotifPermission(Notification.permission === 'granted');
+    }
+  }, []);
+
+  useEffect(() => {
+    const pendingOrders = orders.filter(o => o.estado === 'pendiente_caja').length;
+    if (pendingOrders > prevOrdersCount && !isInitialLoad.current) {
+      sendNotification('¡Nuevo Pedido!', { body: 'Tienes un nuevo pedido esperando en caja.' });
+    }
+    setPrevOrdersCount(pendingOrders);
+    if (orders.length > 0) isInitialLoad.current = false;
+  }, [orders]);
+
+  const enableNotifications = async () => {
+    const granted = await requestNotificationPermission();
+    setHasNotifPermission(granted);
+    if (granted) {
+      sendNotification('¡Notificaciones activadas!', { body: 'Recibirás alertas cuando lleguen pedidos nuevos.' });
+    } else {
+      alert("Debes permitir las notificaciones en tu navegador.");
+    }
+  };
+
   const isSupabaseConfigured = !!import.meta.env.VITE_SUPABASE_URL;
 
   useEffect(() => {
@@ -56,6 +89,21 @@ export default function Caja() {
     }
   }, [isSupabaseConfigured]);
 
+  
+  const deleteOrder = async (id: string) => {
+    if (confirm('¿Estás seguro de que deseas eliminar este pedido?')) {
+      if (isSupabaseConfigured && supabase) {
+        await supabase.from('pedidos').delete().eq('id', id);
+      } else {
+        const index = localOrders.findIndex(o => o.id === id);
+        if (index > -1) {
+          localOrders.splice(index, 1);
+          notifyLocalListeners();
+        }
+      }
+    }
+  };
+
   const approveOrder = async (id: string) => {
      const order = orders.find(o => o.id === id);
      if (!order) return;
@@ -83,7 +131,13 @@ export default function Caja() {
              <DollarSign className="w-6 h-6 text-green-300" />
              <h1 className="text-xl font-black uppercase tracking-tight">Caja</h1>
           </div>
-          <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors" onClick={() => {
+          
+            {!hasNotifPermission && (
+              <button onClick={enableNotifications} className="text-amber-400 hover:text-amber-300 transition-colors mr-4" title="Activar Notificaciones">
+                <BellRing className="w-5 h-5 animate-bounce" />
+              </button>
+            )}
+            <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors" onClick={() => {
             localStorage.removeItem('empatuca_staff_auth');
             localStorage.removeItem('empatuca_staff_role');
             sessionStorage.removeItem('empatuca_staff_auth');
@@ -122,10 +176,15 @@ export default function Caja() {
                         {order.tipo === 'delivery' ? 'DELIVERY' : order.tipo === 'mesa' ? `MESA ${order.mesa}` : 'LLEVAR'}
                     </span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex items-start gap-4">
+                      <div>
                      <span className="block font-black text-xl text-green-700">${order.total}</span>
                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{order.metodo_pago}</span>
                   </div>
+                      <button onClick={() => deleteOrder(order.id)} className="mt-1 text-red-300 hover:text-red-500 transition-colors shrink-0" title="Eliminar/Rechazar Pedido">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                 </div>
 
                 <div className="bg-gray-50 rounded-2xl p-4 mb-4 flex-grow">
