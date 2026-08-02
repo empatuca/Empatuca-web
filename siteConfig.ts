@@ -20,7 +20,7 @@ export const siteConfig = {
       category: "Empanadas de Verde",
       description: "Nuestra clásica masa de verde crocante rellena del mejor queso local.",
       prices: {
-        empanita: 0.75,
+        empanita: 0.50,
         empatuca: 1.25,
       },
     },
@@ -30,7 +30,7 @@ export const siteConfig = {
       category: "Empanadas de Verde",
       description: "Masa de verde rellena de carne mechada jugosa y sazonada con la receta de la casa.",
       prices: {
-        empanita: 0.75,
+        empanita: 0.50,
         empatuca: 1.25,
       },
     },
@@ -40,7 +40,7 @@ export const siteConfig = {
       category: "Empanadas de Verde",
       description: "Masa de verde rellena de pollo desmechado con el toque especial de la familia.",
       prices: {
-        empanita: 0.75,
+        empanita: 0.50,
         empatuca: 1.25,
       },
     },

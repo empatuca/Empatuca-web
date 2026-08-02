@@ -3,12 +3,13 @@ import { PlusCircle, Clock, CheckCircle2 } from "lucide-react";
 import { WaitersPOS } from "../components/home/WaitersPOS";
 import { Button } from "@/components/ui/button";
 import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit } from "lucide-react";
 
 export default function Mesa() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'pedidos' | 'nuevo'>('pedidos');
+  const [editingOrder, setEditingOrder] = useState<any>(null);
   const isSupabaseConfigured = !!import.meta.env.VITE_SUPABASE_URL;
 
   useEffect(() => {
@@ -95,25 +96,28 @@ export default function Mesa() {
           <div className="flex items-center gap-4">
              <h1 className="text-xl font-black uppercase tracking-tight">Mesa (Meseros)</h1>
              {view === 'nuevo' ? (
-                <button onClick={() => setView('pedidos')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                <button onClick={() => { setView('pedidos'); setEditingOrder(null); }} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                    Ver Pedidos
                 </button>
              ) : (
-                <button onClick={() => setView('nuevo')} className="bg-[#fac124] hover:bg-amber-400 text-black px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
+                <button onClick={() => { setEditingOrder(null); setView('nuevo'); }} className="bg-[#fac124] hover:bg-amber-400 text-black px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
                    <PlusCircle className="w-4 h-4" /> Nuevo Pedido
                 </button>
              )}
           </div>
-          <a href="#personal" className="text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors" onClick={() => {
-            localStorage.removeItem('empatuca_staff_auth');
-            localStorage.removeItem('empatuca_staff_role');
-            sessionStorage.removeItem('empatuca_staff_auth');
-          }}>Salir</a>
+          <div className="flex items-center gap-4">
+            <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold">Roles</a>
+            <a href="#personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold" onClick={() => {
+              localStorage.removeItem('empatuca_staff_auth');
+              localStorage.removeItem('empatuca_staff_role');
+              sessionStorage.removeItem('empatuca_staff_auth');
+            }}>Salir</a>
+          </div>
         </div>
       </header>
 
       {view === 'nuevo' ? (
-         <WaitersPOS onCancel={() => setView('pedidos')} />
+         <WaitersPOS initialOrder={editingOrder} onCancel={() => { setView('pedidos'); setEditingOrder(null); }} />
       ) : (
          <div className="container mx-auto p-4 md:p-8">
             {loading ? (
@@ -142,7 +146,10 @@ export default function Mesa() {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <div className="flex items-center gap-3">
-                          <h3 className="font-black text-3xl">#{order.numero_pedido}</h3>
+                          <h3 className="font-black text-3xl text-gray-900">#{order.numero_pedido || 'N/A'}</h3>
+                          <button onClick={() => { setEditingOrder(order); setView('nuevo'); }} className="text-blue-400 hover:text-blue-600 transition-colors shrink-0" title="Editar Pedido">
+                            <Edit className="w-5 h-5" />
+                          </button>
                           <button onClick={() => deleteOrder(order.id)} className="text-red-300 hover:text-red-500 transition-colors shrink-0" title="Eliminar/Rechazar Pedido">
                             <Trash2 className="w-5 h-5" />
                           </button>

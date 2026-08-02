@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { requestNotificationPermission, sendNotification } from "../lib/notification";
 import { BellRing } from "lucide-react";
 import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
-import { Trash2 } from "lucide-react";
+import { Trash2, Package } from "lucide-react";
 
 export default function Caja() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -137,11 +137,17 @@ export default function Caja() {
                 <BellRing className="w-5 h-5 animate-bounce" />
               </button>
             )}
-            <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors" onClick={() => {
-            localStorage.removeItem('empatuca_staff_auth');
-            localStorage.removeItem('empatuca_staff_role');
-            sessionStorage.removeItem('empatuca_staff_auth');
-          }}>Salir</a>
+            <a href="#inventario" className="text-sm bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2 mr-4 text-white font-bold">
+               <Package className="w-4 h-4" /> Inventario & Ventas
+            </a>
+            <div className="flex items-center gap-4">
+            <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold">Roles</a>
+            <a href="#personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold" onClick={() => {
+              localStorage.removeItem('empatuca_staff_auth');
+              localStorage.removeItem('empatuca_staff_role');
+              sessionStorage.removeItem('empatuca_staff_auth');
+            }}>Salir</a>
+          </div>
         </div>
       </header>
 
@@ -166,7 +172,7 @@ export default function Caja() {
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="font-black text-3xl">#{order.numero_pedido}</h3>
+                    <h3 className="font-black text-3xl text-gray-900">#{order.numero_pedido}</h3>
                     <p className="text-sm font-bold text-gray-600 uppercase mt-1 mb-2">{order.nombre_cliente}</p>
                     <span className={`px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase ${
                          order.tipo === 'delivery' ? 'bg-purple-100 text-purple-800' :

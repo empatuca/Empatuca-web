@@ -631,7 +631,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                   {items.filter(i => i.quantity > 0).map((item) => (
                     <li key={item.id} className="flex justify-between items-start text-sm">
                       <div className="flex-1">
-                        <span className="font-bold text-gray-800">{item.quantity}x</span> {item.name} {item.isVariant ? '' : `(${item.size})`}
+                        <span className="font-bold text-gray-800">{item.quantity}x</span> <span className="text-gray-900 font-bold">{item.name}</span> <span className="text-gray-500">{item.isVariant ? '' : `(${item.size})`}</span>
                       </div>
                       <span className="font-bold text-gray-700 whitespace-nowrap ml-4">${(item.price * item.quantity).toFixed(2)}</span>
                     </li>

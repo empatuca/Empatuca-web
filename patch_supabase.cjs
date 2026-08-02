@@ -1,22 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
+const fs = require('fs');
+let code = fs.readFileSync('src/lib/supabase.ts', 'utf8');
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
-
-export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey) 
-  : null;
-
-// Fallback local state for demo purposes when Supabase is not configured
-export const localOrders: any[] = [];
-export const localListeners: Function[] = [];
-
-export const notifyLocalListeners = () => {
-  localListeners.forEach(listener => listener([...localOrders]));
-};
-
+code += `
 export interface InventoryItem {
   id: string;
   name: string;
@@ -46,3 +31,6 @@ export const inventoryListeners: Function[] = [];
 export const notifyInventoryListeners = () => {
   inventoryListeners.forEach(listener => listener([...localInventory]));
 };
+`;
+
+fs.writeFileSync('src/lib/supabase.ts', code);

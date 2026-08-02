@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Home from "./pages/Home";
 import Cocina from "./pages/Cocina";
+import Inventario from "./pages/Inventario";
 import StaffLogin from "./pages/StaffLogin";
 import Caja from "./pages/Caja";
 import Mesa from "./pages/Mesa";
@@ -18,7 +19,7 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (window.location.hash && !['#mesa', '#caja', '#cocina', '#personal'].includes(window.location.hash)) {
+    if (window.location.hash && !['#mesa', '#caja', '#cocina', '#personal', '#inventario'].includes(window.location.hash)) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
       setCurrentHash('');
     }
@@ -56,7 +57,7 @@ export default function App() {
     return () => observer.disconnect();
   }, [currentHash, isLoading]);
 
-  const isStaffRoute = ["#mesa", "#caja", "#cocina"].includes(currentHash);
+  const isStaffRoute = ["#mesa", "#caja", "#cocina", "#inventario"].includes(currentHash);
   if (isStaffRoute) {
     if (localStorage.getItem('empatuca_staff_auth') !== 'true' && sessionStorage.getItem('empatuca_staff_auth') !== 'true') {
       window.location.hash = '#personal';
@@ -65,6 +66,7 @@ export default function App() {
     if (currentHash === "#mesa") return <Mesa />;
     if (currentHash === "#caja") return <Caja />;
     if (currentHash === "#cocina") return <Cocina />;
+    if (currentHash === "#inventario") return <Inventario />;
   }
   
   if (currentHash === "#personal") {

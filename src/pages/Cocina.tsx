@@ -21,6 +21,7 @@ interface Order {
 export default function Cocina() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<"activos" | "completados">("activos");
 
 
   useEffect(() => {
@@ -107,7 +108,8 @@ export default function Cocina() {
 
 
   // Sort orders: new/en_preparacion first, then listos
-  const sortedOrders = [...orders].sort((a, b) => {
+  const filteredOrders = orders.filter(o => viewMode === "activos" ? (o.estado !== 'listo' && o.estado !== 'entregado') : (o.estado === 'listo' || o.estado === 'entregado'));
+  const sortedOrders = [...filteredOrders].sort((a, b) => {
     if (a.estado === 'listo' && b.estado !== 'listo') return 1;
     if (a.estado !== 'listo' && b.estado === 'listo') return -1;
     // Newest first
@@ -124,7 +126,18 @@ export default function Cocina() {
             </div>
             <h1 className="text-xl font-black uppercase tracking-tight">Vista de Cocina</h1>
           </div>
-          <a href="#" className="text-xs uppercase tracking-widest text-white/40 hover:text-white transition-colors">← Volver al sitio</a>
+          <div className="flex gap-2">
+             <button onClick={() => setViewMode("activos")} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${viewMode === 'activos' ? 'bg-[#fac124] text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>Activos</button>
+             <button onClick={() => setViewMode("completados")} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${viewMode === 'completados' ? 'bg-[#fac124] text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>Completados</button>
+          </div>
+          <div className="flex items-center gap-4">
+            <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold">Roles</a>
+            <a href="#personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold" onClick={() => {
+              localStorage.removeItem('empatuca_staff_auth');
+              localStorage.removeItem('empatuca_staff_role');
+              sessionStorage.removeItem('empatuca_staff_auth');
+            }}>Salir</a>
+          </div>
         </div>
       </header>
 

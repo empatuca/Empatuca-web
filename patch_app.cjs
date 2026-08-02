@@ -1,33 +1,24 @@
 const fs = require('fs');
 let code = fs.readFileSync('src/App.tsx', 'utf8');
 
-const oldRouting = `  if (currentHash === "#personal") {
-    return <StaffLogin />;
-  }
-  if (currentHash === "#mesa") {
-    return <Mesa />;
-  }
-  if (currentHash === "#caja") {
-    return <Caja />;
-  }
-  if (currentHash === "#cocina") {
-    return <Cocina />;
-  }`;
+code = code.replace(
+  'import Cocina from "./pages/Cocina";',
+  'import Cocina from "./pages/Cocina";\nimport Inventario from "./pages/Inventario";'
+);
 
-const newRouting = `  const isStaffRoute = ["#mesa", "#caja", "#cocina"].includes(currentHash);
-  if (isStaffRoute) {
-    if (localStorage.getItem('empatuca_staff_auth') !== 'true') {
-      window.location.hash = '#personal';
-      return null;
-    }
-    if (currentHash === "#mesa") return <Mesa />;
-    if (currentHash === "#caja") return <Caja />;
-    if (currentHash === "#cocina") return <Cocina />;
-  }
-  
-  if (currentHash === "#personal") {
-    return <StaffLogin />;
-  }`;
+code = code.replace(
+  'const isStaffRoute = ["#mesa", "#caja", "#cocina"].includes(currentHash);',
+  'const isStaffRoute = ["#mesa", "#caja", "#cocina", "#inventario"].includes(currentHash);'
+);
 
-code = code.replace(oldRouting, newRouting);
+code = code.replace(
+  'if (currentHash === "#cocina") return <Cocina />;',
+  'if (currentHash === "#cocina") return <Cocina />;\n    if (currentHash === "#inventario") return <Inventario />;'
+);
+
+code = code.replace(
+  'if (window.location.hash && ![\'#mesa\', \'#caja\', \'#cocina\', \'#personal\'].includes(window.location.hash)) {',
+  'if (window.location.hash && ![\'#mesa\', \'#caja\', \'#cocina\', \'#personal\', \'#inventario\'].includes(window.location.hash)) {'
+);
+
 fs.writeFileSync('src/App.tsx', code);

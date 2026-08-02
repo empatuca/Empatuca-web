@@ -3,16 +3,11 @@ import { UtensilsCrossed, MonitorCheck, DollarSign } from "lucide-react";
 
 export default function StaffLogin() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true');
   const [pin, setPin] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Check if already remembered
-  useEffect(() => {
-    const rememberedRole = localStorage.getItem("empatuca_staff_role");
-    if (rememberedRole && localStorage.getItem("empatuca_staff_auth") === "true") {
-      window.location.hash = `#${rememberedRole}`;
-    }
-  }, []);
+
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -86,7 +81,13 @@ export default function StaffLogin() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button 
-            onClick={() => setSelectedRole('cocina')}
+            onClick={() => {
+              if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
+                window.location.hash = '#cocina';
+              } else {
+                setSelectedRole('cocina');
+              }
+            }}
             className="bg-white hover:bg-gray-50 rounded-3xl p-8 flex flex-col items-center justify-center gap-4 transition-all hover:scale-105 active:scale-95 group"
           >
             <div className="bg-[#5a0606]/10 p-4 rounded-full group-hover:bg-[#5a0606] transition-colors">
@@ -96,7 +97,13 @@ export default function StaffLogin() {
           </button>
 
           <button 
-            onClick={() => setSelectedRole('mesa')}
+            onClick={() => {
+              if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
+                window.location.hash = '#mesa';
+              } else {
+                setSelectedRole('mesa');
+              }
+            }}
             className="bg-white hover:bg-gray-50 rounded-3xl p-8 flex flex-col items-center justify-center gap-4 transition-all hover:scale-105 active:scale-95 group"
           >
             <div className="bg-[#fac124]/20 p-4 rounded-full group-hover:bg-[#fac124] transition-colors">
@@ -106,7 +113,13 @@ export default function StaffLogin() {
           </button>
 
           <button 
-            onClick={() => setSelectedRole('caja')}
+            onClick={() => {
+              if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
+                window.location.hash = '#caja';
+              } else {
+                setSelectedRole('caja');
+              }
+            }}
             className="bg-white hover:bg-gray-50 rounded-3xl p-8 flex flex-col items-center justify-center gap-4 transition-all hover:scale-105 active:scale-95 group"
           >
             <div className="bg-green-100 p-4 rounded-full group-hover:bg-green-500 transition-colors">
@@ -116,10 +129,23 @@ export default function StaffLogin() {
           </button>
         </div>
         
-        <div className="mt-12 text-center">
+        <div className="mt-12 text-center flex flex-col items-center gap-4">
           <a href="#" className="text-white/40 hover:text-white uppercase tracking-widest text-xs font-bold transition-colors">
             ← Volver al sitio principal
           </a>
+          {isAuthenticated && (
+            <button 
+              onClick={() => {
+                localStorage.removeItem('empatuca_staff_auth');
+                localStorage.removeItem('empatuca_staff_role');
+                sessionStorage.removeItem('empatuca_staff_auth');
+                setIsAuthenticated(false);
+              }}
+              className="text-red-400 hover:text-red-300 uppercase tracking-widest text-xs font-bold transition-colors"
+            >
+              Cerrar Sesión
+            </button>
+          )}
         </div>
       </div>
     </div>

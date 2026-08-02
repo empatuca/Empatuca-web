@@ -1,42 +1,44 @@
 const fs = require('fs');
 let code = fs.readFileSync('src/pages/StaffLogin.tsx', 'utf8');
 
-const oldHandleLogin = `  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pin === "1234") {
-      window.location.hash = \`#\${selectedRole}\`;
-    } else {
-      alert("PIN incorrecto");
-    }
-  };`;
+// Remove the auto-redirect useEffect
+code = code.replace(
+  '  // Check if already remembered\n  useEffect(() => {\n    const rememberedRole = localStorage.getItem("empatuca_staff_role");\n    if (rememberedRole && localStorage.getItem("empatuca_staff_auth") === "true") {\n      window.location.hash = `#${rememberedRole}`;\n    }\n  }, []);',
+  ''
+);
 
-const newHandleLogin = `  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pin === "1718737099CBSC1997") {
-      localStorage.setItem('empatuca_staff_auth', 'true');
-      window.location.hash = \`#\${selectedRole}\`;
-    } else {
-      alert("PIN incorrecto");
-    }
-  };`;
-code = code.replace(oldHandleLogin, newHandleLogin);
+// Modify handleRoleSelect to skip login if already authenticated
+code = code.replace(
+  'onClick={() => setSelectedRole(\'cocina\')}',
+  `onClick={() => {
+              if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
+                window.location.hash = '#cocina';
+              } else {
+                setSelectedRole('cocina');
+              }
+            }}`
+);
 
-const oldInput = `            <input 
-              type="password" 
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              className="w-full text-center text-3xl tracking-[1em] h-16 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5a0606]"
-              maxLength={4}
-              autoFocus
-            />`;
+code = code.replace(
+  'onClick={() => setSelectedRole(\'mesa\')}',
+  `onClick={() => {
+              if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
+                window.location.hash = '#mesa';
+              } else {
+                setSelectedRole('mesa');
+              }
+            }}`
+);
 
-const newInput = `            <input 
-              type="password" 
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              className="w-full text-center text-xl tracking-widest h-16 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5a0606]"
-              autoFocus
-            />`;
-code = code.replace(oldInput, newInput);
+code = code.replace(
+  'onClick={() => setSelectedRole(\'caja\')}',
+  `onClick={() => {
+              if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
+                window.location.hash = '#caja';
+              } else {
+                setSelectedRole('caja');
+              }
+            }}`
+);
 
 fs.writeFileSync('src/pages/StaffLogin.tsx', code);
