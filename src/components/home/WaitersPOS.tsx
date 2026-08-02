@@ -197,9 +197,10 @@ export function WaitersPOS({ onCancel }: { onCancel: () => void }) {
              <ul className="space-y-3">
                {items.map(item => (
                  <li key={item.id} className="flex justify-between items-center text-sm font-semibold bg-white p-2 rounded-xl shadow-sm border border-gray-100">
-                    <div>
+                    <div className="flex-1 flex flex-wrap items-center gap-1">
                       <span className="font-black text-[#5a0606] mr-2">{item.quantity}x</span>
-                      {item.name} <span className="text-xs text-gray-400">({item.size})</span>
+                      <span className="text-gray-800 break-words">{item.name}</span> 
+                      <span className="text-xs text-gray-400 whitespace-nowrap">({item.size})</span>
                     </div>
                     <button onClick={() => updateQuantity(item.id, item.name, item.size, item.price, -item.quantity)} className="text-red-300 hover:text-red-500 transition-colors">
                        <X className="h-4 w-4" />
