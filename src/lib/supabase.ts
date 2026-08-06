@@ -15,6 +15,7 @@ export const localListeners: Function[] = [];
 
 export const notifyLocalListeners = () => {
   localListeners.forEach(listener => listener([...localOrders]));
+  window.dispatchEvent(new Event("localOrdersUpdated"));
 };
 
 export interface InventoryItem {

@@ -21,7 +21,7 @@ export default function Caja() {
   }, []);
 
   useEffect(() => {
-    const pendingOrders = orders.filter(o => o.estado === 'pendiente_caja').length;
+    const pendingOrders = orders.filter(o => o.estado === 'pendiente_caja' || (o.metodo_pago === 'pendiente' && o.estado !== 'cancelado' && o.estado !== 'rechazado')).length;
     if (pendingOrders > prevOrdersCount && !isInitialLoad.current) {
       sendNotification('¡Nuevo Pedido!', { body: 'Tienes un nuevo pedido esperando en caja.' });
     }
@@ -157,7 +157,7 @@ export default function Caja() {
             <div className="animate-spin w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p className="text-gray-500 font-bold uppercase tracking-widest">Cargando caja...</p>
           </div>
-        ) : orders.filter(o => o.estado === 'pendiente_caja').length === 0 ? (
+        ) : orders.filter(o => o.estado === 'pendiente_caja' || (o.metodo_pago === 'pendiente' && o.estado !== 'cancelado' && o.estado !== 'rechazado')).length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
             <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
             <h3 className="text-xl font-black text-gray-400 uppercase">Sin pagos pendientes</h3>
@@ -165,7 +165,7 @@ export default function Caja() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {orders.filter(o => o.estado === 'pendiente_caja').map(order => (
+            {orders.filter(o => o.estado === 'pendiente_caja' || (o.metodo_pago === 'pendiente' && o.estado !== 'cancelado' && o.estado !== 'rechazado')).map(order => (
               <div 
                 key={order.id} 
                 className="bg-white rounded-3xl p-6 shadow-xl border-2 border-green-400 flex flex-col"
@@ -235,7 +235,7 @@ export default function Caja() {
                     </tr>
                  </thead>
                  <tbody>
-                    {orders.filter(o => o.estado !== 'pendiente_caja' && !(o.tipo === 'mesa' && o.metodo_pago === 'pendiente')).slice(0, 10).map(order => (
+                    {orders.filter(o => o.estado !== 'pendiente_caja' && !(o.metodo_pago === 'pendiente')).slice(0, 10).map(order => (
                        <tr key={order.id} className="border-b border-gray-100">
                           <td className="py-3 font-bold">#{order.numero_pedido}</td>
                           <td className="py-3 text-gray-600">{order.nombre_cliente}</td>

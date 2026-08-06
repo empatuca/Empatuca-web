@@ -4,7 +4,7 @@ import { localInventory, updateLocalInventory, InventoryItem, inventoryListeners
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Package, DollarSign, ArrowLeft } from "lucide-react";
-import { localOrders } from "../lib/supabase";
+import { localOrders, supabase } from "../lib/supabase";
 
 export default function Inventario() {
   const [inventory, setInventory] = useState<InventoryItem[]>(localInventory);
@@ -45,9 +45,47 @@ export default function Inventario() {
     updateLocalInventory(updated);
   };
 
+  
+  const [orders, setOrders] = useState<any[]>([]);
+  const isSupabaseConfigured = !!import.meta.env.VITE_SUPABASE_URL;
+
+  useEffect(() => {
+    if (isSupabaseConfigured && supabase) {
+      const fetchOrders = async () => {
+        // Obtenemos solo los pedidos de hoy para el inventario
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const { data, error } = await supabase
+          .from('pedidos')
+          .select('*')
+          .gte('created_at', today.toISOString());
+          
+        if (!error && data) {
+          setOrders(data);
+        }
+      };
+      fetchOrders();
+      const channel = supabase
+        .channel('schema-db-changes-inv')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'pedidos' },
+          () => fetchOrders()
+        )
+        .subscribe();
+      return () => { supabase.removeChannel(channel); };
+    } else {
+      setOrders([...localOrders]);
+      const handleLocalUpdate = () => setOrders([...localOrders]);
+      window.addEventListener('localOrdersUpdated', handleLocalUpdate);
+      return () => window.removeEventListener('localOrdersUpdated', handleLocalUpdate);
+    }
+  }, [isSupabaseConfigured]);
+
   // Calculate daily sales from localOrders (or supabase if we want, but localOrders is easier for daily)
+
   // Let's assume all orders in localOrders are for today.
-  const todayOrders = localOrders.filter(o => o.estado === 'entregado' || o.estado === 'listo' || o.estado === 'pendiente_caja' || o.estado === 'en_preparacion' || o.estado === 'nuevo'); // basically all active/completed orders today
+  const todayOrders = orders.filter(o => o.estado === 'entregado' || o.estado === 'listo' || o.estado === 'pendiente_caja' || o.estado === 'en_preparacion' || o.estado === 'nuevo'); // basically all active/completed orders today
   
   const totalVentas = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
 
@@ -80,7 +118,7 @@ export default function Inventario() {
     if (hasChanges) {
       updateLocalInventory(updated);
     }
-  }, [localOrders.length]); 
+  }, [orders]); 
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
