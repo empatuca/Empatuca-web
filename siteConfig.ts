@@ -102,14 +102,39 @@ export const siteConfig = {
         estandar: 0.50,
       },
     },
+    
+
     {
-      id: "beb-maracuya",
-      name: "🥤 Jugo de Maracuyá",
+      id: "beb-morocho-taza",
+      name: "☕ Morocho (Normal)",
       category: "Bebidas",
-      description: "Jugo natural de la fruta de la pasión.",
+      description: "Morocho calientito en taza.",
+      prices: {
+        estandar: 0.75,
+      },
+    },
+    {
+      id: "beb-morocho-tarrina",
+      name: "🥣 Morocho (Tarrina)",
+      category: "Bebidas",
+      description: "Morocho tradicional en tarrina grande.",
+      prices: {
+        estandar: 2.50,
+      },
+    },
+    {
+      id: "beb-aromatica",
+      name: "🍵 Agua Aromática",
+      category: "Bebidas",
+      description: "Infusión caliente de sobre.",
       prices: {
         estandar: 0.50,
       },
+      variants: [
+        { id: 'frutos-rojos', name: 'Frutos Rojos' },
+        { id: 'horchata', name: 'Horchata' },
+        { id: 'hierba-luisa', name: 'Hierba Luisa' },
+      ]
     },
     {
       id: "beb-gaseosa",

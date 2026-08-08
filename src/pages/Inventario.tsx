@@ -8,6 +8,10 @@ import { localOrders, supabase } from "../lib/supabase";
 
 export default function Inventario() {
   const [inventory, setInventory] = useState<InventoryItem[]>(localInventory);
+
+  const [closures, setClosures] = useState<any[]>([]);
+  const [isSavingClosure, setIsSavingClosure] = useState(false);
+
   
   // Initialize inventory based on menu if empty
   useEffect(() => {
@@ -65,6 +69,18 @@ export default function Inventario() {
         }
       };
       fetchOrders();
+
+      const fetchClosures = async () => {
+        const { data, error } = await supabase
+          .from('cierres_diarios')
+          .select('*')
+          .order('fecha', { ascending: false });
+        if (!error && data) {
+          setClosures(data);
+        }
+      };
+      fetchClosures();
+
       const channel = supabase
         .channel('schema-db-changes-inv')
         .on(
@@ -88,6 +104,36 @@ export default function Inventario() {
   const todayOrders = orders.filter(o => o.estado === 'entregado' || o.estado === 'listo' || o.estado === 'pendiente_caja' || o.estado === 'en_preparacion' || o.estado === 'nuevo'); // basically all active/completed orders today
   
   const totalVentas = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+  const handleSaveClosure = async () => {
+    if (!isSupabaseConfigured || !supabase) {
+      alert('Se necesita conectar a Supabase para guardar el cierre del día.');
+      return;
+    }
+    setIsSavingClosure(true);
+    const today = new Date().toISOString().split('T')[0];
+    const payload = {
+      fecha: today,
+      total_ventas: totalVentas,
+      inventario: inventory
+    };
+    
+    // Check if exists
+    const { data: existing } = await supabase.from('cierres_diarios').select('id').eq('fecha', today).single();
+    if (existing) {
+      await supabase.from('cierres_diarios').update(payload).eq('id', existing.id);
+    } else {
+      await supabase.from('cierres_diarios').insert([payload]);
+    }
+    
+    alert('Cierre del día guardado correctamente.');
+    setIsSavingClosure(false);
+    
+    // Refresh closures
+    const { data } = await supabase.from('cierres_diarios').select('*').order('fecha', { ascending: false });
+    if (data) setClosures(data);
+  };
+
 
   // Recalculate current stock based on orders
   useEffect(() => {
@@ -143,15 +189,22 @@ export default function Inventario() {
       </header>
 
       <div className="container mx-auto p-4 md:p-8 space-y-8">
+        
         <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100 flex items-center justify-between">
           <div>
             <h2 className="text-gray-500 font-bold uppercase tracking-widest text-sm">Ventas del Día (Aprox)</h2>
             <p className="text-4xl font-black text-green-700 mt-1">${totalVentas.toFixed(2)}</p>
           </div>
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-            <DollarSign className="w-8 h-8 text-green-600" />
+          <div className="flex items-center gap-4">
+             <Button onClick={handleSaveClosure} disabled={isSavingClosure} className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 px-6 rounded-xl">
+               {isSavingClosure ? 'Guardando...' : 'Guardar Cierre'}
+             </Button>
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <DollarSign className="w-8 h-8 text-green-600" />
+            </div>
           </div>
         </div>
+
 
         <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100">
            <h2 className="text-xl font-black mb-6 uppercase tracking-tight">Producción del Día</h2>
@@ -205,6 +258,42 @@ export default function Inventario() {
              );
            })}
         </div>
+
+        {closures.length > 0 && (
+          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100">
+             <h2 className="text-xl font-black mb-6 uppercase tracking-tight">Historial de Cierres</h2>
+             <div className="overflow-x-auto">
+               <table className="w-full text-left border-collapse min-w-[600px]">
+                 <thead>
+                    <tr className="border-b border-gray-200 text-gray-500">
+                       <th className="py-3 font-bold">Fecha</th>
+                       <th className="py-3 font-bold">Total Ventas</th>
+                       <th className="py-3 font-bold">Detalle (Vendido / Disponible)</th>
+                    </tr>
+                 </thead>
+                 <tbody>
+                    {closures.map(closure => (
+                       <tr key={closure.id} className="border-b border-gray-100">
+                          <td className="py-3 font-bold">{closure.fecha}</td>
+                          <td className="py-3 font-bold text-green-700">${closure.total_ventas}</td>
+                          <td className="py-3">
+                            <div className="max-h-32 overflow-y-auto pr-2 space-y-1 text-sm">
+                              {Array.isArray(closure.inventario) && closure.inventario.filter((i: any) => i.initialStock > 0).map((item: any) => (
+                                <div key={item.id} className="flex justify-between items-center bg-gray-50 p-1 px-2 rounded">
+                                  <span className="text-gray-600 truncate w-3/5" title={item.name}>{item.name}</span>
+                                  <span className="font-bold text-gray-800 text-right w-2/5 whitespace-nowrap">{(item.initialStock - item.currentStock)} vend. / {item.currentStock} disp.</span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                       </tr>
+                    ))}
+                 </tbody>
+               </table>
+             </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
