@@ -188,11 +188,11 @@ export default function Inventario() {
              <h1 className="text-xl font-black uppercase tracking-tight">Inventario & Ventas</h1>
           </div>
           <div className="flex flex-wrap items-center gap-3 sm:gap-6">
-<a href="/caja" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1">
+<a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/caja'); window.dispatchEvent(new Event('popstate')); }} href="/caja" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1">
                <ArrowLeft className="w-3 h-3" /> Caja
             </a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={() => {
+            <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
+            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/personal"); window.dispatchEvent(new Event("popstate")); 
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');

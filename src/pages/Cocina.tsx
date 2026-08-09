@@ -132,8 +132,8 @@ export default function Cocina() {
              <button onClick={() => setViewMode("completados")} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${viewMode === 'completados' ? 'bg-[#fac124] text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>Completados</button>
           </div>
           <div className="flex flex-wrap items-center gap-3 sm:gap-6">
-<a href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={() => {
+<a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
+            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/personal"); window.dispatchEvent(new Event("popstate")); 
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');

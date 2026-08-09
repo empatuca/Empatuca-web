@@ -32,7 +32,7 @@ export function Footer() {
             <li><a onClick={(e) => { e.preventDefault(); document.getElementById('inicio')?.scrollIntoView(); }} href="#inicio" className="hover:text-white transition-colors">Inicio</a></li>
             <li><a onClick={(e) => { e.preventDefault(); document.getElementById('menu')?.scrollIntoView(); }} href="#menu" className="hover:text-white transition-colors">Nuestro Menú</a></li>
             <li><a onClick={(e) => { e.preventDefault(); document.getElementById('nosotros')?.scrollIntoView(); }} href="#nosotros" className="hover:text-white transition-colors">Historia</a></li>
-            <li><a href="/personal" className="hover:text-white transition-colors">Acceso Personal</a></li>
+            <li><a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="hover:text-white transition-colors">Acceso Personal</a></li>
           </ul>
         </div>
 

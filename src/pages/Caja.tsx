@@ -148,12 +148,12 @@ export default function Caja() {
                 <BellRing className="w-5 h-5 animate-bounce" />
               </button>
             )}
-            <a href="/inventario" className="text-sm bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2 mr-4 text-white font-bold">
+            <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/inventario'); window.dispatchEvent(new Event('popstate')); }} href="/inventario" className="text-sm bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2 mr-4 text-white font-bold">
                <Package className="w-4 h-4" /> Inventario & Ventas
             </a>
             
-            <a href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={() => {
+            <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
+            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/personal"); window.dispatchEvent(new Event("popstate")); 
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');

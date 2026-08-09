@@ -60,7 +60,7 @@ export default function App() {
   const isStaffRoute = ["/mesa", "/caja", "/cocina", "/inventario"].includes(currentPath);
   if (isStaffRoute) {
     if (localStorage.getItem('empatuca_staff_auth') !== 'true' && sessionStorage.getItem('empatuca_staff_auth') !== 'true') {
-      window.location.pathname = '/personal';
+      window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate'));
       return null;
     }
     if (currentPath === "/mesa") return <Mesa />;

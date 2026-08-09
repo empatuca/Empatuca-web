@@ -22,7 +22,7 @@ export default function StaffLogin() {
       } else {
         sessionStorage.setItem('empatuca_staff_auth', 'true');
       }
-      window.location.hash = `#${selectedRole}`;
+      window.history.pushState(null, '', `/${selectedRole}`); window.dispatchEvent(new Event('popstate'));
     } else {
       alert("PIN incorrecto");
     }
@@ -83,7 +83,7 @@ export default function StaffLogin() {
           <button 
             onClick={() => {
               if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
-                window.location.href = '/#cocina';
+                window.history.pushState(null, '', '/cocina'); window.dispatchEvent(new Event('popstate'));
               } else {
                 setSelectedRole('cocina');
               }
@@ -99,7 +99,7 @@ export default function StaffLogin() {
           <button 
             onClick={() => {
               if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
-                window.location.href = '/#mesa';
+                window.history.pushState(null, '', '/mesa'); window.dispatchEvent(new Event('popstate'));
               } else {
                 setSelectedRole('mesa');
               }
@@ -115,7 +115,7 @@ export default function StaffLogin() {
           <button 
             onClick={() => {
               if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
-                window.location.href = '/#caja';
+                window.history.pushState(null, '', '/caja'); window.dispatchEvent(new Event('popstate'));
               } else {
                 setSelectedRole('caja');
               }
@@ -130,7 +130,7 @@ export default function StaffLogin() {
         </div>
         
         <div className="mt-12 text-center flex flex-col items-center gap-4">
-          <a href="/" className="text-white/40 hover:text-white uppercase tracking-widest text-xs font-bold transition-colors">
+          <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/'); window.dispatchEvent(new Event('popstate')); }} href="/" className="text-white/40 hover:text-white uppercase tracking-widest text-xs font-bold transition-colors">
             ← Volver al sitio principal
           </a>
           {isAuthenticated && (
