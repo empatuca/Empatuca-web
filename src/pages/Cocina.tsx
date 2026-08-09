@@ -120,7 +120,7 @@ export default function Cocina() {
   return (
     <div className="min-h-screen bg-[#111111] flex flex-col text-gray-900">
       <header className="bg-[#0D0D0D] text-white p-4 shadow-xl border-b border-white/5 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between container mx-auto gap-y-3 gap-x-2">
           <div className="flex items-center gap-3">
              <div className="flex h-8 w-8 items-center justify-center">
                <img src="/logo_M.svg" alt="M" className="h-full w-auto" />
@@ -131,9 +131,9 @@ export default function Cocina() {
              <button onClick={() => setViewMode("activos")} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${viewMode === 'activos' ? 'bg-[#fac124] text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>Activos</button>
              <button onClick={() => setViewMode("completados")} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${viewMode === 'completados' ? 'bg-[#fac124] text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>Completados</button>
           </div>
-          <div className="flex items-center gap-4">
-            <a href="/personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold py-2 px-3 rounded hover:bg-white/5">Roles</a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold py-2 px-3 rounded hover:bg-red-500/10" onClick={() => {
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+<a href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
+            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={() => {
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');

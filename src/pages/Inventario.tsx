@@ -187,12 +187,12 @@ export default function Inventario() {
              <Package className="w-6 h-6 text-green-300" />
              <h1 className="text-xl font-black uppercase tracking-tight">Inventario & Ventas</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <a href="/caja" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+<a href="/caja" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1">
                <ArrowLeft className="w-3 h-3" /> Caja
             </a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold py-2 px-3 rounded hover:bg-white/5">Roles</a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold py-2 px-3 rounded hover:bg-red-500/10" onClick={() => {
+            <a href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
+            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={() => {
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');
@@ -247,7 +247,7 @@ export default function Inventario() {
                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1">Producción</label>
                              <Input 
                                type="number" 
-                               value={item.initialStock || ''}
+                               value={item.initialStock === 0 ? '' : item.initialStock}
                                placeholder="0" 
                                onChange={(e) => handleUpdateInitial(item.id, e.target.value === '' ? 0 : parseInt(e.target.value))}
                                className="h-10 text-lg font-black"

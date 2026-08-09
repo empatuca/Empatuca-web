@@ -142,7 +142,8 @@ export default function Caja() {
              <h1 className="text-xl font-black uppercase tracking-tight">Caja</h1>
           </div>
           
-            {!hasNotifPermission && (
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+{!hasNotifPermission && (
               <button onClick={enableNotifications} className="text-amber-400 hover:text-amber-300 transition-colors mr-4" title="Activar Notificaciones">
                 <BellRing className="w-5 h-5 animate-bounce" />
               </button>
@@ -150,9 +151,9 @@ export default function Caja() {
             <a href="/inventario" className="text-sm bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2 mr-4 text-white font-bold">
                <Package className="w-4 h-4" /> Inventario & Ventas
             </a>
-            <div className="flex items-center gap-4">
-            <a href="/personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold py-2 px-3 rounded hover:bg-white/5">Roles</a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold py-2 px-3 rounded hover:bg-red-500/10" onClick={() => {
+            
+            <a href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
+            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={() => {
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');
@@ -247,9 +248,9 @@ export default function Caja() {
                  <tbody>
                     {orders.filter(o => o.estado !== 'pendiente_caja' && !(o.metodo_pago === 'pendiente')).slice(0, 10).map(order => (
                        <tr key={order.id} className="border-b border-gray-100">
-                          <td className="py-3 font-bold text-gray-900">#{order.numero_pedido}</td>
-                          <td className="py-3 text-gray-600">{order.nombre_cliente}</td>
-                          <td className="py-3 font-bold text-green-700">${order.total}</td>
+                          <td className="py-3 font-black text-black">#{order.numero_pedido}</td>
+                          <td className="py-3 font-bold text-gray-800">{order.nombre_cliente}</td>
+                          <td className="py-3 font-black text-green-700">${order.total}</td>
                           <td className="py-3 text-gray-500 capitalize">{order.metodo_pago}</td>
                           <td className="py-3">
                              <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600 uppercase">

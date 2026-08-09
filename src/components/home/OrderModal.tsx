@@ -179,8 +179,30 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
     setIsSubmitting(true);
     
     const selectedItems = items.filter(i => i.quantity > 0);
-    const orderIdValue = Math.floor(Math.random() * 1000);
+    
+    const todayStart = new Date();
+    todayStart.setHours(0,0,0,0);
+    
+    let orderIdValue =  1;
+    if (true) {
+      if (supabase && !!import.meta.env.VITE_SUPABASE_URL) {
+        try {
+          const { count } = await supabase
+            .from('pedidos')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', todayStart.toISOString());
+          orderIdValue = (count || 0) + 1;
+        } catch(e) {
+          orderIdValue = Math.floor(Math.random() * 1000);
+        }
+      } else {
+        const todayOrders = localOrders.filter(o => new Date(o.created_at || new Date()).getTime() >= todayStart.getTime());
+        orderIdValue = todayOrders.length + 1;
+      }
+    }
+  
     setOrderId(orderIdValue);
+    let orderDisplay = orderIdValue;
 
     let msg = `Hola, quiero hacer un pedido (#${orderIdValue}):\n\n`;
     selectedItems.forEach(item => {
