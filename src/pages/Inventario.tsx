@@ -131,16 +131,16 @@ export default function Inventario() {
       }
       
       if (error) {
-        alert('Error al guardar en Supabase. Asegúrate de haber ejecutado el código SQL para crear la tabla cierres_diarios. Detalle: ' + error.message);
+        alert('Error al guardar en Supabase. Asegúrate de ejecutar el código SQL para crear la tabla cierres_diarios.\nDetalle: ' + error.message);
       } else {
         alert('Cierre guardado correctamente.');
-        const resetInventory = inventory.map(item => ({ ...item, initialStock: 0, currentStock: 0 }));
-        setInventory(resetInventory);
-        updateLocalInventory(resetInventory);
+        const { data } = await supabase.from('cierres_diarios').select('*').order('fecha', { ascending: false });
+        if (data) setClosures(data);
       }
-      
-      const { data } = await supabase.from('cierres_diarios').select('*').order('fecha', { ascending: false });
-      if (data) setClosures(data);
+      // Reset inventory anyway so you can start fresh locally
+      const resetInventory = inventory.map(item => ({ ...item, initialStock: 0, currentStock: 0 }));
+      setInventory(resetInventory);
+      updateLocalInventory(resetInventory);
     } catch (err) {
       alert('Error inesperado: ' + err.message);
     }
