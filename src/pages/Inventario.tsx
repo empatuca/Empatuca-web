@@ -11,6 +11,7 @@ export default function Inventario() {
 
   const [closures, setClosures] = useState<any[]>([]);
   const [isSavingClosure, setIsSavingClosure] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   
   // Initialize inventory based on menu if empty
@@ -40,9 +41,20 @@ export default function Inventario() {
   }, []);
 
   const handleUpdateInitial = (id: string, value: number) => {
+    const soldMap: Record<string, number> = {};
+    todayOrders.forEach(order => {
+      if (order.estado === 'rechazado' || order.estado === 'cancelado') return;
+      const prods = typeof order.productos === 'string' ? JSON.parse(order.productos) : order.productos;
+      if (Array.isArray(prods)) {
+        prods.forEach((p: any) => {
+          soldMap[p.id] = (soldMap[p.id] || 0) + p.quantity;
+        });
+      }
+    });
+
     const updated = inventory.map(item => {
       if (item.id === id) {
-        return { ...item, initialStock: value, currentStock: value };
+        return { ...item, initialStock: value, currentStock: Math.max(0, value - (soldMap[id] || 0)) };
       }
       return item;
     });
@@ -111,7 +123,8 @@ export default function Inventario() {
       return;
     }
     setIsSavingClosure(true);
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     const payload = {
       fecha: today,
       total_ventas: totalVentas,
@@ -208,10 +221,13 @@ export default function Inventario() {
             <h2 className="text-gray-500 font-bold uppercase tracking-widest text-sm">Ventas del Día (Aprox)</h2>
             <p className="text-4xl font-black text-green-700 mt-1">${totalVentas.toFixed(2)}</p>
           </div>
-          <div className="flex items-center gap-4">
-             <Button onClick={handleSaveClosure} disabled={isSavingClosure} className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 px-6 rounded-xl">
-               {isSavingClosure ? 'Guardando...' : 'Guardar Cierre'}
-             </Button>
+          <div className="flex flex-wrap justify-end items-center gap-4">
+            <Button onClick={() => setShowHistory(!showHistory)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold h-12 px-6 rounded-xl">
+              {showHistory ? 'Volver a Inventario' : 'Ver Historial'}
+            </Button>
+            <Button onClick={handleSaveClosure} disabled={isSavingClosure} className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 px-6 rounded-xl">
+              {isSavingClosure ? 'Guardando...' : 'Guardar Cierre'}
+            </Button>
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
               <DollarSign className="w-8 h-8 text-green-600" />
             </div>
@@ -219,6 +235,7 @@ export default function Inventario() {
         </div>
 
 
+        {!showHistory ? (
         <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100">
            <h2 className="text-xl font-black mb-6 uppercase tracking-tight">Producción del Día</h2>
            
@@ -273,7 +290,8 @@ export default function Inventario() {
            })}
         </div>
 
-        {closures.length > 0 && (
+        ) : (
+        closures.length > 0 ? (
           <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100 mt-8">
              <h2 className="text-xl font-black mb-6 uppercase tracking-tight">Historial de Cierres</h2>
              <div className="space-y-6">
@@ -283,7 +301,7 @@ export default function Inventario() {
                         <h3 className="text-2xl font-black">{closure.fecha}</h3>
                         <div className="text-right">
                           <p className="text-sm font-bold text-gray-500 uppercase">Total Ventas</p>
-                          <p className="text-3xl font-black text-green-700">${closure.total_ventas.toFixed(2)}</p>
+                          <p className="text-3xl font-black text-green-700">${Number(closure.total_ventas).toFixed(2)}</p>
                         </div>
                       </div>
                       
@@ -297,7 +315,7 @@ export default function Inventario() {
                                   <span className="font-black text-gray-800">#{pedido.numero_pedido}</span>
                                   <span className="text-gray-500 text-sm ml-2">{pedido.nombre_cliente}</span>
                                 </div>
-                                <span className="font-bold text-green-600">${pedido.total?.toFixed(2)}</span>
+                                <span className="font-bold text-green-600">${Number(pedido.total || 0).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
@@ -321,8 +339,10 @@ export default function Inventario() {
                 ))}
              </div>
           </div>
-        )}
-
+        ) : (
+          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100 mt-8 text-center text-gray-500 font-bold">No hay cierres registrados.</div>
+        )
+      )}
       </div>
     </div>
   );
