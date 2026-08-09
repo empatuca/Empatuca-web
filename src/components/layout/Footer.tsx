@@ -29,10 +29,10 @@ export function Footer() {
         <div>
           <h4 className="font-black text-sm mb-4 text-[#fac124] uppercase tracking-widest">Enlaces</h4>
           <ul className="space-y-2 text-white/60 font-medium">
-            <li><a href="#inicio" className="hover:text-white transition-colors">Inicio</a></li>
-            <li><a href="#menu" className="hover:text-white transition-colors">Nuestro Menú</a></li>
-            <li><a href="#nosotros" className="hover:text-white transition-colors">Historia</a></li>
-            <li><a href="#personal" className="hover:text-white transition-colors">Acceso Personal</a></li>
+            <li><a onClick={(e) => { e.preventDefault(); document.getElementById('inicio')?.scrollIntoView(); }} href="#inicio" className="hover:text-white transition-colors">Inicio</a></li>
+            <li><a onClick={(e) => { e.preventDefault(); document.getElementById('menu')?.scrollIntoView(); }} href="#menu" className="hover:text-white transition-colors">Nuestro Menú</a></li>
+            <li><a onClick={(e) => { e.preventDefault(); document.getElementById('nosotros')?.scrollIntoView(); }} href="#nosotros" className="hover:text-white transition-colors">Historia</a></li>
+            <li><a onClick={(e) => { e.preventDefault(); document.getElementById('personal')?.scrollIntoView(); }} href="#personal" className="hover:text-white transition-colors">Acceso Personal</a></li>
           </ul>
         </div>
 

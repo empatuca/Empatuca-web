@@ -90,9 +90,9 @@ export default function Mesa() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="bg-[#0D0D0D] text-white p-4 shadow-xl border-b border-white/5 sticky top-0 z-50">
-        <div className="flex items-center justify-between container mx-auto">
+        <div className="flex flex-wrap items-center justify-between container mx-auto gap-y-3 gap-x-2">
           <div className="flex items-center gap-4">
              <h1 className="text-xl font-black uppercase tracking-tight">Mesa (Meseros)</h1>
              {view === 'nuevo' ? (
@@ -106,8 +106,8 @@ export default function Mesa() {
              )}
           </div>
           <div className="flex items-center gap-4">
-            <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold">Roles</a>
-            <a href="#personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold" onClick={() => {
+            <a href="/personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold py-2 px-3 rounded hover:bg-white/5">Roles</a>
+            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold py-2 px-3 rounded hover:bg-red-500/10" onClick={() => {
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');

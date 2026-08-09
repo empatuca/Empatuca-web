@@ -14,14 +14,14 @@ import Mesa from "./pages/Mesa";
 
 
 export default function App() {
-  const [currentHash, setCurrentHash] = useState(window.location.hash);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (window.location.hash && !['#mesa', '#caja', '#cocina', '#personal', '#inventario'].includes(window.location.hash)) {
+    if (window.location.pathname !== '/' && !['/mesa', '/caja', '/cocina', '/personal', '/inventario'].includes(window.location.pathname)) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      setCurrentHash('');
+      setCurrentPath('');
     }
   }, []);
 
@@ -35,10 +35,10 @@ export default function App() {
 
   useEffect(() => {
     const handleHashChange = () => {
-      setCurrentHash(window.location.hash);
+      setCurrentPath(window.location.pathname);
     };
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    window.addEventListener("popstate", handleHashChange);
+    return () => window.removeEventListener("popstate", handleHashChange);
   }, []);
 
   useEffect(() => {
@@ -55,21 +55,21 @@ export default function App() {
     elements.forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-  }, [currentHash, isLoading]);
+  }, [currentPath, isLoading]);
 
-  const isStaffRoute = ["#mesa", "#caja", "#cocina", "#inventario"].includes(currentHash);
+  const isStaffRoute = ["/mesa", "/caja", "/cocina", "/inventario"].includes(currentPath);
   if (isStaffRoute) {
     if (localStorage.getItem('empatuca_staff_auth') !== 'true' && sessionStorage.getItem('empatuca_staff_auth') !== 'true') {
-      window.location.hash = '#personal';
+      window.location.pathname = '/personal';
       return null;
     }
-    if (currentHash === "#mesa") return <Mesa />;
-    if (currentHash === "#caja") return <Caja />;
-    if (currentHash === "#cocina") return <Cocina />;
-    if (currentHash === "#inventario") return <Inventario />;
+    if (currentPath === "/mesa") return <Mesa />;
+    if (currentPath === "/caja") return <Caja />;
+    if (currentPath === "/cocina") return <Cocina />;
+    if (currentPath === "/inventario") return <Inventario />;
   }
   
-  if (currentHash === "#personal") {
+  if (currentPath === "/personal") {
     return <StaffLogin />;
   }
 

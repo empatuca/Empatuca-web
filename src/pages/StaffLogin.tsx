@@ -83,7 +83,7 @@ export default function StaffLogin() {
           <button 
             onClick={() => {
               if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
-                window.location.hash = '#cocina';
+                window.location.href = '/#cocina';
               } else {
                 setSelectedRole('cocina');
               }
@@ -99,7 +99,7 @@ export default function StaffLogin() {
           <button 
             onClick={() => {
               if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
-                window.location.hash = '#mesa';
+                window.location.href = '/#mesa';
               } else {
                 setSelectedRole('mesa');
               }
@@ -115,7 +115,7 @@ export default function StaffLogin() {
           <button 
             onClick={() => {
               if (localStorage.getItem('empatuca_staff_auth') === 'true' || sessionStorage.getItem('empatuca_staff_auth') === 'true') {
-                window.location.hash = '#caja';
+                window.location.href = '/#caja';
               } else {
                 setSelectedRole('caja');
               }
@@ -130,7 +130,7 @@ export default function StaffLogin() {
         </div>
         
         <div className="mt-12 text-center flex flex-col items-center gap-4">
-          <a href="#" className="text-white/40 hover:text-white uppercase tracking-widest text-xs font-bold transition-colors">
+          <a href="/" className="text-white/40 hover:text-white uppercase tracking-widest text-xs font-bold transition-colors">
             ← Volver al sitio principal
           </a>
           {isAuthenticated && (

@@ -14,11 +14,11 @@ export function Navbar() {
         </a>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium uppercase tracking-widest text-white/70">
-          <a href="#inicio" className="transition-colors hover:text-[#fac124]">Inicio</a>
-          <a href="#menu" className="transition-colors hover:text-[#fac124]">Menú</a>
-          <a href="#nosotros" className="transition-colors hover:text-[#fac124]">Nosotros</a>
-          <a href="#proceso" className="transition-colors hover:text-[#fac124]">Pedidos</a>
-          <a href="#contacto" className="transition-colors hover:text-[#fac124]">Contacto</a>
+          <a onClick={(e) => { e.preventDefault(); document.getElementById('inicio')?.scrollIntoView(); }} href="#inicio" className="transition-colors hover:text-[#fac124]">Inicio</a>
+          <a onClick={(e) => { e.preventDefault(); document.getElementById('menu')?.scrollIntoView(); }} href="#menu" className="transition-colors hover:text-[#fac124]">Menú</a>
+          <a onClick={(e) => { e.preventDefault(); document.getElementById('nosotros')?.scrollIntoView(); }} href="#nosotros" className="transition-colors hover:text-[#fac124]">Nosotros</a>
+          <a onClick={(e) => { e.preventDefault(); document.getElementById('proceso')?.scrollIntoView(); }} href="#proceso" className="transition-colors hover:text-[#fac124]">Pedidos</a>
+          <a onClick={(e) => { e.preventDefault(); document.getElementById('contacto')?.scrollIntoView(); }} href="#contacto" className="transition-colors hover:text-[#fac124]">Contacto</a>
         </div>
 
         <Button onClick={handleWhatsApp} className="bg-[#25D366] hover:bg-[#20b858] text-white font-bold rounded-full px-3 py-1.5 md:px-4 md:py-2 h-auto text-xs shadow-lg shadow-green-900/20 flex items-center gap-1.5 shrink-0">

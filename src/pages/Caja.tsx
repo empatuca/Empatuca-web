@@ -119,7 +119,10 @@ export default function Caja() {
      }
      
      if (isSupabaseConfigured && supabase) {
-         await supabase.from('pedidos').update({ estado: newEstado, metodo_pago: newMetodoPago }).eq('id', id);
+         const { error } = await supabase.from('pedidos').update({ estado: newEstado, metodo_pago: newMetodoPago }).eq('id', id);
+         if (error) {
+             alert('Error al confirmar pago: ' + error.message);
+         }
      } else {
          const idx = localOrders.findIndex(o => o.id === id);
          if (idx > -1) {
@@ -131,9 +134,9 @@ export default function Caja() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="bg-green-800 text-white p-4 shadow-xl border-b border-green-900 sticky top-0 z-50">
-        <div className="flex items-center justify-between container mx-auto">
+        <div className="flex flex-wrap items-center justify-between container mx-auto gap-y-3 gap-x-2">
           <div className="flex items-center gap-2">
              <DollarSign className="w-6 h-6 text-green-300" />
              <h1 className="text-xl font-black uppercase tracking-tight">Caja</h1>
@@ -144,12 +147,12 @@ export default function Caja() {
                 <BellRing className="w-5 h-5 animate-bounce" />
               </button>
             )}
-            <a href="#inventario" className="text-sm bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2 mr-4 text-white font-bold">
+            <a href="/inventario" className="text-sm bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2 mr-4 text-white font-bold">
                <Package className="w-4 h-4" /> Inventario & Ventas
             </a>
             <div className="flex items-center gap-4">
-            <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold">Roles</a>
-            <a href="#personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold" onClick={() => {
+            <a href="/personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold py-2 px-3 rounded hover:bg-white/5">Roles</a>
+            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold py-2 px-3 rounded hover:bg-red-500/10" onClick={() => {
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');
@@ -244,7 +247,7 @@ export default function Caja() {
                  <tbody>
                     {orders.filter(o => o.estado !== 'pendiente_caja' && !(o.metodo_pago === 'pendiente')).slice(0, 10).map(order => (
                        <tr key={order.id} className="border-b border-gray-100">
-                          <td className="py-3 font-bold">#{order.numero_pedido}</td>
+                          <td className="py-3 font-bold text-gray-900">#{order.numero_pedido}</td>
                           <td className="py-3 text-gray-600">{order.nombre_cliente}</td>
                           <td className="py-3 font-bold text-green-700">${order.total}</td>
                           <td className="py-3 text-gray-500 capitalize">{order.metodo_pago}</td>

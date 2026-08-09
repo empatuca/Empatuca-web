@@ -115,23 +115,36 @@ export default function Inventario() {
     const payload = {
       fecha: today,
       total_ventas: totalVentas,
-      inventario: inventory
+      inventario: inventory,
+      pedidos: todayOrders
     };
     
-    // Check if exists
-    const { data: existing } = await supabase.from('cierres_diarios').select('id').eq('fecha', today).single();
-    if (existing) {
-      await supabase.from('cierres_diarios').update(payload).eq('id', existing.id);
-    } else {
-      await supabase.from('cierres_diarios').insert([payload]);
+    try {
+      const { data: existing, error: errExist } = await supabase.from('cierres_diarios').select('id').eq('fecha', today).single();
+      let error = null;
+      if (existing) {
+        const { error: errUp } = await supabase.from('cierres_diarios').update(payload).eq('id', existing.id);
+        error = errUp;
+      } else {
+        const { error: errIns } = await supabase.from('cierres_diarios').insert([payload]);
+        error = errIns;
+      }
+      
+      if (error) {
+        alert('Error al guardar en Supabase. Asegúrate de haber ejecutado el código SQL para crear la tabla cierres_diarios. Detalle: ' + error.message);
+      } else {
+        alert('Cierre guardado correctamente.');
+        const resetInventory = inventory.map(item => ({ ...item, initialStock: 0, currentStock: 0 }));
+        setInventory(resetInventory);
+        updateLocalInventory(resetInventory);
+      }
+      
+      const { data } = await supabase.from('cierres_diarios').select('*').order('fecha', { ascending: false });
+      if (data) setClosures(data);
+    } catch (err) {
+      alert('Error inesperado: ' + err.message);
     }
-    
-    alert('Cierre del día guardado correctamente.');
     setIsSavingClosure(false);
-    
-    // Refresh closures
-    const { data } = await supabase.from('cierres_diarios').select('*').order('fecha', { ascending: false });
-    if (data) setClosures(data);
   };
 
 
@@ -167,19 +180,19 @@ export default function Inventario() {
   }, [orders]); 
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20 text-gray-900">
       <header className="bg-green-800 text-white p-4 shadow-xl border-b border-green-900 sticky top-0 z-50">
-        <div className="flex items-center justify-between container mx-auto">
+        <div className="flex flex-wrap items-center justify-between container mx-auto gap-y-3 gap-x-2">
           <div className="flex items-center gap-2">
              <Package className="w-6 h-6 text-green-300" />
              <h1 className="text-xl font-black uppercase tracking-tight">Inventario & Ventas</h1>
           </div>
           <div className="flex items-center gap-4">
-            <a href="#caja" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1">
+            <a href="/caja" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1">
                <ArrowLeft className="w-3 h-3" /> Caja
             </a>
-            <a href="#personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold">Roles</a>
-            <a href="#personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold" onClick={() => {
+            <a href="/personal" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors font-bold py-2 px-3 rounded hover:bg-white/5">Roles</a>
+            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-bold py-2 px-3 rounded hover:bg-red-500/10" onClick={() => {
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');
@@ -234,8 +247,9 @@ export default function Inventario() {
                              <label className="text-xs text-gray-500 font-bold uppercase block mb-1">Producción</label>
                              <Input 
                                type="number" 
-                               value={item.initialStock} 
-                               onChange={(e) => handleUpdateInitial(item.id, parseInt(e.target.value) || 0)}
+                               value={item.initialStock || ''}
+                               placeholder="0" 
+                               onChange={(e) => handleUpdateInitial(item.id, e.target.value === '' ? 0 : parseInt(e.target.value))}
                                className="h-10 text-lg font-black"
                                min="0"
                              />
@@ -260,36 +274,51 @@ export default function Inventario() {
         </div>
 
         {closures.length > 0 && (
-          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100">
+          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100 mt-8">
              <h2 className="text-xl font-black mb-6 uppercase tracking-tight">Historial de Cierres</h2>
-             <div className="overflow-x-auto">
-               <table className="w-full text-left border-collapse min-w-[600px]">
-                 <thead>
-                    <tr className="border-b border-gray-200 text-gray-500">
-                       <th className="py-3 font-bold">Fecha</th>
-                       <th className="py-3 font-bold">Total Ventas</th>
-                       <th className="py-3 font-bold">Detalle (Vendido / Disponible)</th>
-                    </tr>
-                 </thead>
-                 <tbody>
-                    {closures.map(closure => (
-                       <tr key={closure.id} className="border-b border-gray-100">
-                          <td className="py-3 font-bold">{closure.fecha}</td>
-                          <td className="py-3 font-bold text-green-700">${closure.total_ventas}</td>
-                          <td className="py-3">
-                            <div className="max-h-32 overflow-y-auto pr-2 space-y-1 text-sm">
-                              {Array.isArray(closure.inventario) && closure.inventario.filter((i: any) => i.initialStock > 0).map((item: any) => (
-                                <div key={item.id} className="flex justify-between items-center bg-gray-50 p-1 px-2 rounded">
-                                  <span className="text-gray-600 truncate w-3/5" title={item.name}>{item.name}</span>
-                                  <span className="font-bold text-gray-800 text-right w-2/5 whitespace-nowrap">{(item.initialStock - item.currentStock)} vend. / {item.currentStock} disp.</span>
+             <div className="space-y-6">
+                {closures.map(closure => (
+                   <div key={closure.id} className="border-2 border-gray-100 rounded-2xl p-6 bg-gray-50">
+                      <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+                        <h3 className="text-2xl font-black">{closure.fecha}</h3>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-gray-500 uppercase">Total Ventas</p>
+                          <p className="text-3xl font-black text-green-700">${closure.total_ventas.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      
+                      {closure.pedidos && closure.pedidos.length > 0 && (
+                        <div className="mb-6">
+                          <h4 className="font-bold text-gray-700 uppercase tracking-widest text-sm mb-3">Pedidos del Día</h4>
+                          <div className="max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl p-3">
+                            {closure.pedidos.map((pedido: any) => (
+                              <div key={pedido.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                                <div>
+                                  <span className="font-black text-gray-800">#{pedido.numero_pedido}</span>
+                                  <span className="text-gray-500 text-sm ml-2">{pedido.nombre_cliente}</span>
                                 </div>
-                              ))}
+                                <span className="font-bold text-green-600">${pedido.total?.toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <h4 className="font-bold text-gray-700 uppercase tracking-widest text-sm mb-3">Resumen de Inventario (Vendidas / Sobraron)</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {Array.isArray(closure.inventario) && closure.inventario.filter((i: any) => i.initialStock > 0).map((item: any) => (
+                            <div key={item.id} className="flex justify-between items-center bg-white border border-gray-200 p-3 rounded-xl shadow-sm">
+                              <span className="text-gray-700 font-bold truncate pr-2">{item.name}</span>
+                              <span className="font-black text-gray-900 bg-gray-100 px-3 py-1 rounded-lg">
+                                {(item.initialStock - item.currentStock)} vendidas / {item.currentStock} sobraron
+                              </span>
                             </div>
-                          </td>
-                       </tr>
-                    ))}
-                 </tbody>
-               </table>
+                          ))}
+                        </div>
+                      </div>
+                   </div>
+                ))}
              </div>
           </div>
         )}
