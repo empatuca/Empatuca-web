@@ -107,9 +107,16 @@ export default function Caja() {
   const approveOrder = async (id: string) => {
      const order = orders.find(o => o.id === id);
      if (!order) return;
-     const isTablePending = order.tipo === 'mesa' && order.metodo_pago === 'pendiente';
-     const newEstado = isTablePending ? order.estado : 'nuevo';
-     const newMetodoPago = isTablePending ? 'efectivo' : order.metodo_pago;
+     
+     let newEstado = order.estado;
+     let newMetodoPago = order.metodo_pago;
+
+     if (order.estado === 'pendiente_caja') {
+         newEstado = 'nuevo';
+     }
+     if (order.metodo_pago === 'pendiente') {
+         newMetodoPago = 'efectivo';
+     }
      
      if (isSupabaseConfigured && supabase) {
          await supabase.from('pedidos').update({ estado: newEstado, metodo_pago: newMetodoPago }).eq('id', id);

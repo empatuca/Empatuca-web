@@ -224,7 +224,7 @@ export default function Cocina() {
                   <div className="w-full h-14 bg-gray-300 text-gray-500 font-bold text-sm rounded-xl flex items-center justify-center uppercase tracking-widest">
                     Esperando Pago...
                   </div>
-                ) : order.estado !== 'listo' && (
+                ) : (order.estado !== 'listo' && order.estado !== 'entregado') && (
                   <Button 
                     onClick={() => setConfirmOrder(order)}
                     className="w-full h-14 bg-[#0D0D0D] hover:bg-gray-800 text-white font-bold text-lg rounded-xl shadow-lg"
@@ -233,7 +233,7 @@ export default function Cocina() {
                     Listo
                   </Button>
                 )}
-                {order.estado === 'listo' && (
+                {(order.estado === 'listo' || order.estado === 'entregado') && (
                   <div className="flex justify-center items-center h-10 text-gray-400 font-semibold gap-2">
                     <CheckCircle2 className="h-5 w-5" /> Completado
                   </div>
