@@ -5,6 +5,7 @@ import { requestNotificationPermission, sendNotification } from "../lib/notifica
 import { BellRing } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Clock } from "lucide-react";
+import { formatOrderNumber } from "../lib/utils";
 
 interface Order {
   id: string;
@@ -170,7 +171,7 @@ export default function Cocina() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className={`text-2xl font-black ${order.estado === 'listo' ? 'text-gray-600' : 'text-[#0D0D0D]'}`}>
-                      #{order.numero_pedido}
+                      #{formatOrderNumber(order.numero_pedido)}
                     </h3>
                     <p className={`font-semibold ${order.estado === 'listo' ? 'text-gray-500' : 'text-[#5a0606]'}`}>
                       {order.nombre_cliente}
@@ -275,7 +276,7 @@ export default function Cocina() {
             
             <div className="bg-gray-50 rounded-2xl p-4 mb-6 max-h-60 overflow-y-auto border border-gray-100">
               <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
-                <span className="font-black text-xl text-gray-800">#{confirmOrder.numero_pedido}</span>
+                <span className="font-black text-xl text-gray-800">#{formatOrderNumber(confirmOrder.numero_pedido)}</span>
                 <span className={`px-2 py-1 rounded-full text-xs font-black tracking-wider uppercase ${
                   confirmOrder.tipo === 'delivery' ? 'bg-purple-100 text-purple-800' :
                   confirmOrder.tipo === 'mesa' ? 'bg-blue-100 text-blue-800' :

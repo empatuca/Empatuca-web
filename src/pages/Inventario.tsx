@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Package, DollarSign, ArrowLeft } from "lucide-react";
 import { localOrders, supabase } from "../lib/supabase";
+import { formatOrderNumber } from "../lib/utils";
 
 export default function Inventario() {
   const [inventory, setInventory] = useState<InventoryItem[]>(localInventory);
@@ -364,7 +365,7 @@ export default function Inventario() {
                             {closure.pedidos.map((pedido: any) => (
                               <div key={pedido.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                                 <div>
-                                  <span className="font-black text-gray-800">#{pedido.numero_pedido}</span>
+                                  <span className="font-black text-gray-800">#{formatOrderNumber(pedido.numero_pedido)}</span>
                                   <span className="text-gray-500 text-sm ml-2">{pedido.nombre_cliente}</span>
                                 </div>
                                 <span className="font-bold text-green-600">${Number(pedido.total || 0).toFixed(2)}</span>

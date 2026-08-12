@@ -5,6 +5,7 @@ import { requestNotificationPermission, sendNotification } from "../lib/notifica
 import { BellRing } from "lucide-react";
 import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
 import { Trash2, Package } from "lucide-react";
+import { formatOrderNumber } from "../lib/utils";
 
 export default function Caja() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -183,7 +184,7 @@ export default function Caja() {
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="font-black text-3xl text-gray-900">#{order.numero_pedido}</h3>
+                    <h3 className="font-black text-3xl text-gray-900">#{formatOrderNumber(order.numero_pedido)}</h3>
                     <p className="text-sm font-bold text-gray-600 uppercase mt-1 mb-2">{order.nombre_cliente}</p>
                     <span className={`px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase ${
                          order.tipo === 'delivery' ? 'bg-purple-100 text-purple-800' :
@@ -265,7 +266,7 @@ export default function Caja() {
                  <tbody>
                     {orders.filter(o => o.estado !== 'pendiente_caja' && !(o.metodo_pago === 'pendiente')).slice(0, 10).map(order => (
                        <tr key={order.id} className="border-b border-gray-100">
-                          <td className="py-3 font-black text-black">#{order.numero_pedido}</td>
+                          <td className="py-3 font-black text-black">#{formatOrderNumber(order.numero_pedido)}</td>
                           <td className="py-3 font-bold text-gray-800">{order.nombre_cliente}</td>
                           <td className="py-3 font-black text-green-700">${order.total}</td>
                           <td className="py-3 text-gray-500 capitalize">{order.metodo_pago}</td>

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { localInventory, inventoryListeners, InventoryItem } from "../../lib/supabase";
+import { formatOrderNumber } from "../../lib/utils";
 
 interface OrderItem {
   id: string;
@@ -98,6 +99,9 @@ export function WaitersPOS({ onCancel, initialOrder }: { onCancel: () => void, i
     const todayStart = new Date();
     todayStart.setHours(0,0,0,0);
     
+    const d = new Date();
+    const prefix = parseInt(`${d.getDate() < 10 ? '0'+d.getDate() : d.getDate()}${(d.getMonth()+1) < 10 ? '0'+(d.getMonth()+1) : (d.getMonth()+1)}000`, 10);
+    
     let orderIdValue = initialOrder ? initialOrder.numero_pedido : 1;
     if (!initialOrder) {
       if (supabase && !!import.meta.env.VITE_SUPABASE_URL) {
@@ -106,13 +110,13 @@ export function WaitersPOS({ onCancel, initialOrder }: { onCancel: () => void, i
             .from('pedidos')
             .select('*', { count: 'exact', head: true })
             .gte('created_at', todayStart.toISOString());
-          orderIdValue = (count || 0) + 1;
+          orderIdValue = prefix + (count || 0) + 1;
         } catch(e) {
-          orderIdValue = Math.floor(Math.random() * 1000);
+          orderIdValue = prefix + Math.floor(Math.random() * 1000);
         }
       } else {
         const todayOrders = localOrders.filter(o => new Date(o.created_at || new Date()).getTime() >= todayStart.getTime());
-        orderIdValue = todayOrders.length + 1;
+        orderIdValue = prefix + todayOrders.length + 1;
       }
     }
   

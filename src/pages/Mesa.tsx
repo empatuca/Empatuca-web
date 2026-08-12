@@ -4,6 +4,7 @@ import { WaitersPOS } from "../components/home/WaitersPOS";
 import { Button } from "@/components/ui/button";
 import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
 import { Trash2, Edit } from "lucide-react";
+import { formatOrderNumber } from "../lib/utils";
 
 export default function Mesa() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -146,7 +147,7 @@ export default function Mesa() {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <div className="flex items-center gap-3">
-                          <h3 className="font-black text-3xl text-gray-900">#{order.numero_pedido || 'N/A'}</h3>
+                          <h3 className="font-black text-3xl text-gray-900">#{formatOrderNumber(order.numero_pedido)}</h3>
                           <button onClick={() => { setEditingOrder(order); setView('nuevo'); }} className="text-blue-400 hover:text-blue-600 transition-colors shrink-0" title="Editar Pedido">
                             <Edit className="w-5 h-5" />
                           </button>
