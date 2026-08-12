@@ -150,10 +150,7 @@ export default function Inventario() {
         const { data } = await supabase.from('cierres_diarios').select('*').order('fecha', { ascending: false });
         if (data) setClosures(data);
       }
-      // Reset inventory anyway so you can start fresh locally
-      const resetInventory = inventory.map(item => ({ ...item, initialStock: 0, currentStock: 0 }));
-      setInventory(resetInventory);
-      updateLocalInventory(resetInventory);
+      // Eliminado el reseteo automático para que las ventas cuadren con el inventario actual
     } catch (err) {
       alert('Error inesperado: ' + err.message);
     }
@@ -304,6 +301,27 @@ export default function Inventario() {
                           <p className="text-3xl font-black text-green-700">${Number(closure.total_ventas).toFixed(2)}</p>
                         </div>
                       </div>
+                      {(() => {
+                         const soldMap: Record<string, number> = {};
+                         if (Array.isArray(closure.pedidos)) {
+                           closure.pedidos.forEach((order: any) => {
+                             if (order.estado === 'rechazado' || order.estado === 'cancelado') return;
+                             const prods = typeof order.productos === 'string' ? JSON.parse(order.productos) : order.productos;
+                             if (Array.isArray(prods)) {
+                               prods.forEach((p: any) => {
+                                 soldMap[p.id] = (soldMap[p.id] || 0) + p.quantity;
+                               });
+                             }
+                           });
+                         }
+                         const invDetails = Array.isArray(closure.inventario) 
+                           ? closure.inventario.map((item: any) => ({
+                               ...item,
+                               sold: soldMap[item.id] || 0
+                             })).filter((i: any) => i.initialStock > 0 || i.sold > 0)
+                           : [];
+                         return (
+                           <>
                       
                       {closure.pedidos && closure.pedidos.length > 0 && (
                         <div className="mb-6">
@@ -322,21 +340,24 @@ export default function Inventario() {
                         </div>
                       )}
                       
-                      {Array.isArray(closure.inventario) && closure.inventario.filter((i: any) => i.initialStock > 0).length > 0 && (
+                      {invDetails.length > 0 && (
                         <div>
                           <h4 className="font-bold text-gray-700 uppercase tracking-widest text-sm mb-3">Resumen de Inventario (Vendidas / Sobraron)</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {closure.inventario.filter((i: any) => i.initialStock > 0).map((item: any) => (
+                            {invDetails.map((item: any) => (
                               <div key={item.id} className="flex justify-between items-center bg-white border border-gray-200 p-3 rounded-xl shadow-sm">
                                 <span className="text-gray-700 font-bold truncate pr-2">{item.name}</span>
                                 <span className="font-black text-gray-900 bg-gray-100 px-3 py-1 rounded-lg">
-                                  {(item.initialStock - item.currentStock)} vendidas / {item.currentStock} sobraron
+                                  {item.sold} vendidas / {item.initialStock > 0 ? Math.max(0, item.initialStock - item.sold) : 0} sobraron
                                 </span>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
+                         </>
+                       );
+                    })()}
                    </div>
                 ))}
              </div>
