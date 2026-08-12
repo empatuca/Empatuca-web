@@ -187,7 +187,7 @@ export default function Cocina() {
 
                 <div className={`p-3 rounded-xl ${order.estado === 'listo' ? 'bg-gray-200/50' : 'bg-white'}`}>
                   <ul className="space-y-2">
-                    {order.productos.map((item, i) => (
+                    {(order.productos.filter((i: any) => !i.isAdicional)).map((item, i) => (
                       <li key={i} className={`flex justify-between items-center text-sm font-bold ${order.estado === 'listo' ? 'text-gray-600' : 'text-[#0D0D0D]'}`}>
                         <span className="flex gap-2 items-center">
                           <span className={`h-5 w-5 rounded flex items-center justify-center text-xs text-white ${order.estado === 'listo' ? 'bg-gray-400' : 'bg-[#5a0606]'}`}>
@@ -197,6 +197,23 @@ export default function Cocina() {
                         </span>
                       </li>
                     ))}
+                    {order.productos.some((i: any) => i.isAdicional) && (
+                       <>
+                         <li className="pt-2 pb-1 text-xs font-bold text-gray-400 uppercase tracking-wider border-t border-gray-200 mt-2">
+                           Adicionales
+                         </li>
+                         {order.productos.filter((i: any) => i.isAdicional).map((item: any, i: number) => (
+                           <li key={`adic-${i}`} className={`flex justify-between items-center text-sm font-bold ${order.estado === 'listo' ? 'text-gray-600' : 'text-[#0D0D0D]'}`}>
+                             <span className="flex gap-2 items-center">
+                               <span className={`h-5 w-5 rounded flex items-center justify-center text-xs text-white ${order.estado === 'listo' ? 'bg-gray-400' : 'bg-[#5a0606]'}`}>
+                                 {item.quantity}
+                               </span>
+                               {item.name} ({item.size})
+                             </span>
+                           </li>
+                         ))}
+                       </>
+                    )}
                   </ul>
                   {order.aderezos && (
                     <div className="mt-2 text-xs font-medium text-gray-700 bg-black/5 p-2 rounded-lg">
@@ -268,7 +285,7 @@ export default function Cocina() {
                 </span>
               </div>
               <ul className="space-y-3">
-                {confirmOrder.productos.map((item: any, idx: number) => (
+                {(confirmOrder.productos.filter((i: any) => !i.isAdicional)).map((item: any, idx: number) => (
                   <li key={idx} className="flex items-start gap-3">
                     <span className="font-black text-lg text-gray-800 shrink-0 w-6">{item.quantity}x</span>
                     <span className="font-bold text-gray-700 pt-0.5 leading-tight text-lg">
@@ -276,6 +293,21 @@ export default function Cocina() {
                     </span>
                   </li>
                 ))}
+                {confirmOrder.productos.some((i: any) => i.isAdicional) && (
+                   <>
+                     <li className="pt-3 pb-1 text-sm font-bold text-gray-400 uppercase tracking-wider border-t border-gray-200 mt-3">
+                       Adicionales
+                     </li>
+                     {confirmOrder.productos.filter((i: any) => i.isAdicional).map((item: any, idx: number) => (
+                       <li key={`adic-${idx}`} className="flex items-start gap-3">
+                         <span className="font-black text-lg text-gray-800 shrink-0 w-6">{item.quantity}x</span>
+                         <span className="font-bold text-gray-700 pt-0.5 leading-tight text-lg">
+                           {item.name} {item.size && <span className="text-gray-500 font-medium text-sm block">{item.size}</span>}
+                         </span>
+                       </li>
+                     ))}
+                   </>
+                )}
               </ul>
               {confirmOrder.aderezos && (
                 <div className="mt-4 pt-3 border-t border-gray-200">
