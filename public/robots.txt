@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /mesa
+Disallow: /caja
+Disallow: /cocina
+Disallow: /inventario
+Disallow: /personal
+
+Sitemap: https://empatuca.com/sitemap.xml
