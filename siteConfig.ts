@@ -6,7 +6,7 @@ export const siteConfig = {
   email: "empatuca.ec@gmail.com",
   address: "Av. Bomboli & Ing. Carlos Brown (esquina), Santo Domingo, Ecuador",
   postalCode: "230102",
-  hours: "Lunes a domingo, 9:00 am – 9:00 pm",
+  hours: "Todos los días menos martes, 4:30 pm – 10:30 pm",
   instagram: "empatuca.ec",
   facebook: "empatuca.ec",
   tiktok: "empatuca.ec",
@@ -135,6 +135,15 @@ export const siteConfig = {
         { id: 'horchata', name: 'Horchata' },
         { id: 'hierba-luisa', name: 'Hierba Luisa' },
       ]
+    },
+    {
+      id: "beb-gaseosa-familiar",
+      name: "🥤 Cola Familiar",
+      category: "Bebidas",
+      description: "Gaseosa familiar helada para compartir.",
+      prices: {
+        estandar: 1.25,
+      },
     },
     {
       id: "beb-gaseosa",

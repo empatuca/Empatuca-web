@@ -148,7 +148,7 @@ export default function Inventario() {
         alert('Error al guardar en Supabase. Asegúrate de ejecutar el código SQL para crear la tabla cierres_diarios.\nDetalle: ' + error.message);
       } else {
         alert('Cierre guardado correctamente.');
-        const { data } = await supabase.from('cierres_diarios').select('*').order('fecha', { ascending: false });
+        const { data } = await supabase.from('cierres_diarios').select('*').neq('id', '00000000-0000-0000-0000-000000000000').order('fecha', { ascending: false });
         if (data) setClosures(data);
       }
       // Eliminado el reseteo automático para que las ventas cuadren con el inventario actual

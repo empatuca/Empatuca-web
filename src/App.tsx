@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { syncSharedInventory } from "./lib/supabase";
 import Home from "./pages/Home";
 import Cocina from "./pages/Cocina";
 import Inventario from "./pages/Inventario";
@@ -14,6 +15,10 @@ import Mesa from "./pages/Mesa";
 
 
 export default function App() {
+  useEffect(() => {
+    syncSharedInventory();
+  }, []);
+
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -28,7 +33,7 @@ export default function App() {
   useEffect(() => {
     // Add loading delay
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      syncSharedInventory().then(() => setIsLoading(false));
     }, 1800);
     return () => clearTimeout(timer);
   }, []);
