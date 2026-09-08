@@ -79,8 +79,8 @@ export const syncSharedInventory = async () => {
       invChannel = supabase
         .channel('shared-inventory')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'cierres_diarios', filter: "id=eq.00000000-0000-0000-0000-000000000000" }, (payload) => {
-           if (payload.new && payload.new.inventario) {
-              localInventory.splice(0, localInventory.length, ...(payload.new.inventario));
+           if (payload.new && (payload.new as any).inventario) {
+              localInventory.splice(0, localInventory.length, ...((payload.new as any).inventario));
               notifyInventoryListeners();
            }
         })

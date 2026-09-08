@@ -62,20 +62,13 @@ export default function App() {
     return () => observer.disconnect();
   }, [currentPath, isLoading]);
 
-  const isStaffRoute = ["/mesa", "/caja", "/cocina", "/inventario"].includes(currentPath);
+    const isStaffRoute = ["/mesa", "/caja", "/cocina", "/inventario"].includes(currentPath);
+
   if (isStaffRoute) {
     if (localStorage.getItem('empatuca_staff_auth') !== 'true' && sessionStorage.getItem('empatuca_staff_auth') !== 'true') {
       window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate'));
       return null;
     }
-    if (currentPath === "/mesa") return <Mesa />;
-    if (currentPath === "/caja") return <Caja />;
-    if (currentPath === "/cocina") return <Cocina />;
-    if (currentPath === "/inventario") return <Inventario />;
-  }
-  
-  if (currentPath === "/personal") {
-    return <StaffLogin />;
   }
 
   return (
@@ -107,7 +100,13 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-      <Home />
+      
+      {!isLoading && isStaffRoute && currentPath === "/mesa" && <Mesa />}
+      {!isLoading && isStaffRoute && currentPath === "/caja" && <Caja />}
+      {!isLoading && isStaffRoute && currentPath === "/cocina" && <Cocina />}
+      {!isLoading && isStaffRoute && currentPath === "/inventario" && <Inventario />}
+      {!isLoading && currentPath === "/personal" && <StaffLogin />}
+      {!isLoading && !isStaffRoute && currentPath !== "/personal" && <Home />}
     </>
   );
 }

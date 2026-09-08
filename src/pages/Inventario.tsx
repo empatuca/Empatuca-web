@@ -74,7 +74,7 @@ export default function Inventario() {
         today.setHours(0, 0, 0, 0);
         const { data, error } = await supabase
           .from('pedidos')
-          .select('*')
+          .select('*').neq('id', '00000000-0000-0000-0000-000000000000')
           .gte('created_at', today.toISOString());
           
         if (!error && data) {
@@ -86,7 +86,7 @@ export default function Inventario() {
       const fetchClosures = async () => {
         const { data, error } = await supabase
           .from('cierres_diarios')
-          .select('*')
+          .select('*').neq('id', '00000000-0000-0000-0000-000000000000')
           .order('fecha', { ascending: false });
         if (!error && data) {
           setClosures(data);
