@@ -19,8 +19,12 @@ export default function Caja() {
     descripcion: '',
     monto: '',
     categoria: 'Operativo',
-    socio: 'Socio 1'
+    socio: 'Socio 1',
+    fecha: new Date().toISOString().split('T')[0]
   });
+  
+  // Date filter for UI
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [comprobanteFile, setComprobanteFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -85,12 +89,19 @@ export default function Caja() {
       fetchOrders();
       
       const fetchGastos = async () => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const startOfDay = new Date(selectedDate);
+        // Correct timezone offset issues for local date
+        startOfDay.setMinutes(startOfDay.getMinutes() + startOfDay.getTimezoneOffset());
+        startOfDay.setHours(0, 0, 0, 0);
+        
+        const endOfDay = new Date(startOfDay);
+        endOfDay.setHours(23, 59, 59, 999);
+
         const { data, error } = await supabase
           .from('gastos_diarios')
           .select('*')
-          .gte('created_at', today.toISOString())
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString())
           .order('created_at', { ascending: false });
         if (!error && data) {
           setGastos(data);
@@ -115,7 +126,7 @@ export default function Caja() {
       window.addEventListener('localOrdersUpdated', handleLocalUpdate);
       return () => window.removeEventListener('localOrdersUpdated', handleLocalUpdate);
     }
-  }, [isSupabaseConfigured]);
+  }, [isSupabaseConfigured, selectedDate]);
 
   
   const deleteOrder = async (id: string) => {
@@ -187,11 +198,19 @@ export default function Caja() {
         comprobante_url = urlData.publicUrl;
       }
       
+
+      // Build a correct date based on selected date + current time to avoid timezone offset shifts to the wrong day
+      const now = new Date();
+      const expenseDate = new Date(gastoForm.fecha);
+      expenseDate.setMinutes(expenseDate.getMinutes() + expenseDate.getTimezoneOffset());
+      expenseDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
       const payload = {
         descripcion: gastoForm.descripcion,
         monto: parseFloat(gastoForm.monto),
         categoria: gastoForm.categoria === 'Pago Socios' ? `Pago Socios (${gastoForm.socio})` : gastoForm.categoria,
-        comprobante_url
+        comprobante_url,
+        created_at: expenseDate.toISOString()
       };
       
       if (supabase) {
@@ -203,7 +222,7 @@ export default function Caja() {
       }
       
       setIsAddingGasto(false);
-      setGastoForm({ descripcion: '', monto: '', categoria: 'Operativo', socio: 'Socio 1' });
+      setGastoForm({ descripcion: '', monto: '', categoria: 'Operativo', socio: 'Socio 1', fecha: new Date().toISOString().split('T')[0] });
       setComprobanteFile(null);
     } catch (err: any) {
       alert("Error al guardar gasto. Es posible que debas crear la tabla 'gastos_diarios' en Supabase. Detalles: " + err.message);
@@ -220,7 +239,17 @@ export default function Caja() {
   };
 
   const totalGastos = gastos.reduce((sum, g) => sum + Number(g.monto), 0);
-  const totalIngresos = orders.filter(o => o.estado !== 'cancelado' && o.estado !== 'rechazado' && o.estado !== 'archivado').reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  
+  const totalIngresos = orders.filter(o => {
+    if (o.estado === 'cancelado' || o.estado === 'rechazado' || o.estado === 'archivado') return false;
+    // Check if the order belongs to the selectedDate
+    try {
+      const orderDate = new Date(o.created_at);
+      const orderDateString = new Date(orderDate.getTime() - (orderDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      return orderDateString === selectedDate;
+    } catch(e) { return false; }
+  }).reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  
   const saldoNeto = totalIngresos - totalGastos;
 
   return (
@@ -403,7 +432,7 @@ export default function Caja() {
               <div className="lg:col-span-1 space-y-6">
                  {/* BALANCE CARD */}
                  <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Resumen de Hoy</h3>
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Balance: {selectedDate}</h3>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                         <span className="text-gray-500 font-medium">Ingresos (Ventas)</span>
@@ -437,6 +466,10 @@ export default function Caja() {
                       <div>
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Monto ($)</label>
                         <input required type="number" step="0.01" min="0" value={gastoForm.monto} onChange={e => setGastoForm({...gastoForm, monto: e.target.value})} placeholder="0.00" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 font-black text-red-600 text-xl" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Fecha del Gasto</label>
+                        <input required type="date" value={gastoForm.fecha} onChange={e => setGastoForm({...gastoForm, fecha: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 font-bold text-gray-700" />
                       </div>
                       <div>
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Categoría</label>
@@ -474,7 +507,10 @@ export default function Caja() {
 
               <div className="lg:col-span-2">
                  <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 h-full min-h-[400px]">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">Historial de Gastos de Hoy</h3>
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Historial de Gastos</h3>
+                      <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-bold text-gray-700 outline-none" />
+                    </div>
                     {gastos.length === 0 ? (
                       <div className="text-center py-20">
                         <Wallet className="w-16 h-16 text-gray-200 mx-auto mb-4" />
