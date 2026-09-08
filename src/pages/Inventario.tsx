@@ -158,6 +158,9 @@ export default function Inventario() {
           const ids = todayOrders.map(o => o.id);
           // Split into chunks if too many, but Supabase handles arrays fine
           await supabase.from('pedidos').update({ estado: 'archivado' }).in('id', ids);
+          
+          // Force update local UI instantly
+          setOrders(orders.map(o => ids.includes(o.id) ? { ...o, estado: 'archivado' } : o));
         }
 
         // Reset local inventory to 0 as requested by user

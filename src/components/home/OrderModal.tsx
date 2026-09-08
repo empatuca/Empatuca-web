@@ -131,7 +131,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                   quantity: 0,
                   isVariant: true,
                   baseId: item.id,
-                  variantImage: variant.image
+                  variantImage: (variant as any).image
                 });
               });
             } else {
