@@ -126,14 +126,14 @@ export default function Mesa() {
                 <div className="animate-spin w-12 h-12 border-4 border-[#fac124] border-t-transparent rounded-full mx-auto mb-4"></div>
                 <p className="text-gray-500 font-bold uppercase tracking-widest">Cargando pedidos...</p>
               </div>
-            ) : orders.filter(o => o.estado !== 'entregado').length === 0 ? (
+            ) : orders.filter(o => o.estado !== 'entregado' && o.estado !== 'archivado').length === 0 ? (
               <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
                 <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-black text-gray-400 uppercase">No hay pedidos activos</h3>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {orders.filter(o => o.estado !== 'entregado').map(order => (
+                {orders.filter(o => o.estado !== 'entregado' && o.estado !== 'archivado').map(order => (
                   <div 
                     key={order.id} 
                     className={`bg-white rounded-3xl p-6 shadow-xl border-2 flex flex-col \${

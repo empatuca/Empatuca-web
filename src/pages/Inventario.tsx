@@ -153,6 +153,13 @@ export default function Inventario() {
         const { data } = await supabase.from('cierres_diarios').select('*').neq('id', '00000000-0000-0000-0000-000000000000').order('fecha', { ascending: false });
         if (data) setClosures(data);
         
+        // Archive current orders so they don't show up anymore today
+        if (todayOrders.length > 0) {
+          const ids = todayOrders.map(o => o.id);
+          // Split into chunks if too many, but Supabase handles arrays fine
+          await supabase.from('pedidos').update({ estado: 'archivado' }).in('id', ids);
+        }
+
         // Reset local inventory to 0 as requested by user
         const resetInv = inventory.map(item => ({ ...item, initialStock: 0, currentStock: 0 }));
         updateLocalInventory(resetInv);

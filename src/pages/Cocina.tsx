@@ -110,7 +110,7 @@ export default function Cocina() {
 
 
   // Sort orders: new/en_preparacion first, then listos
-  const filteredOrders = orders.filter(o => viewMode === "activos" ? (o.estado !== 'listo' && o.estado !== 'entregado') : (o.estado === 'listo' || o.estado === 'entregado'));
+  const filteredOrders = orders.filter(o => o.estado !== 'archivado' && (viewMode === "activos" ? (o.estado !== 'listo' && o.estado !== 'entregado') : (o.estado === 'listo' || o.estado === 'entregado')));
   const sortedOrders = [...filteredOrders].sort((a, b) => {
     if (a.estado === 'listo' && b.estado !== 'listo') return 1;
     if (a.estado !== 'listo' && b.estado === 'listo') return -1;
