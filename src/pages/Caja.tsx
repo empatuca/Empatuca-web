@@ -122,7 +122,7 @@ export default function Caja() {
         const sumIngresos = (ingresosData || []).reduce((sum, o) => sum + Number(o.total || 0), 0);
         setIngresosDelDia(sumIngresos);
 
-        // 3. Fetch Global Balance (from Sept 1 + 336.25 base)
+        // 3. Fetch Global Balance (from Sept 1 + 346.75 base)
         const septStart = '2026-09-01T05:00:00Z'; // 00:00 in UTC-5 (Ecuador)
         const { data: globalPedidos } = await supabase
           .from('pedidos')
@@ -137,7 +137,7 @@ export default function Caja() {
           .gte('created_at', septStart);
         const sumGlobalGastos = (globalGastos || []).reduce((sum, o) => sum + Number(o.monto || 0), 0);
         
-        setGlobalBalance(336.25 + sumGlobalPedidos - sumGlobalGastos);
+        setGlobalBalance(346.75 + sumGlobalPedidos - sumGlobalGastos);
       };
       fetchData();
 
@@ -284,18 +284,18 @@ export default function Caja() {
              <h1 className="text-xl font-black uppercase tracking-tight">Caja</h1>
           </div>
           
-            <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
 {!hasNotifPermission && (
-              <button onClick={enableNotifications} className="text-amber-400 hover:text-amber-300 transition-colors mr-4" title="Activar Notificaciones">
-                <BellRing className="w-5 h-5 animate-bounce" />
+              <button onClick={enableNotifications} className="text-amber-400 hover:text-amber-300 transition-colors" title="Activar Notificaciones">
+                <BellRing className="w-4 h-4 sm:w-5 sm:h-5 animate-bounce" />
               </button>
             )}
-            <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/inventario'); window.dispatchEvent(new Event('popstate')); }} href="/inventario" className="text-sm bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg flex items-center gap-2 mr-4 text-white font-bold">
-               <Package className="w-4 h-4" /> Inventario & Ventas
+            <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/inventario'); window.dispatchEvent(new Event('popstate')); }} href="/inventario" className="text-[10px] sm:text-sm bg-white/10 hover:bg-white/20 transition-colors px-2 sm:px-3 py-1.5 rounded-lg flex items-center gap-1 sm:gap-2 text-white font-bold">
+               <Package className="w-3 h-3 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Inventario & Ventas</span><span className="sm:hidden">Inventario</span>
             </a>
             
-            <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/personal"); window.dispatchEvent(new Event("popstate")); 
+            <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-[10px] sm:text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-1.5 sm:py-2 px-2 sm:px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
+            <a href="/personal" className="text-[10px] sm:text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-1.5 sm:py-2 px-2 sm:px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/personal"); window.dispatchEvent(new Event("popstate")); 
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');
@@ -458,7 +458,7 @@ export default function Caja() {
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                       <Wallet className="w-4 h-4" /> Saldo General Acumulado
                     </h3>
-                    <p className="text-[10px] text-gray-400 mb-4 leading-tight">Calculado desde Sept 1, incluyendo base de $336.25</p>
+                    <p className="text-[10px] text-gray-400 mb-4 leading-tight">Calculado desde Sept 1, incluyendo base de $346.75</p>
                     <div className="flex items-center gap-3">
                        <span className={`font-black text-4xl ${globalBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                          ${globalBalance.toFixed(2)}
@@ -556,25 +556,25 @@ export default function Caja() {
                     ) : (
                       <div className="space-y-4">
                         {gastos.map(gasto => (
-                          <div key={gasto.id} className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:shadow-md transition-shadow bg-gray-50">
-                            <div className="flex flex-col gap-2">
-                               <div className="flex items-center gap-3">
-                                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${getCategoryColor(gasto.categoria)}`}>
+                          <div key={gasto.id} className="flex flex-row items-center justify-between p-3 sm:p-4 rounded-2xl border border-gray-100 hover:shadow-md transition-shadow bg-gray-50">
+                            <div className="flex flex-col gap-1.5 sm:gap-2 flex-1 min-w-0 pr-2 sm:pr-4">
+                               <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
+                                 <span className={`px-2 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider border inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px] sm:max-w-none ${getCategoryColor(gasto.categoria)}`}>
                                    {gasto.categoria}
                                  </span>
-                                 <span className="text-xs text-gray-400 font-bold">
+                                 <span className="text-[9px] sm:text-xs text-gray-400 font-bold whitespace-nowrap shrink-0">
                                    {gasto.created_at && !isNaN(new Date(gasto.created_at).getTime()) ? new Date(gasto.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                  </span>
                                </div>
-                               <p className="font-bold text-gray-800 text-lg leading-tight">{gasto.descripcion}</p>
+                               <p className="font-bold text-gray-800 text-sm sm:text-lg leading-tight break-words">{gasto.descripcion}</p>
                                {gasto.comprobante_url && (
                                  <a href={gasto.comprobante_url} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 w-fit">
                                    <Receipt className="w-3 h-3" /> Ver comprobante
                                  </a>
                                )}
                             </div>
-                            <div className="text-right pl-4">
-                               <span className="font-black text-2xl text-red-600 block">-${Number(gasto.monto).toFixed(2)}</span>
+                            <div className="text-right shrink-0">
+                               <span className="font-black text-lg sm:text-2xl text-red-600 block">-${Number(gasto.monto).toFixed(2)}</span>
                             </div>
                           </div>
                         ))}
