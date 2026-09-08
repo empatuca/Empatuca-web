@@ -15,9 +15,9 @@ export default function Inventario() {
   const [showHistory, setShowHistory] = useState(false);
 
   
-  // Initialize inventory based on menu if empty
+  // Initialize inventory based on menu if empty locally without overwriting DB
   useEffect(() => {
-    if (inventory.length === 0) {
+    if (inventory.length === 0 && localInventory.length === 0) {
       const init: InventoryItem[] = [];
       siteConfig.menu.forEach(item => {
         if (item.prices.empatuca !== undefined) {
@@ -30,7 +30,9 @@ export default function Inventario() {
           init.push({ id: `${item.id}-estandar`, name: item.name, initialStock: 0, currentStock: 0 });
         }
       });
-      updateLocalInventory(init);
+      // ONLY set locally so we don't accidentally overwrite DB on a fetch failure
+      setInventory(init);
+      localInventory.splice(0, localInventory.length, ...init);
     }
 
     const listener = (newInv: InventoryItem[]) => setInventory([...newInv]);
@@ -150,8 +152,11 @@ export default function Inventario() {
         alert('Cierre guardado correctamente.');
         const { data } = await supabase.from('cierres_diarios').select('*').neq('id', '00000000-0000-0000-0000-000000000000').order('fecha', { ascending: false });
         if (data) setClosures(data);
+        
+        // Reset local inventory to 0 as requested by user
+        const resetInv = inventory.map(item => ({ ...item, initialStock: 0, currentStock: 0 }));
+        updateLocalInventory(resetInv);
       }
-      // Eliminado el reseteo automático para que las ventas cuadren con el inventario actual
     } catch (err) {
       alert('Error inesperado: ' + err.message);
     }
