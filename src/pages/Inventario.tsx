@@ -118,7 +118,7 @@ export default function Inventario() {
   // Let's assume all orders in localOrders are for today.
   const todayOrders = orders.filter(o => o.estado === 'entregado' || o.estado === 'listo' || o.estado === 'pendiente_caja' || o.estado === 'en_preparacion' || o.estado === 'nuevo'); // basically all active/completed orders today
   
-  const totalVentas = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const totalVentas = todayOrders.reduce((sum, o) => sum + Math.round((o.total || 0) * 100), 0) / 100;
 
   const handleSaveClosure = async () => {
     if (!isSupabaseConfigured || !supabase) {
@@ -223,18 +223,19 @@ export default function Inventario() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 text-gray-900">
-      <header className="bg-green-800 text-white p-4 shadow-xl border-b border-green-900 sticky top-0 z-50">
+      <header className="bg-[#0D0D0D] text-white p-4 shadow-xl border-b border-white/5 sticky top-0 z-50">
         <div className="flex flex-wrap items-center justify-between container mx-auto gap-y-3 gap-x-2">
-          <div className="flex items-center gap-2">
-             <Package className="w-6 h-6 text-green-300" />
-             <h1 className="text-xl font-black uppercase tracking-tight">Inventario & Ventas</h1>
+          <div className="flex items-center gap-2 sm:gap-3">
+             <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center">
+               <img src="/logo_M.svg" alt="M" className="h-full w-auto" />
+            </div>
+             <h1 className="text-base sm:text-xl font-black uppercase tracking-tight">Inventario & Ventas</h1>
           </div>
-          <div className="flex flex-wrap items-center gap-3 sm:gap-6">
-<a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/caja'); window.dispatchEvent(new Event('popstate')); }} href="/caja" className="text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1">
-               <ArrowLeft className="w-3 h-3" /> Caja
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4"><a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/caja'); window.dispatchEvent(new Event('popstate')); }} href="/caja" className="text-[10px] sm:text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-1">
+               <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Volver a Caja</span><span className="sm:hidden">Caja</span>
             </a>
-            <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/personal"); window.dispatchEvent(new Event("popstate")); 
+            <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-[10px] sm:text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-1.5 sm:py-2 px-2 sm:px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
+            <a href="/personal" className="text-[10px] sm:text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-1.5 sm:py-2 px-2 sm:px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/personal"); window.dispatchEvent(new Event("popstate")); 
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');
@@ -245,20 +246,20 @@ export default function Inventario() {
 
       <div className="container mx-auto p-4 md:p-8 space-y-8">
         
-        <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100 flex items-center justify-between">
+        <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border-2 border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-gray-500 font-bold uppercase tracking-widest text-sm">Ventas del Día (Aprox)</h2>
-            <p className="text-4xl font-black text-green-700 mt-1">${totalVentas.toFixed(2)}</p>
+            <h2 className="text-gray-500 font-bold uppercase tracking-widest text-xs sm:text-sm">Ventas del Día (Aprox)</h2>
+            <p className="text-3xl sm:text-4xl font-black text-[#5a0606] mt-1">${totalVentas.toFixed(2)}</p>
           </div>
-          <div className="flex flex-wrap justify-end items-center gap-4">
-            <Button onClick={() => setShowHistory(!showHistory)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold h-12 px-6 rounded-xl">
-              {showHistory ? 'Volver a Inventario' : 'Ver Historial'}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <Button onClick={() => setShowHistory(!showHistory)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold h-10 sm:h-12 px-4 sm:px-6 rounded-xl flex-1 sm:flex-none text-xs sm:text-sm">
+              {showHistory ? 'Volver' : 'Ver Historial'}
             </Button>
-            <Button onClick={handleSaveClosure} disabled={isSavingClosure} className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 px-6 rounded-xl">
+            <Button onClick={handleSaveClosure} disabled={isSavingClosure} className="bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold h-10 sm:h-12 px-4 sm:px-6 rounded-xl flex-1 sm:flex-none text-xs sm:text-sm">
               {isSavingClosure ? 'Guardando...' : 'Guardar Cierre'}
             </Button>
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <DollarSign className="w-8 h-8 text-green-600" />
+            <div className="w-10 h-10 sm:w-16 sm:h-16 bg-[#5a0606]/10 rounded-full flex items-center justify-center shrink-0">
+              <DollarSign className="w-5 h-5 sm:w-8 sm:h-8 text-[#5a0606]" />
             </div>
           </div>
         </div>
@@ -307,7 +308,7 @@ export default function Inventario() {
                          </div>
                          {item.initialStock > 0 && (
                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className={`h-2 rounded-full ${isOut ? 'bg-red-500' : isLow ? 'bg-amber-500' : 'bg-green-500'}`} style={{ width: `${percentage}%` }}></div>
+                              <div className={`h-2 rounded-full ${isOut ? 'bg-red-500' : isLow ? 'bg-amber-500' : 'bg-[#25D366]'}`} style={{ width: `${percentage}%` }}></div>
                            </div>
                          )}
                        </div>
@@ -321,21 +322,21 @@ export default function Inventario() {
 
         ) : (
         closures.length > 0 ? (
-          <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100 mt-8">
-             <h2 className="text-xl font-black mb-6 uppercase tracking-tight">Historial de Cierres</h2>
-             <div className="space-y-6">
+          <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border-2 border-gray-100 mt-8">
+             <h2 className="text-lg sm:text-xl font-black mb-4 sm:mb-6 uppercase tracking-tight">Historial de Cierres</h2>
+             <div className="space-y-4 sm:space-y-6">
                 {closures.map(closure => (
-                   <div key={closure.id} className="border-2 border-gray-100 rounded-2xl p-6 bg-gray-50">
-                      <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+                   <div key={closure.id} className="border-2 border-gray-100 rounded-2xl p-4 sm:p-6 bg-gray-50">
+                      <div className="flex flex-row justify-between items-start mb-4 sm:mb-6 border-b border-gray-200 pb-4">
                         <div className="flex flex-col gap-2">
-                           <h3 className="text-2xl font-black">{closure.fecha}</h3>
-                           <button onClick={() => handleDeleteClosure(closure.id)} className="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md self-start transition-colors">
+                           <h3 className="text-lg sm:text-2xl font-black">{closure.fecha}</h3>
+                           <button onClick={() => handleDeleteClosure(closure.id)} className="text-[10px] sm:text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2 sm:px-3 py-1 rounded-md self-start transition-colors">
                              Eliminar Cierre
                            </button>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-bold text-gray-500 uppercase">Total Ventas</p>
-                          <p className="text-3xl font-black text-green-700">${Number(closure.total_ventas).toFixed(2)}</p>
+                          <p className="text-xs sm:text-sm font-bold text-gray-500 uppercase">Total Ventas</p>
+                          <p className="text-xl sm:text-3xl font-black text-[#5a0606]">${Number(closure.total_ventas).toFixed(2)}</p>
                         </div>
                       </div>
                       {(() => {
@@ -383,7 +384,7 @@ export default function Inventario() {
                                   <span className="font-black text-gray-800">#{formatOrderNumber(pedido.numero_pedido)}</span>
                                   <span className="text-gray-500 text-sm ml-2">{pedido.nombre_cliente}</span>
                                 </div>
-                                <span className="font-bold text-green-600">${Number(pedido.total || 0).toFixed(2)}</span>
+                                <span className="font-bold text-[#5a0606]">${Number(pedido.total || 0).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>

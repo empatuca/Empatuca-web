@@ -94,21 +94,24 @@ export default function Mesa() {
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <header className="bg-[#0D0D0D] text-white p-4 shadow-xl border-b border-white/5 sticky top-0 z-50">
         <div className="flex flex-wrap items-center justify-between container mx-auto gap-y-3 gap-x-2">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-<h1 className="text-xl font-black uppercase tracking-tight leading-tight">Mesa <span className="text-sm text-gray-400 block sm:inline">(Meseros)</span></h1>
-             </div>
-<div className="flex flex-wrap items-center gap-3 sm:gap-6">
+          <div className="flex items-center gap-2 sm:gap-3">
+             <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center shrink-0">
+               <img src="/logo_M.svg" alt="M" className="h-full w-auto" />
+            </div>
+            <h1 className="text-base sm:text-xl font-black uppercase tracking-tight leading-tight">Mesa <span className="text-[10px] sm:text-sm text-gray-400 block sm:inline">(Meseros)</span></h1>
+          </div>
+<div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
 {view === 'nuevo' ? (
-                <button onClick={() => { setView('pedidos'); setEditingOrder(null); }} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                <button onClick={() => { setView('pedidos'); setEditingOrder(null); }} className="bg-white/10 hover:bg-white/20 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors flex-1 sm:flex-none">
                    Ver Pedidos
                 </button>
              ) : (
-                <button onClick={() => { setEditingOrder(null); setView('nuevo'); }} className="bg-[#fac124] hover:bg-amber-400 text-black px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
+                <button onClick={() => { setEditingOrder(null); setView('nuevo'); }} className="bg-[#fac124] hover:bg-amber-400 text-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-2 flex-1 sm:flex-none">
                    <PlusCircle className="w-4 h-4" /> Nuevo Pedido
                 </button>
              )}
-<a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-2 px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
-            <a href="/personal" className="text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-2 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/personal"); window.dispatchEvent(new Event("popstate")); 
+<a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-[10px] sm:text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-1.5 sm:py-2 px-2 sm:px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
+            <a href="/personal" className="text-[10px] sm:text-xs uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors font-black py-1.5 sm:py-2 px-2 sm:px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10" onClick={(e) => { e.preventDefault(); window.history.pushState(null, "", "/personal"); window.dispatchEvent(new Event("popstate")); 
               localStorage.removeItem('empatuca_staff_auth');
               localStorage.removeItem('empatuca_staff_role');
               sessionStorage.removeItem('empatuca_staff_auth');

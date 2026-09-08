@@ -119,7 +119,7 @@ export default function Caja() {
           .gte('created_at', startOfDay.toISOString())
           .lte('created_at', endOfDay.toISOString())
           .not('estado', 'in', '("cancelado","rechazado")'); // Include archivado as valid income
-        const sumIngresos = (ingresosData || []).reduce((sum, o) => sum + Number(o.total || 0), 0);
+        const sumIngresos = (ingresosData || []).reduce((sum, o) => sum + Math.round(Number(o.total || 0) * 100), 0) / 100;
         setIngresosDelDia(sumIngresos);
 
         // 3. Fetch Global Balance (from Sept 1 + 346.75 base)
@@ -129,15 +129,15 @@ export default function Caja() {
           .select('total')
           .gte('created_at', septStart)
           .not('estado', 'in', '("cancelado","rechazado")'); // Include archivado
-        const sumGlobalPedidos = (globalPedidos || []).reduce((sum, o) => sum + Number(o.total || 0), 0);
+        const sumGlobalPedidos = (globalPedidos || []).reduce((sum, o) => sum + Math.round(Number(o.total || 0) * 100), 0) / 100;
 
         const { data: globalGastos } = await supabase
           .from('gastos_diarios')
           .select('monto')
           .gte('created_at', septStart);
-        const sumGlobalGastos = (globalGastos || []).reduce((sum, o) => sum + Number(o.monto || 0), 0);
+        const sumGlobalGastos = (globalGastos || []).reduce((sum, o) => sum + Math.round(Number(o.monto || 0) * 100), 0) / 100;
         
-        setGlobalBalance(346.75 + sumGlobalPedidos - sumGlobalGastos);
+        setGlobalBalance((34675 + Math.round(sumGlobalPedidos * 100) - Math.round(sumGlobalGastos * 100)) / 100);
       };
       fetchData();
 
@@ -272,16 +272,18 @@ export default function Caja() {
     return 'bg-gray-100 text-gray-700';
   };
 
-  const totalGastos = gastos.reduce((sum, g) => sum + Number(g.monto), 0);
-  const saldoNeto = ingresosDelDia - totalGastos;
+  const totalGastos = gastos.reduce((sum, g) => sum + Math.round(Number(g.monto) * 100), 0) / 100;
+  const saldoNeto = (Math.round(ingresosDelDia * 100) - Math.round(totalGastos * 100)) / 100;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="bg-green-800 text-white p-4 shadow-xl border-b border-green-900 sticky top-0 z-50">
+      <header className="bg-[#0D0D0D] text-white p-4 shadow-xl border-b border-white/5 sticky top-0 z-50">
         <div className="flex flex-wrap items-center justify-between container mx-auto gap-y-3 gap-x-2">
-          <div className="flex items-center gap-2">
-             <DollarSign className="w-6 h-6 text-green-300" />
-             <h1 className="text-xl font-black uppercase tracking-tight">Caja</h1>
+          <div className="flex items-center gap-2 sm:gap-3">
+             <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center">
+               <img src="/logo_M.svg" alt="M" className="h-full w-auto" />
+            </div>
+             <h1 className="text-base sm:text-xl font-black uppercase tracking-tight">Caja</h1>
           </div>
           
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
@@ -308,7 +310,7 @@ export default function Caja() {
         <div className="flex gap-4 mb-8">
           <button 
             onClick={() => setActiveTab('ingresos')}
-            className={`flex-1 py-4 px-6 rounded-2xl font-black text-lg tracking-wide uppercase transition-all ${activeTab === 'ingresos' ? 'bg-green-600 text-white shadow-xl shadow-green-200' : 'bg-white text-gray-400 hover:bg-gray-50 border border-gray-100'}`}
+            className={`flex-1 py-4 px-6 rounded-2xl font-black text-lg tracking-wide uppercase transition-all ${activeTab === 'ingresos' ? 'bg-[#5a0606] text-white shadow-xl shadow-[#5a0606]/20' : 'bg-white text-gray-400 hover:bg-gray-50 border border-gray-100'}`}
           >
             <div className="flex items-center justify-center gap-2">
               <ArrowUpCircle className="w-6 h-6" /> Ingresos (Pedidos)
@@ -328,12 +330,12 @@ export default function Caja() {
           <div>
         {loading ? (
           <div className="text-center py-20">
-            <div className="animate-spin w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <div className="animate-spin w-12 h-12 border-4 border-[#fac124] border-t-transparent rounded-full mx-auto mb-4"></div>
             <p className="text-gray-500 font-bold uppercase tracking-widest">Cargando caja...</p>
           </div>
         ) : orders.filter(o => o.estado === 'pendiente_caja' || (o.metodo_pago === 'pendiente' && o.estado !== 'cancelado' && o.estado !== 'rechazado' && o.estado !== 'archivado')).length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
-            <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
+            <CheckCircle2 className="w-16 h-16 text-[#25D366] mx-auto mb-4" />
             <h3 className="text-xl font-black text-gray-400 uppercase">Sin pagos pendientes</h3>
             <p className="text-gray-400 text-sm mt-2">Todos los pedidos han sido verificados.</p>
           </div>
@@ -342,7 +344,7 @@ export default function Caja() {
             {orders.filter(o => o.estado === 'pendiente_caja' || (o.metodo_pago === 'pendiente' && o.estado !== 'cancelado' && o.estado !== 'rechazado' && o.estado !== 'archivado')).map(order => (
               <div 
                 key={order.id} 
-                className="bg-white rounded-3xl p-6 shadow-xl border-2 border-green-400 flex flex-col"
+                className="bg-white rounded-3xl p-6 shadow-xl border-2 border-[#fac124] flex flex-col"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -358,7 +360,7 @@ export default function Caja() {
                   </div>
                   <div className="text-right flex items-start gap-4">
                       <div>
-                     <span className="block font-black text-xl text-green-700">${order.total}</span>
+                     <span className="block font-black text-xl text-[#5a0606]">${order.total}</span>
                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{order.metodo_pago}</span>
                   </div>
                       <button onClick={() => deleteOrder(order.id)} className="mt-1 text-red-300 hover:text-red-500 transition-colors shrink-0" title="Eliminar/Rechazar Pedido">
@@ -401,7 +403,7 @@ export default function Caja() {
 
                 <Button 
                   onClick={() => approveOrder(order.id)}
-                  className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-xl shadow-lg"
+                  className="w-full h-14 bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-lg rounded-xl shadow-lg"
                 >
                   <CheckCircle2 className="mr-2 h-6 w-6" />
                   Confirmar Pago
@@ -433,7 +435,7 @@ export default function Caja() {
                        <tr key={order.id} className="border-b border-gray-100">
                           <td className="py-3 font-black text-black">#{formatOrderNumber(order.numero_pedido)}</td>
                           <td className="py-3 font-bold text-gray-800">{order.nombre_cliente}</td>
-                          <td className="py-3 font-black text-green-700">${order.total}</td>
+                          <td className="py-3 font-black text-[#5a0606]">${order.total}</td>
                           <td className="py-3 text-gray-500 capitalize">{order.metodo_pago}</td>
                           <td className="py-3">
                              <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600 uppercase">
@@ -460,7 +462,7 @@ export default function Caja() {
                     </h3>
                     <p className="text-[10px] text-gray-400 mb-4 leading-tight">Calculado desde Sept 1, incluyendo base de $346.75</p>
                     <div className="flex items-center gap-3">
-                       <span className={`font-black text-4xl ${globalBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                       <span className={`font-black text-4xl ${globalBalance >= 0 ? 'text-[#25D366]' : 'text-red-400'}`}>
                          ${globalBalance.toFixed(2)}
                        </span>
                     </div>
@@ -472,7 +474,7 @@ export default function Caja() {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                         <span className="text-gray-500 font-medium">Ingresos (Ventas)</span>
-                        <span className="text-green-600 font-black text-xl">+${ingresosDelDia.toFixed(2)}</span>
+                        <span className="text-[#5a0606] font-black text-xl">+${ingresosDelDia.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                         <span className="text-gray-500 font-medium">Egresos (Gastos)</span>
@@ -480,7 +482,7 @@ export default function Caja() {
                       </div>
                       <div className="flex justify-between items-center pt-2">
                         <span className="text-gray-800 font-black uppercase">Saldo Diario</span>
-                        <span className={`font-black text-3xl ${saldoNeto >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                        <span className={`font-black text-3xl ${saldoNeto >= 0 ? 'text-[#5a0606]' : 'text-red-600'}`}>
                           ${saldoNeto.toFixed(2)}
                         </span>
                       </div>
@@ -612,7 +614,7 @@ export default function Caja() {
                        <tr key={order.id} className="border-b border-gray-100">
                           <td className="py-3 font-black text-black">#{formatOrderNumber(order.numero_pedido)}</td>
                           <td className="py-3 font-bold text-gray-800">{order.nombre_cliente}</td>
-                          <td className="py-3 font-black text-green-700">${order.total}</td>
+                          <td className="py-3 font-black text-[#5a0606]">${order.total}</td>
                           <td className="py-3 text-gray-500 capitalize">{order.metodo_pago}</td>
                           <td className="py-3">
                              <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600 uppercase">
