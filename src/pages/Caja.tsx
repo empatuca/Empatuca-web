@@ -25,6 +25,8 @@ export default function Caja() {
   
   // Date filter for UI
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [ingresosDelDia, setIngresosDelDia] = useState(0);
+  const [globalBalance, setGlobalBalance] = useState(0);
   const [comprobanteFile, setComprobanteFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -88,8 +90,10 @@ export default function Caja() {
 
       fetchOrders();
       
-      const fetchGastos = async () => {
+      const fetchData = async () => {
+        if (!selectedDate) return;
         const startOfDay = new Date(selectedDate);
+        if (isNaN(startOfDay.getTime())) return;
         // Correct timezone offset issues for local date
         startOfDay.setMinutes(startOfDay.getMinutes() + startOfDay.getTimezoneOffset());
         startOfDay.setHours(0, 0, 0, 0);
@@ -97,17 +101,45 @@ export default function Caja() {
         const endOfDay = new Date(startOfDay);
         endOfDay.setHours(23, 59, 59, 999);
 
-        const { data, error } = await supabase
+        // 1. Fetch Gastos for selected date
+        const { data: gastosData, error } = await supabase
           .from('gastos_diarios')
           .select('*')
           .gte('created_at', startOfDay.toISOString())
           .lte('created_at', endOfDay.toISOString())
           .order('created_at', { ascending: false });
-        if (!error && data) {
-          setGastos(data);
+        if (!error && gastosData) {
+          setGastos(gastosData);
         }
+
+        // 2. Fetch Ingresos for selected date
+        const { data: ingresosData } = await supabase
+          .from('pedidos')
+          .select('total')
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString())
+          .not('estado', 'in', '("cancelado","rechazado")'); // Include archivado as valid income
+        const sumIngresos = (ingresosData || []).reduce((sum, o) => sum + Number(o.total || 0), 0);
+        setIngresosDelDia(sumIngresos);
+
+        // 3. Fetch Global Balance (from Sept 1 + 336.25 base)
+        const septStart = '2026-09-01T05:00:00Z'; // 00:00 in UTC-5 (Ecuador)
+        const { data: globalPedidos } = await supabase
+          .from('pedidos')
+          .select('total')
+          .gte('created_at', septStart)
+          .not('estado', 'in', '("cancelado","rechazado")'); // Include archivado
+        const sumGlobalPedidos = (globalPedidos || []).reduce((sum, o) => sum + Number(o.total || 0), 0);
+
+        const { data: globalGastos } = await supabase
+          .from('gastos_diarios')
+          .select('monto')
+          .gte('created_at', septStart);
+        const sumGlobalGastos = (globalGastos || []).reduce((sum, o) => sum + Number(o.monto || 0), 0);
+        
+        setGlobalBalance(336.25 + sumGlobalPedidos - sumGlobalGastos);
       };
-      fetchGastos();
+      fetchData();
 
       const channel = supabase
         .channel('schema-db-changes')
@@ -201,16 +233,18 @@ export default function Caja() {
 
       // Build a correct date based on selected date + current time to avoid timezone offset shifts to the wrong day
       const now = new Date();
-      const expenseDate = new Date(gastoForm.fecha);
-      expenseDate.setMinutes(expenseDate.getMinutes() + expenseDate.getTimezoneOffset());
-      expenseDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+      const expenseDate = new Date(gastoForm.fecha || new Date().toISOString().split('T')[0]);
+      if (!isNaN(expenseDate.getTime())) {
+        expenseDate.setMinutes(expenseDate.getMinutes() + expenseDate.getTimezoneOffset());
+        expenseDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+      }
 
       const payload = {
         descripcion: gastoForm.descripcion,
         monto: parseFloat(gastoForm.monto),
         categoria: gastoForm.categoria === 'Pago Socios' ? `Pago Socios (${gastoForm.socio})` : gastoForm.categoria,
         comprobante_url,
-        created_at: expenseDate.toISOString()
+        created_at: !isNaN(expenseDate.getTime()) ? expenseDate.toISOString() : new Date().toISOString()
       };
       
       if (supabase) {
@@ -239,18 +273,7 @@ export default function Caja() {
   };
 
   const totalGastos = gastos.reduce((sum, g) => sum + Number(g.monto), 0);
-  
-  const totalIngresos = orders.filter(o => {
-    if (o.estado === 'cancelado' || o.estado === 'rechazado' || o.estado === 'archivado') return false;
-    // Check if the order belongs to the selectedDate
-    try {
-      const orderDate = new Date(o.created_at);
-      const orderDateString = new Date(orderDate.getTime() - (orderDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-      return orderDateString === selectedDate;
-    } catch(e) { return false; }
-  }).reduce((sum, o) => sum + (Number(o.total) || 0), 0);
-  
-  const saldoNeto = totalIngresos - totalGastos;
+  const saldoNeto = ingresosDelDia - totalGastos;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -430,20 +453,33 @@ export default function Caja() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-1 space-y-6">
+                 {/* GLOBAL BALANCE CARD */}
+                 <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 shadow-xl border border-gray-700 text-white">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                      <Wallet className="w-4 h-4" /> Saldo General Acumulado
+                    </h3>
+                    <p className="text-[10px] text-gray-400 mb-4 leading-tight">Calculado desde Sept 1, incluyendo base de $336.25</p>
+                    <div className="flex items-center gap-3">
+                       <span className={`font-black text-4xl ${globalBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                         ${globalBalance.toFixed(2)}
+                       </span>
+                    </div>
+                 </div>
+
                  {/* BALANCE CARD */}
                  <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Balance: {selectedDate}</h3>
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Balance del día: {selectedDate}</h3>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                         <span className="text-gray-500 font-medium">Ingresos (Ventas)</span>
-                        <span className="text-green-600 font-black text-xl">+${totalIngresos.toFixed(2)}</span>
+                        <span className="text-green-600 font-black text-xl">+${ingresosDelDia.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                         <span className="text-gray-500 font-medium">Egresos (Gastos)</span>
                         <span className="text-red-500 font-black text-xl">-${totalGastos.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between items-center pt-2">
-                        <span className="text-gray-800 font-black uppercase">Saldo Neto</span>
+                        <span className="text-gray-800 font-black uppercase">Saldo Diario</span>
                         <span className={`font-black text-3xl ${saldoNeto >= 0 ? 'text-green-700' : 'text-red-600'}`}>
                           ${saldoNeto.toFixed(2)}
                         </span>
@@ -527,7 +563,7 @@ export default function Caja() {
                                    {gasto.categoria}
                                  </span>
                                  <span className="text-xs text-gray-400 font-bold">
-                                   {new Date(gasto.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                   {gasto.created_at && !isNaN(new Date(gasto.created_at).getTime()) ? new Date(gasto.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                  </span>
                                </div>
                                <p className="font-bold text-gray-800 text-lg leading-tight">{gasto.descripcion}</p>
