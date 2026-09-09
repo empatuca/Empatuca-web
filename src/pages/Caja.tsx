@@ -191,7 +191,7 @@ export default function Caja() {
          chosenMethod = 'efectivo';
      }
 
-     if (chosenMethod === 'efectivo' && order.estado === 'pendiente_caja') {
+     if (chosenMethod === 'efectivo') {
          setCashReceived('');
          setCashModalOrder(order);
          return;
@@ -225,13 +225,39 @@ export default function Caja() {
      setCashModalOrder(null);
   };
 
+  const openReceiptModal = (order: any) => {
+    setReceiptModalOrder(order);
+    if (!whatsappPhones[order.id]) {
+      let initial = order.telefono || '593';
+      let clean = initial.replace(/\D/g, '');
+      if (clean.startsWith('0')) {
+        clean = '593' + clean.substring(1);
+      } else if (!clean.startsWith('593')) {
+        clean = '593' + clean;
+      }
+      setWhatsappPhones(prev => ({ ...prev, [order.id]: clean }));
+    }
+  };
+
+  const formatPhoneForWhatsApp = (input: string) => {
+    let cleaned = input.replace(/\D/g, '');
+    if (cleaned.startsWith('0')) {
+      cleaned = '593' + cleaned.substring(1);
+    } else if (!cleaned.startsWith('593') && cleaned.length === 9) {
+      cleaned = '593' + cleaned;
+    } else if (!cleaned.startsWith('593')) {
+      cleaned = '593' + cleaned;
+    }
+    return cleaned;
+  };
+
   const handleWhatsAppReceipt = (order: any) => {
-    const phoneToUse = whatsappPhones[order.id] || order.telefono || '';
-    if (!phoneToUse) {
-        alert('Por favor ingresa un número de celular de WhatsApp válido.');
+    const phoneToUse = whatsappPhones[order.id] || order.telefono || '593';
+    const cleanPhone = formatPhoneForWhatsApp(phoneToUse);
+    if (!cleanPhone || cleanPhone.length < 10) {
+        alert('Por favor ingresa un número de celular de WhatsApp válido con el prefijo 593.');
         return;
     }
-    const cleanPhone = phoneToUse.replace(/\D/g, '');
     const productsList = (order.productos || []).map((p: any) => `• ${p.quantity}x ${p.name} (${p.size}) - $${(p.price * p.quantity).toFixed(2)}`).join('\n');
     const text = `🧾 *RECIBO EMPATUCA* #${formatOrderNumber(order.numero_pedido)}\n` +
       `--------------------------------\n` +
@@ -250,18 +276,51 @@ export default function Caja() {
 
   const handleDownloadReceiptImage = async (order: any) => {
     const element = document.getElementById(`receipt-ticket-${order.id}`);
-    if (!element) return;
+    if (!element) {
+        alert('No se encontró el elemento del recibo');
+        return;
+    }
     setIsGeneratingImage(true);
     try {
-      const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false
+      });
+      
       const image = canvas.toDataURL('image/png');
+      
+      // If Web Share API with files is supported (like mobile devices sharing images directly like Pichincha app)
+      if (navigator.canShare && navigator.canShare({ files: [new File([], '')] })) {
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            const file = new File([blob], `Recibo-Empatuca-${formatOrderNumber(order.numero_pedido)}.png`, { type: 'image/png' });
+            try {
+              await navigator.share({
+                title: `Recibo #${formatOrderNumber(order.numero_pedido)}`,
+                text: `Comprobante de pago Empatuca - Total: $${order.total}`,
+                files: [file]
+              });
+              setIsGeneratingImage(false);
+              return;
+            } catch (shareErr) {
+              console.log('Share API cancelled or failed, falling back to download', shareErr);
+            }
+          }
+        }, 'image/png');
+      }
+
+      // Standard download fallback
       const a = document.createElement('a');
       a.href = image;
       a.download = `Recibo-Empatuca-${formatOrderNumber(order.numero_pedido)}.png`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
     } catch (err) {
       console.error(err);
-      alert('Error al generar la imagen del recibo');
+      alert('Error al generar la imagen del recibo. Intenta nuevamente.');
     } finally {
       setIsGeneratingImage(false);
     }
@@ -502,7 +561,7 @@ export default function Caja() {
                   </Button>
                   <Button 
                     variant="outline"
-                    onClick={() => setReceiptModalOrder(order)}
+                    onClick={() => openReceiptModal(order)}
                     className="w-full h-11 border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs uppercase rounded-xl"
                   >
                     <Receipt className="mr-2 h-4 w-4 text-[#5a0606]" />
@@ -804,11 +863,11 @@ export default function Caja() {
               {/* Action Buttons */}
               <div className="w-full space-y-3 mt-6">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Número de Celular WhatsApp</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Número de Celular WhatsApp (Prefijo 593)</label>
                   <input 
                     type="tel"
-                    placeholder="Ej. 0991234567 o +59399..."
-                    value={whatsappPhones[receiptModalOrder.id] !== undefined ? whatsappPhones[receiptModalOrder.id] : (receiptModalOrder.telefono || '')}
+                    placeholder="593991234567"
+                    value={whatsappPhones[receiptModalOrder.id] !== undefined ? whatsappPhones[receiptModalOrder.id] : '593'}
                     onChange={(e) => setWhatsappPhones(prev => ({ ...prev, [receiptModalOrder.id]: e.target.value }))}
                     className="w-full h-12 px-4 rounded-xl border-2 border-gray-200 font-bold text-sm focus:border-[#fac124] outline-none bg-white"
                   />

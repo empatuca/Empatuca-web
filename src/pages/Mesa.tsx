@@ -101,9 +101,13 @@ export default function Mesa() {
             <h1 className="text-base sm:text-xl font-black uppercase tracking-tight leading-tight">Mesa <span className="text-[10px] sm:text-sm text-gray-400 block sm:inline">(Meseros)</span></h1>
           </div>
 <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
-{view === 'nuevo' && (
+{view === 'nuevo' ? (
                 <button onClick={() => { setView('pedidos'); setEditingOrder(null); }} className="bg-white/10 hover:bg-white/20 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors flex-1 sm:flex-none">
                    Ver Pedidos
+                </button>
+             ) : (
+                <button onClick={() => { setEditingOrder(null); setView('nuevo'); }} className="hidden md:flex bg-[#fac124] hover:bg-amber-400 text-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors items-center justify-center gap-2">
+                   <PlusCircle className="w-4 h-4" /> Nuevo Pedido
                 </button>
              )}
 <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-[10px] sm:text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-1.5 sm:py-2 px-2 sm:px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
@@ -115,6 +119,17 @@ export default function Mesa() {
           </div>
         </div>
       </header>
+
+      {view !== 'nuevo' && (
+        <div className="md:hidden fixed bottom-6 left-6 right-6 z-40">
+          <button 
+            onClick={() => { setEditingOrder(null); setView('nuevo'); }}
+            className="w-full h-14 bg-[#fac124] hover:bg-amber-400 text-black font-black text-base uppercase rounded-2xl shadow-2xl flex items-center justify-center gap-2 border-2 border-white/20"
+          >
+            <PlusCircle className="w-6 h-6" /> Nuevo Pedido
+          </button>
+        </div>
+      )}
 
       {view === 'nuevo' ? (
          <WaitersPOS initialOrder={editingOrder} onCancel={() => { setView('pedidos'); setEditingOrder(null); }} />
