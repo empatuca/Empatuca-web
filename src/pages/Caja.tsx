@@ -6,7 +6,7 @@ import { BellRing } from "lucide-react";
 import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
 import { Trash2, Package } from "lucide-react";
 import { formatOrderNumber } from "../lib/utils";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 export default function Caja() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -275,51 +275,60 @@ export default function Caja() {
   };
 
   const handleDownloadReceiptImage = async (order: any) => {
+    setIsGeneratingImage(true);
+    await new Promise(resolve => setTimeout(resolve, 150));
+
     const element = document.getElementById(`receipt-ticket-${order.id}`);
     if (!element) {
+        setIsGeneratingImage(false);
         alert('No se encontró el elemento del recibo');
         return;
     }
-    setIsGeneratingImage(true);
     try {
       const canvas = await html2canvas(element, { 
         scale: 2, 
         backgroundColor: '#ffffff',
         useCORS: true,
+        allowTaint: true,
         logging: false
       });
       
       const image = canvas.toDataURL('image/png');
-      
-      // If Web Share API with files is supported (like mobile devices sharing images directly like Pichincha app)
-      if (navigator.canShare && navigator.canShare({ files: [new File([], '')] })) {
-        canvas.toBlob(async (blob) => {
+      let sharedSuccessfully = false;
+
+      if (navigator.share && navigator.canShare) {
+        try {
+          const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
           if (blob) {
             const file = new File([blob], `Recibo-Empatuca-${formatOrderNumber(order.numero_pedido)}.png`, { type: 'image/png' });
-            try {
+            if (navigator.canShare({ files: [file] })) {
               await navigator.share({
                 title: `Recibo #${formatOrderNumber(order.numero_pedido)}`,
                 text: `Comprobante de pago Empatuca - Total: $${order.total}`,
                 files: [file]
               });
-              setIsGeneratingImage(false);
-              return;
-            } catch (shareErr) {
-              console.log('Share API cancelled or failed, falling back to download', shareErr);
+              sharedSuccessfully = true;
             }
           }
-        }, 'image/png');
+        } catch (shareErr: any) {
+          if (shareErr.name === 'AbortError') {
+            sharedSuccessfully = true; // User cancelled share dialog
+          } else {
+            console.log('Share API error, falling back to download:', shareErr);
+          }
+        }
       }
 
-      // Standard download fallback
-      const a = document.createElement('a');
-      a.href = image;
-      a.download = `Recibo-Empatuca-${formatOrderNumber(order.numero_pedido)}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      if (!sharedSuccessfully) {
+        const a = document.createElement('a');
+        a.href = image;
+        a.download = `Recibo-Empatuca-${formatOrderNumber(order.numero_pedido)}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
     } catch (err) {
-      console.error(err);
+      console.error('html2canvas error:', err);
       alert('Error al generar la imagen del recibo. Intenta nuevamente.');
     } finally {
       setIsGeneratingImage(false);
