@@ -18,6 +18,8 @@ import { siteConfig } from "../../siteConfig";
 import CajaDashboard from "../components/caja/CajaDashboard";
 import InsumosStockManager from "../components/caja/InsumosStockManager";
 import { ProduccionManager } from "../components/ProduccionManager";
+import { getLocalInsumos, registerPurchaseInsumo } from "../lib/insumosStorage";
+import { InsumoItem, InsumoCategory } from "../types";
 
 export default function Caja() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -40,8 +42,19 @@ export default function Caja() {
     monto: '',
     categoria: 'Operativo',
     socio: 'Socio 1',
-    fecha: getEcuadorDateString()
+    fecha: getEcuadorDateString(),
+    vincularInsumo: false,
+    insumoId: '',
+    nuevoInsumoNombre: '',
+    cantidad: '',
+    unidad: 'libras',
+    destino: 'stock_direct0' as 'stock_directo' | 'produccion_inmediata'
   });
+  const [disponiblesInsumos, setDisponiblesInsumos] = useState<InsumoItem[]>([]);
+
+  useEffect(() => {
+    setDisponiblesInsumos(getLocalInsumos());
+  }, []);
   
   // Date filter for UI (strictly in Ecuador timezone America/Guayaquil)
   const [selectedDate, setSelectedDate] = useState(getEcuadorDateString());
@@ -550,9 +563,49 @@ export default function Caja() {
           return updated;
         });
       }
+
+      // If user linked this expense to stock/insumo
+      if (gastoForm.vincularInsumo && gastoForm.cantidad) {
+        const qty = parseFloat(gastoForm.cantidad) || 0;
+        if (qty > 0) {
+          let selectedInsumoName = '';
+          if (gastoForm.insumoId === 'nuevo') {
+            selectedInsumoName = gastoForm.nuevoInsumoNombre.trim() || gastoForm.descripcion;
+          } else {
+            const found = disponiblesInsumos.find(i => i.id === gastoForm.insumoId);
+            if (found) selectedInsumoName = found.name;
+          }
+
+          const res = registerPurchaseInsumo({
+            insumoId: gastoForm.insumoId !== 'nuevo' ? gastoForm.insumoId : undefined,
+            name: selectedInsumoName || gastoForm.descripcion,
+            quantity: qty,
+            unit: gastoForm.unidad,
+            totalCost: parseFloat(gastoForm.monto) || 0,
+            destino: gastoForm.destino,
+            gastoDescripcion: gastoForm.descripcion
+          });
+
+          if (res.success) {
+            console.log("Insumo actualizado:", res.message);
+          }
+        }
+      }
       
       setIsAddingGasto(false);
-      setGastoForm({ descripcion: '', monto: '', categoria: 'Operativo', socio: 'Socio 1', fecha: getEcuadorDateString() });
+      setGastoForm({ 
+        descripcion: '', 
+        monto: '', 
+        categoria: 'Operativo', 
+        socio: 'Socio 1', 
+        fecha: getEcuadorDateString(),
+        vincularInsumo: false,
+        insumoId: '',
+        nuevoInsumoNombre: '',
+        cantidad: '',
+        unidad: 'libras',
+        destino: 'stock_directo'
+      });
       setComprobanteFile(null);
     } catch (err: any) {
       alert("Error al guardar gasto. Es posible que debas crear la tabla 'gastos_diarios' en Supabase. Detalles: " + err.message);
@@ -942,6 +995,98 @@ export default function Caja() {
                           </select>
                         </div>
                       )}
+
+                       {/* Vincular con Insumos / Inventario */}
+                       <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-3">
+                         <div className="flex items-center justify-between">
+                           <div className="flex items-center gap-2">
+                             <Boxes className="w-4 h-4 text-amber-700" />
+                             <span className="text-xs font-black text-amber-900 uppercase tracking-tight">¿Vincular con Insumos / Stock?</span>
+                           </div>
+                           <input 
+                             type="checkbox" 
+                             checked={gastoForm.vincularInsumo} 
+                             onChange={e => setGastoForm({...gastoForm, vincularInsumo: e.target.checked})} 
+                             className="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500 cursor-pointer" 
+                           />
+                         </div>
+
+                         {gastoForm.vincularInsumo && (
+                           <div className="space-y-3 pt-2 border-t border-amber-200/80 animate-in fade-in duration-200">
+                             <div>
+                               <label className="text-[11px] font-bold text-amber-900 uppercase tracking-wider mb-1 block">Insumo a actualizar</label>
+                               <select 
+                                 value={gastoForm.insumoId} 
+                                 onChange={e => setGastoForm({...gastoForm, insumoId: e.target.value})} 
+                                 className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-800 outline-none"
+                               >
+                                 <option value="">-- Seleccionar Insumo Existente --</option>
+                                 {disponiblesInsumos.map(ins => (
+                                   <option key={ins.id} value={ins.id}>{ins.name} ({ins.currentStock} {ins.unit} disp.)</option>
+                                 ))}
+                                 <option value="nuevo">✨ + Crear nuevo insumo con este nombre</option>
+                               </select>
+                             </div>
+
+                             {gastoForm.insumoId === 'nuevo' && (
+                               <div>
+                                 <label className="text-[11px] font-bold text-amber-900 uppercase tracking-wider mb-1 block">Nombre del Nuevo Insumo</label>
+                                 <input 
+                                   value={gastoForm.nuevoInsumoNombre} 
+                                   onChange={e => setGastoForm({...gastoForm, nuevoInsumoNombre: e.target.value})} 
+                                   placeholder="Ej. Queso Manaba o Aceite 5L" 
+                                   className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-medium" 
+                                 />
+                               </div>
+                             )}
+
+                             <div className="grid grid-cols-2 gap-2">
+                               <div>
+                                 <label className="text-[11px] font-bold text-amber-900 uppercase tracking-wider mb-1 block">Cantidad</label>
+                                 <input 
+                                   type="number" 
+                                   step="0.1" 
+                                   min="0.1" 
+                                   value={gastoForm.cantidad} 
+                                   onChange={e => setGastoForm({...gastoForm, cantidad: e.target.value})} 
+                                   placeholder="Ej. 25" 
+                                   className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-black text-gray-900" 
+                                 />
+                               </div>
+                               <div>
+                                 <label className="text-[11px] font-bold text-amber-900 uppercase tracking-wider mb-1 block">Unidad de Medida</label>
+                                 <select 
+                                   value={gastoForm.unidad} 
+                                   onChange={e => setGastoForm({...gastoForm, unidad: e.target.value})} 
+                                   className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-gray-800"
+                                 >
+                                   <option value="libras">libras</option>
+                                   <option value="kilos">kilos</option>
+                                   <option value="unidades">unidades</option>
+                                   <option value="litros">litros</option>
+                                   <option value="gramos">gramos</option>
+                                   <option value="paquetes">paquetes</option>
+                                   <option value="sacos">sacos</option>
+                                   <option value="cajas">cajas</option>
+                                 </select>
+                               </div>
+                             </div>
+
+                             <div>
+                               <label className="text-[11px] font-bold text-amber-900 uppercase tracking-wider mb-1 block">Destino del insumo</label>
+                               <select 
+                                 value={gastoForm.destino} 
+                                 onChange={e => setGastoForm({...gastoForm, destino: e.target.value as any})} 
+                                 className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-gray-800"
+                               >
+                                 <option value="stock_directo">📦 Ingresar a Stock Directo (Bodega)</option>
+                                 <option value="produccion_inmediata">🔥 Destinar a Producción Inmediata (Gasto directo sin alterar stock)</option>
+                               </select>
+                             </div>
+                           </div>
+                         )}
+                       </div>
+
                       <div>
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Comprobante / Factura (Opcional)</label>
                         <label className="flex items-center justify-center gap-2 w-full bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 rounded-xl px-4 py-4 text-sm font-bold text-gray-500 cursor-pointer transition-colors">
@@ -1207,6 +1352,7 @@ export default function Caja() {
                                 <span className="px-2 py-0.5 rounded-md bg-[#fac124] text-[#5a0606] font-black text-[11px] shrink-0 shadow-sm">
                                   {itemQty}x
                                 </span>
+                                {/* Vincular con Insumos / Inventario */}
                                 <div>
                                   <p className="font-bold text-white leading-tight">
                                     {item.name}

@@ -9,6 +9,18 @@ export interface InsumoItem {
   unit: string;
   lastUpdated?: string;
   notes?: string;
+  costPerUnit?: number;
+  lastPurchasePrice?: number;
+  lastPurchaseDate?: string;
+}
+
+export interface GastoInsumoLink {
+  insumoId?: string;
+  insumoName?: string;
+  cantidad?: number;
+  unidad?: string;
+  destino?: 'stock_directo' | 'produccion_inmediata';
+  costoUnitario?: number;
 }
 
 export type ExpenseCategoryType = 

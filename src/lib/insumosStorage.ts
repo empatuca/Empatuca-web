@@ -178,3 +178,90 @@ export function deleteInsumo(id: string) {
   const updated = current.filter(item => item.id !== id);
   saveLocalInsumos(updated);
 }
+
+/**
+ * Registra el ingreso de insumos derivado de un gasto/compra diaria.
+ * Si destino es 'stock_directo', incrementa el stock actual.
+ * Actualiza el costo unitario y fecha de compra.
+ */
+export function registerPurchaseInsumo(params: {
+  insumoId?: string;
+  name?: string;
+  category?: InsumoCategory;
+  quantity: number;
+  unit?: string;
+  totalCost: number;
+  destino: 'stock_directo' | 'produccion_inmediata';
+  gastoDescripcion?: string;
+}): { success: boolean; insumo: InsumoItem | null; message: string } {
+  const current = getLocalInsumos();
+  const unitCost = params.quantity > 0 ? Math.round((params.totalCost / params.quantity) * 100) / 100 : 0;
+  
+  let target: InsumoItem | undefined;
+  if (params.insumoId) {
+    target = current.find(i => i.id === params.insumoId);
+  }
+  if (!target && params.name) {
+    const cleanName = params.name.trim().toLowerCase();
+    target = current.find(i => i.name.trim().toLowerCase() === cleanName);
+  }
+
+  if (target) {
+    const newStock = params.destino === 'stock_directo' 
+      ? Math.max(0, Math.round((target.currentStock + params.quantity) * 100) / 100)
+      : target.currentStock;
+
+    const noteEntry = `[${new Date().toLocaleDateString('es-EC')}] Compra: +${params.quantity} ${target.unit} ($${params.totalCost.toFixed(2)} total, $${unitCost.toFixed(2)}/${target.unit}) - ${params.destino === 'stock_directo' ? 'Ingresó a Bodega' : 'Consumo directo producción'}`;
+    const updatedNotes = target.notes ? `${target.notes}\n${noteEntry}` : noteEntry;
+
+    const updated = current.map(item => {
+      if (item.id === target!.id) {
+        return {
+          ...item,
+          currentStock: newStock,
+          unit: params.unit || item.unit,
+          costPerUnit: unitCost > 0 ? unitCost : item.costPerUnit,
+          lastPurchasePrice: params.totalCost,
+          lastPurchaseDate: new Date().toISOString(),
+          lastUpdated: new Date().toISOString(),
+          notes: updatedNotes
+        };
+      }
+      return item;
+    });
+    saveLocalInsumos(updated);
+    return {
+      success: true,
+      insumo: updated.find(i => i.id === target!.id) || null,
+      message: params.destino === 'stock_directo'
+        ? `Stock actualizado: +${params.quantity} ${target.unit} en "${target.name}". Nuevo stock: ${newStock} ${target.unit}.`
+        : `Registrado como consumo directo de producción para "${target.name}". Stock de bodega intacto.`
+    };
+  } else if (params.name) {
+    // Si no existía, creamos el nuevo insumo
+    const initialStock = params.destino === 'stock_directo' ? Math.max(0, params.quantity) : 0;
+    const newItem: InsumoItem = {
+      id: `insumo-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      name: params.name.trim(),
+      category: params.category || 'materia_prima',
+      currentStock: initialStock,
+      minStock: Math.max(1, Math.round(params.quantity * 0.3)),
+      unit: params.unit || 'unidades',
+      costPerUnit: unitCost,
+      lastPurchasePrice: params.totalCost,
+      lastPurchaseDate: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+      notes: `Creado desde Registro de Gasto (${params.gastoDescripcion || 'Compra diaria'})\nIngreso inicial: ${params.quantity} ${params.unit || 'unidades'} por $${params.totalCost.toFixed(2)}`
+    };
+    const updated = [newItem, ...current];
+    saveLocalInsumos(updated);
+    return {
+      success: true,
+      insumo: newItem,
+      message: `Nuevo insumo "${newItem.name}" creado con ${initialStock} ${newItem.unit} en inventario.`
+    };
+  }
+
+  return { success: false, insumo: null, message: 'No se pudo vincular el insumo.' };
+}
+
