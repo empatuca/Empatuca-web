@@ -50,50 +50,69 @@ export function MenuSection({ isAdmin = false }: { isAdmin?: boolean }) {
               </p>
             </div>
 
-            <TabsList className="bg-gray-100 p-1.5 rounded-xl h-auto flex flex-wrap justify-start gap-1">
-              {categories.map(category => (
-                <TabsTrigger 
-                  key={category} 
-                  value={category}
-                  className="px-5 py-2.5 rounded-lg text-sm md:text-base font-black shadow-none data-[state=active]:bg-[#fac124] data-[state=active]:text-[#0D0D0D] data-[state=active]:shadow-md text-gray-500 hover:text-gray-900 transition-all uppercase tracking-wider"
-                >
-                  {category}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="w-full md:w-auto overflow-x-auto no-scrollbar pb-1">
+              <TabsList className="bg-gray-100 p-1.5 rounded-2xl h-auto flex flex-nowrap md:flex-wrap justify-start gap-1.5 w-max md:w-auto">
+                {categories.map(category => (
+                  <TabsTrigger 
+                    key={category} 
+                    value={category}
+                    className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-black shadow-none data-[state=active]:bg-[#fac124] data-[state=active]:text-[#0D0D0D] data-[state=active]:shadow-md text-gray-600 hover:text-gray-900 transition-all uppercase tracking-wider shrink-0 whitespace-nowrap"
+                  >
+                    {category}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
           </div>
 
           {categories.map(category => (
             <TabsContent key={category} value={category} className="mt-0 outline-none">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4 md:gap-6">
                 {siteConfig.menu.filter(item => item.category === category).map((product, i) => (
                   <motion.div
                     key={product.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
+                    initial={{ opacity: 0, scale: 0.96 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    transition={{ delay: i * 0.05, duration: 0.4 }}
+                    transition={{ delay: i * 0.04, duration: 0.35 }}
                   >
-                    <motion.div whileHover={{ scale: 1.02, y: -5 }} className="border border-gray-100 rounded-2xl p-4 border-b-4 border-b-transparent hover:border-b-[#fac124] hover:shadow-xl transition-all duration-200 h-full flex flex-col group cursor-pointer bg-white" onClick={() => handleOrder(product)}>
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-black text-lg leading-tight uppercase">{product.name}</h3>
-                        {product.prices.empatuca && (
-                           <span className="bg-[#fac124] text-[#5a0606] text-[10px] font-black px-2 py-1 rounded tracking-wider uppercase shrink-0 ml-2">TOP</span>
-                        )}
+                    <motion.div 
+                      whileHover={{ scale: 1.02, y: -4 }} 
+                      className="border border-gray-200/80 rounded-2xl p-4 sm:p-5 border-b-4 border-b-transparent hover:border-b-[#fac124] hover:shadow-xl transition-all duration-200 h-full flex flex-col justify-between group cursor-pointer bg-white" 
+                      onClick={() => handleOrder(product)}
+                    >
+                      <div>
+                        <div className="flex justify-between items-start mb-2 gap-2">
+                          <h3 className="font-black text-base sm:text-lg leading-tight uppercase text-gray-900 group-hover:text-[#5a0606] transition-colors">
+                            {product.name}
+                          </h3>
+                          {product.prices.empatuca && (
+                            <span className="bg-[#fac124] text-[#5a0606] text-[10px] font-black px-2 py-0.5 rounded-md tracking-wider uppercase shrink-0 shadow-sm">
+                              TOP
+                            </span>
+                          )}
+                        </div>
+                        
+                        <p className="text-xs text-gray-500 mb-4 line-clamp-2 leading-relaxed">
+                          {product.description}
+                        </p>
                       </div>
                       
-                      <p className="text-xs text-gray-500 mb-6 flex-grow">{product.description}</p>
-                      
-                      <div className="flex justify-between items-center mt-auto">
-                        <span className="font-black text-xl text-[#fac124]">
-                           ${product.prices.empanita ? product.prices.empanita.toFixed(2) : (product.prices.estandar || 0).toFixed(2)} 
-                           {product.prices.empatuca ? ` - $${product.prices.empatuca.toFixed(2)}` : ''}
-                        </span>
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-100 mt-auto">
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-400 block uppercase tracking-wider">Precio</span>
+                          <span className="font-black text-lg sm:text-xl text-[#0D0D0D] tracking-tight">
+                            ${product.prices.empanita ? product.prices.empanita.toFixed(2) : (product.prices.estandar || 0).toFixed(2)} 
+                            {product.prices.empatuca ? ` - $${product.prices.empatuca.toFixed(2)}` : ''}
+                          </span>
+                        </div>
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleOrder(product); }}
-                          className="bg-[#5a0606] text-[#fac124] w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4a0505] transition-colors font-bold"
+                          aria-label={`Pedir ${product.name}`}
+                          className="bg-[#5a0606] hover:bg-[#430404] text-[#fac124] h-10 px-3.5 rounded-xl flex items-center justify-center gap-1.5 transition-all font-black text-xs uppercase tracking-wider shadow-sm group-hover:shadow group-hover:scale-105 active:scale-95 cursor-pointer"
                         >
-                          +
+                          <span className="text-base leading-none font-bold">+</span>
+                          <span>Pedir</span>
                         </button>
                       </div>
                     </motion.div>

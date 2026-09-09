@@ -294,6 +294,16 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         notifyLocalListeners();
       }
 
+      try {
+        localStorage.setItem('empatuca_ultimo_pedido', JSON.stringify({
+          numero_pedido: orderIdValue,
+          nombre_cliente: customerName,
+          total: total,
+          tipo: orderType,
+          created_at: new Date().toISOString()
+        }));
+      } catch (e) {}
+
       setStep(5);
     } catch (err) {
       console.error("Error al redirigir a WhatsApp:", err);
