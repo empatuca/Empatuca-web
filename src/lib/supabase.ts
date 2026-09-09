@@ -19,6 +19,7 @@ export interface InventoryItem {
   name: string;
   initialStock: number;
   currentStock: number;
+  waste?: number;
 }
 
 export const localInventory: InventoryItem[] = [];

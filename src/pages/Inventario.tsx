@@ -43,7 +43,7 @@ export default function Inventario() {
     }
   }, []);
 
-  const handleUpdateInitial = (id: string, value: number) => {
+  const handleUpdateStock = (id: string, field: 'initialStock' | 'waste', value: number) => {
     const soldMap: Record<string, number> = {};
     todayOrders.forEach(order => {
       if (order.estado === 'rechazado' || order.estado === 'cancelado') return;
@@ -57,11 +57,28 @@ export default function Inventario() {
 
     const updated = inventory.map(item => {
       if (item.id === id) {
-        return { ...item, initialStock: value, currentStock: Math.max(0, value - (soldMap[id] || 0)) };
+        const newInitial = field === 'initialStock' ? value : item.initialStock;
+        const newWaste = field === 'waste' ? value : (item.waste || 0);
+        return { 
+          ...item, 
+          initialStock: newInitial, 
+          waste: newWaste,
+          currentStock: Math.max(0, newInitial - (soldMap[id] || 0) - newWaste) 
+        };
       }
       return item;
     });
-    updateLocalInventory(updated);
+    // We only update state here. We'll explicitly save when the button is clicked.
+    setInventory(updated);
+  };
+
+  const handleSaveProduccion = async () => {
+    try {
+      await updateLocalInventory(inventory);
+      alert('Producción guardada correctamente.');
+    } catch (e: any) {
+      alert('Error al guardar producción: ' + e.message);
+    }
   };
 
   
@@ -206,9 +223,10 @@ export default function Inventario() {
 
     const updated = inventory.map(item => {
       const sold = soldMap[item.id] || 0;
+      const waste = item.waste || 0;
       return {
         ...item,
-        currentStock: Math.max(0, item.initialStock - sold)
+        currentStock: Math.max(0, item.initialStock - sold - waste)
       };
     });
     
@@ -265,7 +283,12 @@ export default function Inventario() {
 
         {!showHistory ? (
         <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-gray-100">
-           <h2 className="text-xl font-black mb-6 uppercase tracking-tight">Producción del Día</h2>
+           <div className="flex justify-between items-center mb-6">
+             <h2 className="text-xl font-black uppercase tracking-tight">Producción del Día</h2>
+             <Button onClick={handleSaveProduccion} className="bg-[#fac124] hover:bg-[#e0ad20] text-[#5a0606] font-bold h-10 px-6 rounded-xl shadow-md text-sm">
+               Guardar Producción
+             </Button>
+           </div>
            
            {Array.from(new Set(siteConfig.menu.map(i => i.category))).map(cat => {
              const catItems = inventory.filter(item => {
@@ -287,23 +310,38 @@ export default function Inventario() {
                        <div key={item.id} className={`p-4 rounded-xl border-2 ${isOut ? 'border-red-200 bg-red-50' : isLow ? 'border-amber-200 bg-amber-50' : 'border-gray-100'}`}>
                          <p className="font-bold text-gray-800 mb-3">{item.name}</p>
                          
-                         <div className="flex items-center gap-4 mb-3">
-                           <div className="flex-1">
-                             <label className="text-xs text-gray-500 font-bold uppercase block mb-1">Producción</label>
-                             <Input 
-                               type="number" 
-                               value={item.initialStock === 0 ? '' : item.initialStock}
-                               placeholder="0" 
-                               onChange={(e) => handleUpdateInitial(item.id, e.target.value === '' ? 0 : parseInt(e.target.value))}
-                               className="h-10 text-lg font-black"
-                               min="0"
-                             />
-                           </div>
-                           <div className="flex-1 text-center">
-                             <label className="text-xs text-gray-500 font-bold uppercase block mb-1">Disponible</label>
-                             <span className={`text-2xl font-black ${isOut ? 'text-red-600' : 'text-[#fac124]'}`}>{item.currentStock}</span>
-                           </div>
-                         </div>
+                          <div className="flex flex-col gap-3 mb-3">
+                            <div className="flex items-center gap-4">
+                              <div className="flex-1">
+                                <label className="text-xs text-gray-500 font-bold uppercase block mb-1">Producción</label>
+                                <Input 
+                                  type="number" 
+                                  value={item.initialStock === 0 ? '' : item.initialStock}
+                                  placeholder="0" 
+                                  onChange={(e) => handleUpdateStock(item.id, 'initialStock', e.target.value === '' ? 0 : parseInt(e.target.value))}
+                                  className="h-10 text-lg font-black"
+                                  min="0"
+                                />
+                              </div>
+                              <div className="flex-1 text-center">
+                                <label className="text-xs text-gray-500 font-bold uppercase block mb-1">Disponible</label>
+                                <span className={`text-2xl font-black ${isOut ? 'text-red-600' : 'text-[#fac124]'}`}>{item.currentStock}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4 bg-red-50/50 p-2 rounded-lg border border-red-100">
+                              <div className="flex-1">
+                                <label className="text-[10px] text-red-600 font-bold uppercase block mb-1">Bajas / Dañadas</label>
+                                <Input 
+                                  type="number" 
+                                  value={item.waste === 0 || !item.waste ? '' : item.waste}
+                                  placeholder="0" 
+                                  onChange={(e) => handleUpdateStock(item.id, 'waste', e.target.value === '' ? 0 : parseInt(e.target.value))}
+                                  className="h-8 text-sm font-bold border-red-200 focus-visible:ring-red-400 text-red-700"
+                                  min="0"
+                                />
+                              </div>
+                            </div>
+                          </div>
                          {item.initialStock > 0 && (
                            <div className="w-full bg-gray-200 rounded-full h-2">
                               <div className={`h-2 rounded-full ${isOut ? 'bg-red-500' : isLow ? 'bg-amber-500' : 'bg-[#25D366]'}`} style={{ width: `${percentage}%` }}></div>
