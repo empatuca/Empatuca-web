@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Clock, CheckCircle2, DollarSign, X, Receipt, Upload, ArrowDownCircle, ArrowUpCircle, Wallet } from "lucide-react";
+import { Clock, CheckCircle2, DollarSign, X, Receipt, Upload, ArrowDownCircle, ArrowUpCircle, Wallet, Share2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { requestNotificationPermission, sendNotification } from "../lib/notification";
 import { BellRing } from "lucide-react";
 import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
 import { Trash2, Package } from "lucide-react";
 import { formatOrderNumber } from "../lib/utils";
+import html2canvas from "html2canvas";
 
 export default function Caja() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAllOrders, setShowAllOrders] = useState(false);
   const [activeTab, setActiveTab] = useState<'ingresos' | 'gastos'>('ingresos');
+  const [selectedMethods, setSelectedMethods] = useState<Record<string, string>>({});
+  const [receiptModalOrder, setReceiptModalOrder] = useState<any | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [whatsappPhones, setWhatsappPhones] = useState<Record<string, string>>({});
+  const [cashModalOrder, setCashModalOrder] = useState<any | null>(null);
+  const [cashReceived, setCashReceived] = useState('');
   
   const [gastos, setGastos] = useState<any[]>([]);
   const [isAddingGasto, setIsAddingGasto] = useState(false);
@@ -178,19 +185,32 @@ export default function Caja() {
   const approveOrder = async (id: string) => {
      const order = orders.find(o => o.id === id);
      if (!order) return;
-     
-     let newEstado = order.estado;
-     let newMetodoPago = order.metodo_pago;
 
+     let chosenMethod = selectedMethods[id] || order.metodo_pago;
+     if (!chosenMethod || chosenMethod === 'pendiente') {
+         chosenMethod = 'efectivo';
+     }
+
+     if (chosenMethod === 'efectivo' && order.estado === 'pendiente_caja') {
+         setCashReceived('');
+         setCashModalOrder(order);
+         return;
+     }
+
+     await executeApproval(id, chosenMethod);
+  };
+
+  const executeApproval = async (id: string, chosenMethod: string) => {
+     const order = orders.find(o => o.id === id);
+     if (!order) return;
+
+     let newEstado = order.estado;
      if (order.estado === 'pendiente_caja') {
          newEstado = 'nuevo';
      }
-     if (order.metodo_pago === 'pendiente') {
-         newMetodoPago = 'efectivo';
-     }
-     
+
      if (isSupabaseConfigured && supabase) {
-         const { error } = await supabase.from('pedidos').update({ estado: newEstado, metodo_pago: newMetodoPago }).eq('id', id);
+         const { error } = await supabase.from('pedidos').update({ estado: newEstado, metodo_pago: chosenMethod }).eq('id', id);
          if (error) {
              alert('Error al confirmar pago: ' + error.message);
          }
@@ -198,10 +218,53 @@ export default function Caja() {
          const idx = localOrders.findIndex(o => o.id === id);
          if (idx > -1) {
              localOrders[idx].estado = newEstado;
-             localOrders[idx].metodo_pago = newMetodoPago;
+             localOrders[idx].metodo_pago = chosenMethod;
          }
          notifyLocalListeners();
      }
+     setCashModalOrder(null);
+  };
+
+  const handleWhatsAppReceipt = (order: any) => {
+    const phoneToUse = whatsappPhones[order.id] || order.telefono || '';
+    if (!phoneToUse) {
+        alert('Por favor ingresa un número de celular de WhatsApp válido.');
+        return;
+    }
+    const cleanPhone = phoneToUse.replace(/\D/g, '');
+    const productsList = (order.productos || []).map((p: any) => `• ${p.quantity}x ${p.name} (${p.size}) - $${(p.price * p.quantity).toFixed(2)}`).join('\n');
+    const text = `🧾 *RECIBO EMPATUCA* #${formatOrderNumber(order.numero_pedido)}\n` +
+      `--------------------------------\n` +
+      `👤 Cliente: ${order.nombre_cliente}\n` +
+      `📌 Tipo: ${order.tipo.toUpperCase()}${order.mesa ? ' (Mesa ' + order.mesa + ')' : ''}\n` +
+      `💳 Método de Pago: ${(selectedMethods[order.id] || order.metodo_pago || 'efectivo').toUpperCase()}\n` +
+      `--------------------------------\n` +
+      `*DETALLE DE PEDIDO:*\n` +
+      productsList + `\n` +
+      `--------------------------------\n` +
+      `*TOTAL: $${Number(order.total || 0).toFixed(2)}*\n\n` +
+      `¡Gracias por preferir Empatuca! 🫓✨`;
+
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleDownloadReceiptImage = async (order: any) => {
+    const element = document.getElementById(`receipt-ticket-${order.id}`);
+    if (!element) return;
+    setIsGeneratingImage(true);
+    try {
+      const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
+      const image = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = image;
+      a.download = `Recibo-Empatuca-${formatOrderNumber(order.numero_pedido)}.png`;
+      a.click();
+    } catch (err) {
+      console.error(err);
+      alert('Error al generar la imagen del recibo');
+    } finally {
+      setIsGeneratingImage(false);
+    }
   };
 
   const handleAddGasto = async (e: React.FormEvent) => {
@@ -401,13 +464,51 @@ export default function Caja() {
                   </ul>
                 </div>
 
-                <Button 
-                  onClick={() => approveOrder(order.id)}
-                  className="w-full h-14 bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-lg rounded-xl shadow-lg"
-                >
-                  <CheckCircle2 className="mr-2 h-6 w-6" />
-                  Confirmar Pago
-                </Button>
+                <div className="mb-3">
+                  <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Método de Pago</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethods(prev => ({ ...prev, [order.id]: 'efectivo' }))}
+                      className={`py-2.5 rounded-xl text-xs font-black uppercase transition-all ${
+                        (selectedMethods[order.id] || order.metodo_pago || 'efectivo') === 'efectivo'
+                          ? 'bg-[#fac124] text-black shadow-md'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      💵 Efectivo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethods(prev => ({ ...prev, [order.id]: 'transferencia' }))}
+                      className={`py-2.5 rounded-xl text-xs font-black uppercase transition-all ${
+                        (selectedMethods[order.id] || order.metodo_pago) === 'transferencia'
+                          ? 'bg-[#fac124] text-black shadow-md'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      📲 Transferencia
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Button 
+                    onClick={() => approveOrder(order.id)}
+                    className="w-full h-13 bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold text-base rounded-xl shadow-lg"
+                  >
+                    <CheckCircle2 className="mr-2 h-5 w-5" />
+                    Confirmar Pago
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setReceiptModalOrder(order)}
+                    className="w-full h-11 border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs uppercase rounded-xl"
+                  >
+                    <Receipt className="mr-2 h-4 w-4 text-[#5a0606]" />
+                    Recibo / WhatsApp
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -626,6 +727,164 @@ export default function Caja() {
                  </tbody>
                </table>
              </div>
+          </div>
+        </div>
+      )}
+
+      {receiptModalOrder && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-[#0D0D0D] text-white">
+              <div className="flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-[#fac124]" />
+                <h3 className="font-black text-lg uppercase tracking-tight">Recibo de Pedido</h3>
+              </div>
+              <button onClick={() => setReceiptModalOrder(null)} className="text-white/60 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 max-h-[70vh] overflow-y-auto bg-gray-50 flex flex-col items-center">
+              {/* Receipt Ticket Card for HTML2Canvas */}
+              <div 
+                id={`receipt-ticket-${receiptModalOrder.id}`} 
+                className="w-full bg-white rounded-2xl p-6 shadow-md border border-gray-200 text-gray-900 space-y-4 font-mono text-sm"
+              >
+                <div className="text-center border-b border-dashed border-gray-300 pb-4">
+                  <h2 className="text-xl font-black uppercase text-[#5a0606]">EMPATUCA</h2>
+                  <p className="text-[10px] text-gray-500">Tucas Tucas como te gustan</p>
+                  <p className="text-[10px] text-gray-400 mt-1">Santo Domingo, Ecuador</p>
+                </div>
+
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between font-bold">
+                    <span>PEDIDO:</span>
+                    <span className="font-black text-base">#{formatOrderNumber(receiptModalOrder.numero_pedido)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>FECHA:</span>
+                    <span>{new Date(receiptModalOrder.created_at || Date.now()).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>CLIENTE:</span>
+                    <span className="font-bold">{receiptModalOrder.nombre_cliente}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>TIPO:</span>
+                    <span className="uppercase font-bold">{receiptModalOrder.tipo}{receiptModalOrder.mesa ? ` (Mesa ${receiptModalOrder.mesa})` : ''}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>PAGO:</span>
+                    <span className="uppercase font-bold text-[#5a0606]">{(selectedMethods[receiptModalOrder.id] || receiptModalOrder.metodo_pago || 'efectivo')}</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-dashed border-gray-300 pt-3">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Detalle de Productos</p>
+                  <div className="space-y-2">
+                    {(receiptModalOrder.productos || []).map((item: any, idx: number) => (
+                      <div key={idx} className="flex justify-between text-xs">
+                        <span className="pr-2">{item.quantity}x {item.name} ({item.size})</span>
+                        <span className="font-bold shrink-0">${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t border-dashed border-gray-300 pt-4 flex justify-between items-center text-base font-black text-gray-900">
+                  <span>TOTAL:</span>
+                  <span className="text-xl text-[#5a0606]">${Number(receiptModalOrder.total || 0).toFixed(2)}</span>
+                </div>
+
+                <div className="text-center pt-2 text-[10px] text-gray-400 border-t border-gray-100">
+                  ¡Gracias por tu compra! Conserva este recibo.
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="w-full space-y-3 mt-6">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Número de Celular WhatsApp</label>
+                  <input 
+                    type="tel"
+                    placeholder="Ej. 0991234567 o +59399..."
+                    value={whatsappPhones[receiptModalOrder.id] !== undefined ? whatsappPhones[receiptModalOrder.id] : (receiptModalOrder.telefono || '')}
+                    onChange={(e) => setWhatsappPhones(prev => ({ ...prev, [receiptModalOrder.id]: e.target.value }))}
+                    className="w-full h-12 px-4 rounded-xl border-2 border-gray-200 font-bold text-sm focus:border-[#fac124] outline-none bg-white"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    onClick={() => handleWhatsAppReceipt(receiptModalOrder)}
+                    className="bg-[#25D366] hover:bg-[#20b858] text-white font-bold h-12 rounded-xl text-xs uppercase flex items-center justify-center gap-2 shadow-md"
+                  >
+                    <Share2 className="w-4 h-4" /> Enviar WhatsApp
+                  </Button>
+                  <Button 
+                    onClick={() => handleDownloadReceiptImage(receiptModalOrder)}
+                    disabled={isGeneratingImage}
+                    className="bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold h-12 rounded-xl text-xs uppercase flex items-center justify-center gap-2 shadow-md"
+                  >
+                    <Download className="w-4 h-4" /> {isGeneratingImage ? 'Generando...' : 'Descargar Imagen'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cash Change Calculator Modal */}
+      {cashModalOrder && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-[#0D0D0D] text-white">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-[#fac124]" />
+                <h3 className="font-black text-lg uppercase tracking-tight">Cálculo de Vuelto</h3>
+              </div>
+              <button onClick={() => setCashModalOrder(null)} className="text-white/60 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 text-center">
+                <p className="text-xs font-bold text-amber-800 uppercase">Total a Pagar</p>
+                <p className="text-3xl font-black text-[#5a0606] mt-1">${Number(cashModalOrder.total || 0).toFixed(2)}</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Efectivo Recibido ($)</label>
+                <input 
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  autoFocus
+                  value={cashReceived}
+                  onChange={(e) => setCashReceived(e.target.value)}
+                  className="w-full h-14 px-4 rounded-xl border-2 border-gray-300 font-black text-2xl text-center focus:border-[#fac124] outline-none"
+                />
+              </div>
+
+              {Number(cashReceived) >= Number(cashModalOrder.total || 0) && (
+                <div className="bg-green-50 rounded-2xl p-4 border border-green-200 text-center animate-in fade-in">
+                  <p className="text-xs font-bold text-green-800 uppercase">Cambio / Vuelto a Entregar</p>
+                  <p className="text-3xl font-black text-green-700 mt-1">
+                    ${(Number(cashReceived) - Number(cashModalOrder.total || 0)).toFixed(2)}
+                  </p>
+                </div>
+              )}
+
+              <Button 
+                onClick={() => executeApproval(cashModalOrder.id, 'efectivo')}
+                disabled={Number(cashReceived) < Number(cashModalOrder.total || 0)}
+                className="w-full h-14 bg-[#5a0606] hover:bg-[#4a0505] disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-base rounded-xl shadow-lg mt-2"
+              >
+                <CheckCircle2 className="mr-2 h-5 w-5" /> Confirmar Cobro en Efectivo
+              </Button>
+            </div>
           </div>
         </div>
       )}

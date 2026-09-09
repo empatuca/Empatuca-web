@@ -101,13 +101,9 @@ export default function Mesa() {
             <h1 className="text-base sm:text-xl font-black uppercase tracking-tight leading-tight">Mesa <span className="text-[10px] sm:text-sm text-gray-400 block sm:inline">(Meseros)</span></h1>
           </div>
 <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
-{view === 'nuevo' ? (
+{view === 'nuevo' && (
                 <button onClick={() => { setView('pedidos'); setEditingOrder(null); }} className="bg-white/10 hover:bg-white/20 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors flex-1 sm:flex-none">
                    Ver Pedidos
-                </button>
-             ) : (
-                <button onClick={() => { setEditingOrder(null); setView('nuevo'); }} className="bg-[#fac124] hover:bg-amber-400 text-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-2 flex-1 sm:flex-none">
-                   <PlusCircle className="w-4 h-4" /> Nuevo Pedido
                 </button>
              )}
 <a onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/personal'); window.dispatchEvent(new Event('popstate')); }} href="/personal" className="text-[10px] sm:text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors font-black py-1.5 sm:py-2 px-2 sm:px-4 rounded-xl border border-white/10 hover:bg-white/10">Roles</a>
