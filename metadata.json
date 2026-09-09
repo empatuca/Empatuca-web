@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Empatuca | Tucas Tucas como te gustan",
+  "description": "Sistema de pedidos, caja diaria, control de gastos, insumos y pagos a socios para Empatuca.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

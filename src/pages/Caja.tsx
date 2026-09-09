@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { Clock, CheckCircle2, DollarSign, X, Receipt, Upload, ArrowDownCircle, ArrowUpCircle, Wallet, Share2, Download } from "lucide-react";
+import { Clock, CheckCircle2, DollarSign, X, Receipt, Upload, ArrowDownCircle, ArrowUpCircle, Wallet, Share2, Download, Calendar, TrendingUp, Boxes, ChefHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { requestNotificationPermission, sendNotification } from "../lib/notification";
 import { BellRing } from "lucide-react";
 import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
 import { Trash2, Package } from "lucide-react";
-import { formatOrderNumber } from "../lib/utils";
+import { 
+  formatOrderNumber, 
+  getEcuadorDateString, 
+  formatEcuadorDate, 
+  formatEcuadorTime, 
+  formatEcuadorDateTime, 
+  getEcuadorDayRange 
+} from "../lib/utils";
 import html2canvas from "html2canvas-pro";
+import { siteConfig } from "../../siteConfig";
+import CajaDashboard from "../components/caja/CajaDashboard";
+import InsumosStockManager from "../components/caja/InsumosStockManager";
+import { ProduccionManager } from "../components/ProduccionManager";
 
 export default function Caja() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAllOrders, setShowAllOrders] = useState(false);
-  const [activeTab, setActiveTab] = useState<'ingresos' | 'gastos'>('ingresos');
+  const [activeTab, setActiveTab] = useState<'ingresos' | 'gastos' | 'dashboard' | 'insumos' | 'produccion'>('ingresos');
   const [selectedMethods, setSelectedMethods] = useState<Record<string, string>>({});
   const [receiptModalOrder, setReceiptModalOrder] = useState<any | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -21,17 +32,19 @@ export default function Caja() {
   const [cashReceived, setCashReceived] = useState('');
   
   const [gastos, setGastos] = useState<any[]>([]);
+  const [allGastos, setAllGastos] = useState<any[]>([]);
+  const [allOrdersList, setAllOrdersList] = useState<any[]>([]);
   const [isAddingGasto, setIsAddingGasto] = useState(false);
   const [gastoForm, setGastoForm] = useState({
     descripcion: '',
     monto: '',
     categoria: 'Operativo',
     socio: 'Socio 1',
-    fecha: new Date().toISOString().split('T')[0]
+    fecha: getEcuadorDateString()
   });
   
-  // Date filter for UI
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  // Date filter for UI (strictly in Ecuador timezone America/Guayaquil)
+  const [selectedDate, setSelectedDate] = useState(getEcuadorDateString());
   const [ingresosDelDia, setIngresosDelDia] = useState(0);
   const [globalBalance, setGlobalBalance] = useState(0);
   const [comprobanteFile, setComprobanteFile] = useState<File | null>(null);
@@ -99,35 +112,47 @@ export default function Caja() {
       
       const fetchData = async () => {
         if (!selectedDate) return;
-        const startOfDay = new Date(selectedDate);
-        if (isNaN(startOfDay.getTime())) return;
-        // Correct timezone offset issues for local date
-        startOfDay.setMinutes(startOfDay.getMinutes() + startOfDay.getTimezoneOffset());
-        startOfDay.setHours(0, 0, 0, 0);
-        
-        const endOfDay = new Date(startOfDay);
-        endOfDay.setHours(23, 59, 59, 999);
+        const { startOfDayUTC, endOfDayUTC } = getEcuadorDayRange(selectedDate);
 
-        // 1. Fetch Gastos for selected date
+        // 1. Fetch Gastos for selected date in Ecuador
         const { data: gastosData, error } = await supabase
           .from('gastos_diarios')
           .select('*')
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString())
+          .gte('created_at', startOfDayUTC)
+          .lte('created_at', endOfDayUTC)
           .order('created_at', { ascending: false });
         if (!error && gastosData) {
           setGastos(gastosData);
         }
 
-        // 2. Fetch Ingresos for selected date
+        // 1.b Fetch All Gastos for Dashboard historical analysis
+        const { data: allGData } = await supabase
+          .from('gastos_diarios')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (allGData) {
+          setAllGastos(allGData);
+        }
+
+        // 2. Fetch Ingresos for selected date in Ecuador
         const { data: ingresosData } = await supabase
           .from('pedidos')
           .select('total')
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString())
+          .gte('created_at', startOfDayUTC)
+          .lte('created_at', endOfDayUTC)
           .not('estado', 'in', '("cancelado","rechazado")'); // Include archivado as valid income
         const sumIngresos = (ingresosData || []).reduce((sum, o) => sum + Math.round(Number(o.total || 0) * 100), 0) / 100;
         setIngresosDelDia(sumIngresos);
+
+        // 2.b Fetch All Orders for Dashboard
+        const { data: allOData } = await supabase
+          .from('pedidos')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(500);
+        if (allOData) {
+          setAllOrdersList(allOData);
+        }
 
         // 3. Fetch Global Balance (from Sept 1 + 346.75 base)
         const septStart = '2026-09-01T05:00:00Z'; // 00:00 in UTC-5 (Ecuador)
@@ -160,8 +185,87 @@ export default function Caja() {
       return () => { supabase.removeChannel(channel); };
     } else {
       setOrders([...localOrders].reverse());
+      setAllOrdersList([...localOrders]);
       setLoading(false);
-      const handleLocalUpdate = () => setOrders([...localOrders].reverse());
+      
+      // Load all gastos from localStorage or seed initial realistic gastos
+      const stored = localStorage.getItem('empatuca_all_gastos');
+      let currentLocalGastos: any[] = [];
+      if (stored) {
+        try { currentLocalGastos = JSON.parse(stored); } catch (e) {}
+      } else {
+        currentLocalGastos = [
+          {
+            id: 'gasto-demo-1',
+            descripcion: 'Compra de aceite, fundas y tarrinas para empanadas',
+            monto: 35.50,
+            categoria: 'Insumos / Producción',
+            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'gasto-demo-2',
+            descripcion: 'Pago de gas y suministros de limpieza',
+            monto: 22.00,
+            categoria: 'Operativo',
+            created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'gasto-demo-3',
+            descripcion: 'Retiro utilidades semana',
+            monto: 60.00,
+            categoria: 'Pago Socios (Socio 1)',
+            created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'gasto-demo-4',
+            descripcion: 'Retiro utilidades semana',
+            monto: 60.00,
+            categoria: 'Pago Socios (Socio 2)',
+            created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'gasto-demo-5',
+            descripcion: 'Retiro utilidades semana',
+            monto: 60.00,
+            categoria: 'Pago Socios (Socio 3)',
+            created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'gasto-demo-6',
+            descripcion: 'Compra de queso manaba y verde para masa',
+            monto: 45.00,
+            categoria: 'Insumos / Producción',
+            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ];
+        localStorage.setItem('empatuca_all_gastos', JSON.stringify(currentLocalGastos));
+      }
+      setAllGastos(currentLocalGastos);
+
+      const updateLocalIncome = () => {
+        const { startOfDayUTC, endOfDayUTC } = getEcuadorDayRange(selectedDate);
+        const startTs = new Date(startOfDayUTC).getTime();
+        const endTs = new Date(endOfDayUTC).getTime();
+        const dayLocalOrders = localOrders.filter(o => {
+          const t = new Date(o.created_at || Date.now()).getTime();
+          return t >= startTs && t <= endTs && o.estado !== 'cancelado' && o.estado !== 'rechazado';
+        });
+        const sum = dayLocalOrders.reduce((s, o) => s + Math.round(Number(o.total || 0) * 100), 0) / 100;
+        setIngresosDelDia(sum);
+
+        const dayGastos = currentLocalGastos.filter(g => {
+          const t = new Date(g.created_at || Date.now()).getTime();
+          return t >= startTs && t <= endTs;
+        });
+        setGastos(dayGastos);
+      };
+
+      updateLocalIncome();
+      const handleLocalUpdate = () => {
+        setOrders([...localOrders].reverse());
+        setAllOrdersList([...localOrders]);
+        updateLocalIncome();
+      };
       window.addEventListener('localOrdersUpdated', handleLocalUpdate);
       return () => window.removeEventListener('localOrdersUpdated', handleLocalUpdate);
     }
@@ -226,8 +330,25 @@ export default function Caja() {
      openReceiptModal(order);
   };
 
+  const getSafeProductos = (order: any): any[] => {
+    if (!order || !order.productos) return [];
+    let prods = order.productos;
+    if (typeof prods === 'string') {
+      try {
+        prods = JSON.parse(prods);
+      } catch (e) {
+        prods = [];
+      }
+    }
+    return Array.isArray(prods) ? prods : [];
+  };
+
   const openReceiptModal = (order: any) => {
-    setReceiptModalOrder(order);
+    const safeOrder = {
+      ...order,
+      productos: getSafeProductos(order)
+    };
+    setReceiptModalOrder(safeOrder);
     if (!whatsappPhones[order.id]) {
       let initial = order.telefono || '593';
       let clean = initial.replace(/\D/g, '');
@@ -259,17 +380,20 @@ export default function Caja() {
         alert('Por favor ingresa un número de celular de WhatsApp válido con el prefijo 593.');
         return;
     }
-    const productsList = (order.productos || []).map((p: any) => `• ${p.quantity}x ${p.name} (${p.size}) - $${(p.price * p.quantity).toFixed(2)}`).join('\n');
+    const safeProds = getSafeProductos(order);
+    const productsList = safeProds.map((p: any) => `• ${p.quantity || 1}x ${p.name} ${p.size ? `(${p.size})` : ''} - $${((Number(p.price) || 0) * (Number(p.quantity) || 1)).toFixed(2)}`).join('\n');
     const text = `🧾 *RECIBO EMPATUCA* #${formatOrderNumber(order.numero_pedido)}\n` +
+      `📅 Fecha: ${formatEcuadorDateTime(order.created_at || Date.now())}\n` +
       `--------------------------------\n` +
-      `👤 Cliente: ${order.nombre_cliente}\n` +
-      `📌 Tipo: ${order.tipo.toUpperCase()}${order.mesa ? ' (Mesa ' + order.mesa + ')' : ''}\n` +
+      `👤 Cliente: ${order.nombre_cliente || 'Consumidor Final'}\n` +
+      `📌 Tipo: ${(order.tipo || '').toUpperCase()}${order.mesa ? ' (Mesa ' + order.mesa + ')' : ''}\n` +
       `💳 Método de Pago: ${(selectedMethods[order.id] || order.metodo_pago || 'efectivo').toUpperCase()}\n` +
       `--------------------------------\n` +
       `*DETALLE DE PEDIDO:*\n` +
-      productsList + `\n` +
+      (productsList || '• Sin productos registrados') + `\n` +
       `--------------------------------\n` +
       `*TOTAL: $${Number(order.total || 0).toFixed(2)}*\n\n` +
+      `📍 *Dirección:* ${siteConfig.address}\n\n` +
       `¡Gracias por preferir Empatuca! 🫓✨`;
 
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
@@ -277,7 +401,7 @@ export default function Caja() {
 
   const handleDownloadReceiptImage = async (order: any) => {
     setIsGeneratingImage(true);
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     const element = document.getElementById(`receipt-ticket-${order.id}`);
     if (!element) {
@@ -286,12 +410,41 @@ export default function Caja() {
         return;
     }
     try {
+      const images = element.querySelectorAll('img');
+      await Promise.all(
+        Array.from(images).map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        })
+      );
+
       const canvas = await html2canvas(element, { 
         scale: 2, 
-        backgroundColor: '#ffffff',
+        backgroundColor: '#5a0606',
         useCORS: true,
         allowTaint: true,
-        logging: false
+        logging: false,
+        scrollY: 0,
+        scrollX: 0,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById(`receipt-ticket-${order.id}`);
+          if (clonedElement) {
+            clonedElement.style.maxHeight = 'none';
+            clonedElement.style.overflow = 'visible';
+            clonedElement.style.height = 'auto';
+
+            let parent = clonedElement.parentElement;
+            while (parent && parent !== clonedDoc.body) {
+              parent.style.maxHeight = 'none';
+              parent.style.overflow = 'visible';
+              parent.style.height = 'auto';
+              parent = parent.parentElement;
+            }
+          }
+        }
       });
       
       const image = canvas.toDataURL('image/png');
@@ -363,12 +516,14 @@ export default function Caja() {
       }
       
 
-      // Build a correct date based on selected date + current time to avoid timezone offset shifts to the wrong day
-      const now = new Date();
-      const expenseDate = new Date(gastoForm.fecha || new Date().toISOString().split('T')[0]);
-      if (!isNaN(expenseDate.getTime())) {
-        expenseDate.setMinutes(expenseDate.getMinutes() + expenseDate.getTimezoneOffset());
-        expenseDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+      // Build a correct date based on selected date + current time in Ecuador to avoid timezone offset shifts
+      let expenseIso: string;
+      const todayEcuador = getEcuadorDateString();
+      if (!gastoForm.fecha || gastoForm.fecha === todayEcuador) {
+        expenseIso = new Date().toISOString();
+      } else {
+        const timeNow = formatEcuadorTime(new Date(), true);
+        expenseIso = new Date(`${gastoForm.fecha}T${timeNow}-05:00`).toISOString();
       }
 
       const payload = {
@@ -376,24 +531,50 @@ export default function Caja() {
         monto: parseFloat(gastoForm.monto),
         categoria: gastoForm.categoria === 'Pago Socios' ? `Pago Socios (${gastoForm.socio})` : gastoForm.categoria,
         comprobante_url,
-        created_at: !isNaN(expenseDate.getTime()) ? expenseDate.toISOString() : new Date().toISOString()
+        created_at: expenseIso
       };
       
       if (supabase) {
         const { data, error } = await supabase.from('gastos_diarios').insert([payload]).select();
         if (error) throw error;
-        if (data) setGastos([data[0], ...gastos]);
+        if (data) {
+          setGastos([data[0], ...gastos]);
+          setAllGastos(prev => [data[0], ...prev]);
+        }
       } else {
-         setGastos([{...payload, id: Math.random().toString(), created_at: new Date().toISOString()}, ...gastos]);
+        const newLocal = {...payload, id: Math.random().toString(), created_at: expenseIso};
+        setGastos([newLocal, ...gastos]);
+        setAllGastos(prev => {
+          const updated = [newLocal, ...prev];
+          localStorage.setItem('empatuca_all_gastos', JSON.stringify(updated));
+          return updated;
+        });
       }
       
       setIsAddingGasto(false);
-      setGastoForm({ descripcion: '', monto: '', categoria: 'Operativo', socio: 'Socio 1', fecha: new Date().toISOString().split('T')[0] });
+      setGastoForm({ descripcion: '', monto: '', categoria: 'Operativo', socio: 'Socio 1', fecha: getEcuadorDateString() });
       setComprobanteFile(null);
     } catch (err: any) {
       alert("Error al guardar gasto. Es posible que debas crear la tabla 'gastos_diarios' en Supabase. Detalles: " + err.message);
     }
     setIsUploading(false);
+  };
+
+  const handleDeleteGasto = async (id: string) => {
+    if (!confirm('¿Deseas eliminar este registro de egreso?')) return;
+    try {
+      if (supabase) {
+        await supabase.from('gastos_diarios').delete().eq('id', id);
+      }
+      setGastos(prev => prev.filter(g => g.id !== id));
+      setAllGastos(prev => {
+        const updated = prev.filter(g => g.id !== id);
+        localStorage.setItem('empatuca_all_gastos', JSON.stringify(updated));
+        return updated;
+      });
+    } catch (e: any) {
+      console.error(e);
+    }
   };
 
   const getCategoryColor = (cat: string) => {
@@ -439,21 +620,50 @@ export default function Caja() {
       </header>
 
       <div className="container mx-auto p-4 md:p-8">
-        <div className="flex gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
           <button 
             onClick={() => setActiveTab('ingresos')}
-            className={`flex-1 py-4 px-6 rounded-2xl font-black text-lg tracking-wide uppercase transition-all ${activeTab === 'ingresos' ? 'bg-[#5a0606] text-white shadow-xl shadow-[#5a0606]/20' : 'bg-white text-gray-400 hover:bg-gray-50 border border-gray-100'}`}
+            className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'ingresos' ? 'bg-[#5a0606] text-white shadow-xl shadow-[#5a0606]/20' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
           >
             <div className="flex items-center justify-center gap-2">
-              <ArrowUpCircle className="w-6 h-6" /> Ingresos (Pedidos)
+              <ArrowUpCircle className="w-5 h-5 shrink-0" /> 
+              <span className="truncate">Ingresos (Pedidos)</span>
             </div>
           </button>
           <button 
             onClick={() => setActiveTab('gastos')}
-            className={`flex-1 py-4 px-6 rounded-2xl font-black text-lg tracking-wide uppercase transition-all ${activeTab === 'gastos' ? 'bg-red-500 text-white shadow-xl shadow-red-200' : 'bg-white text-gray-400 hover:bg-gray-50 border border-gray-100'}`}
+            className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'gastos' ? 'bg-red-500 text-white shadow-xl shadow-red-200' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
           >
             <div className="flex items-center justify-center gap-2">
-              <ArrowDownCircle className="w-6 h-6" /> Egresos (Gastos)
+              <ArrowDownCircle className="w-5 h-5 shrink-0" /> 
+              <span className="truncate">Egresos (Gastos)</span>
+            </div>
+          </button>
+          <button 
+            onClick={() => setActiveTab('dashboard')}
+            className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'dashboard' ? 'bg-amber-500 text-gray-950 shadow-xl shadow-amber-200' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <TrendingUp className="w-5 h-5 shrink-0" /> 
+              <span className="truncate">Dashboard</span>
+            </div>
+          </button>
+          <button 
+            onClick={() => setActiveTab('insumos')}
+            className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'insumos' ? 'bg-slate-900 text-white shadow-xl shadow-slate-300' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <Boxes className="w-5 h-5 shrink-0" /> 
+              <span className="truncate">Stock Insumos</span>
+            </div>
+          </button>
+          <button 
+            onClick={() => setActiveTab('produccion')}
+            className={`col-span-2 md:col-span-1 py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'produccion' ? 'bg-[#fac124] text-gray-950 shadow-xl shadow-amber-200' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <ChefHat className="w-5 h-5 shrink-0" /> 
+              <span className="truncate">Recetas & Producción</span>
             </div>
           </button>
         </div>
@@ -595,6 +805,7 @@ export default function Caja() {
                     <tr className="border-b border-gray-200 text-gray-500">
                        <th className="py-3 font-bold">Pedido</th>
                        <th className="py-3 font-bold">Cliente</th>
+                       <th className="py-3 font-bold">Hora</th>
                        <th className="py-3 font-bold">Total</th>
                        <th className="py-3 font-bold">Método</th>
                        <th className="py-3 font-bold">Estado</th>
@@ -605,6 +816,7 @@ export default function Caja() {
                        <tr key={order.id} className="border-b border-gray-100">
                           <td className="py-3 font-black text-black">#{formatOrderNumber(order.numero_pedido)}</td>
                           <td className="py-3 font-bold text-gray-800">{order.nombre_cliente}</td>
+                          <td className="py-3 text-xs font-bold text-gray-500">{order.created_at ? formatEcuadorTime(order.created_at) : '--:--'}</td>
                           <td className="py-3 font-black text-[#5a0606]">${order.total}</td>
                           <td className="py-3 text-gray-500 capitalize">{order.metodo_pago}</td>
                           <td className="py-3">
@@ -640,7 +852,34 @@ export default function Caja() {
 
                  {/* BALANCE CARD */}
                  <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Balance del día: {selectedDate}</h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
+                      <div>
+                        <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                          <Calendar className="w-4 h-4 text-[#5a0606]" /> Balance del día
+                        </h3>
+                        <p className="text-xs font-bold text-gray-500 mt-0.5">
+                          {formatEcuadorDate(selectedDate)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {selectedDate !== getEcuadorDateString() && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDate(getEcuadorDateString())}
+                            className="text-[10px] bg-[#5a0606] text-white px-2.5 py-1.5 rounded-lg font-black uppercase hover:bg-black transition-colors"
+                            title="Volver a la fecha de hoy"
+                          >
+                            Hoy
+                          </button>
+                        )}
+                        <input 
+                          type="date" 
+                          value={selectedDate} 
+                          onChange={e => setSelectedDate(e.target.value)} 
+                          className="bg-gray-50 hover:bg-gray-100 border border-gray-200 focus:border-[#5a0606] rounded-xl px-3 py-1.5 text-xs font-bold text-gray-800 outline-none transition-colors cursor-pointer" 
+                        />
+                      </div>
+                    </div>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                         <span className="text-gray-500 font-medium">Ingresos (Ventas)</span>
@@ -715,15 +954,35 @@ export default function Caja() {
 
               <div className="lg:col-span-2">
                  <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 h-full min-h-[400px]">
-                    <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Historial de Gastos</h3>
-                      <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-bold text-gray-700 outline-none" />
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-3 border-b border-gray-100">
+                      <div>
+                        <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider">Historial de Gastos</h3>
+                        <p className="text-xs font-bold text-gray-500 mt-0.5">{formatEcuadorDate(selectedDate)}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {selectedDate !== getEcuadorDateString() && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDate(getEcuadorDateString())}
+                            className="text-[10px] bg-gray-900 text-white px-2.5 py-1.5 rounded-lg font-black uppercase hover:bg-black transition-colors"
+                            title="Volver a la fecha de hoy"
+                          >
+                            Hoy
+                          </button>
+                        )}
+                        <input 
+                          type="date" 
+                          value={selectedDate} 
+                          onChange={e => setSelectedDate(e.target.value)} 
+                          className="bg-gray-50 hover:bg-gray-100 border border-gray-200 focus:border-red-500 rounded-lg px-3 py-1.5 text-xs font-bold text-gray-700 outline-none transition-colors cursor-pointer" 
+                        />
+                      </div>
                     </div>
                     {gastos.length === 0 ? (
                       <div className="text-center py-20">
                         <Wallet className="w-16 h-16 text-gray-200 mx-auto mb-4" />
                         <h4 className="text-lg font-black text-gray-400 uppercase">Sin Gastos</h4>
-                        <p className="text-gray-400 text-sm mt-2">Aún no has registrado egresos el día de hoy.</p>
+                        <p className="text-gray-400 text-sm mt-2">No se registran egresos para la fecha seleccionada ({formatEcuadorDate(selectedDate)}).</p>
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -735,7 +994,7 @@ export default function Caja() {
                                    {gasto.categoria}
                                  </span>
                                  <span className="text-[9px] sm:text-xs text-gray-400 font-bold whitespace-nowrap shrink-0">
-                                   {gasto.created_at && !isNaN(new Date(gasto.created_at).getTime()) ? new Date(gasto.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                                   {gasto.created_at ? formatEcuadorTime(gasto.created_at) : ''}
                                  </span>
                                </div>
                                <p className="font-bold text-gray-800 text-sm sm:text-lg leading-tight break-words">{gasto.descripcion}</p>
@@ -745,8 +1004,18 @@ export default function Caja() {
                                  </a>
                                )}
                             </div>
-                            <div className="text-right shrink-0">
-                               <span className="font-black text-lg sm:text-2xl text-red-600 block">-${Number(gasto.monto).toFixed(2)}</span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <div className="text-right">
+                                <span className="font-black text-lg sm:text-2xl text-red-600 block">-${Number(gasto.monto).toFixed(2)}</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteGasto(gasto.id)}
+                                title="Eliminar egreso"
+                                className="p-1.5 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
                           </div>
                         ))}
@@ -756,6 +1025,22 @@ export default function Caja() {
               </div>
             </div>
           </div>
+        )}
+
+        {activeTab === 'dashboard' && (
+          <CajaDashboard 
+            orders={allOrdersList.length > 0 ? allOrdersList : orders} 
+            allGastos={allGastos} 
+            selectedDate={selectedDate} 
+          />
+        )}
+
+        {activeTab === 'insumos' && (
+          <InsumosStockManager onNavigateToProduccion={() => setActiveTab('produccion')} />
+        )}
+
+        {activeTab === 'produccion' && (
+          <ProduccionManager />
         )}
       </div>
 
@@ -774,6 +1059,7 @@ export default function Caja() {
                     <tr className="border-b border-gray-200 text-gray-500">
                        <th className="py-3 font-bold">Pedido</th>
                        <th className="py-3 font-bold">Cliente</th>
+                       <th className="py-3 font-bold">Hora</th>
                        <th className="py-3 font-bold">Total</th>
                        <th className="py-3 font-bold">Método</th>
                        <th className="py-3 font-bold">Estado</th>
@@ -784,6 +1070,7 @@ export default function Caja() {
                        <tr key={order.id} className="border-b border-gray-100">
                           <td className="py-3 font-black text-black">#{formatOrderNumber(order.numero_pedido)}</td>
                           <td className="py-3 font-bold text-gray-800">{order.nombre_cliente}</td>
+                          <td className="py-3 text-xs font-bold text-gray-500">{order.created_at ? formatEcuadorTime(order.created_at) : '--:--'}</td>
                           <td className="py-3 font-black text-[#5a0606]">${order.total}</td>
                           <td className="py-3 text-gray-500 capitalize">{order.metodo_pago}</td>
                           <td className="py-3">
@@ -801,9 +1088,9 @@ export default function Caja() {
       )}
 
       {receiptModalOrder && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-[#0D0D0D] text-white">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-stone-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200 border border-stone-800">
+            <div className="flex justify-between items-center p-5 border-b border-stone-800 bg-[#0D0D0D] text-white">
               <div className="flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-[#fac124]" />
                 <h3 className="font-black text-lg uppercase tracking-tight">Recibo de Pedido</h3>
@@ -813,73 +1100,222 @@ export default function Caja() {
               </button>
             </div>
 
-            <div className="p-6 max-h-[70vh] overflow-y-auto bg-gray-50 flex flex-col items-center">
+            <div className="p-4 sm:p-6 max-h-[85vh] overflow-y-auto bg-stone-950 flex flex-col items-center">
               {/* Receipt Ticket Card for HTML2Canvas */}
               <div 
                 id={`receipt-ticket-${receiptModalOrder.id}`} 
-                className="w-full bg-white rounded-2xl p-6 shadow-md border border-gray-200 text-gray-900 space-y-4 font-mono text-sm"
+                className="relative w-full bg-[#5a0606] text-white rounded-3xl p-6 sm:p-7 shadow-2xl border-2 border-[#fac124]/40 font-sans select-none overflow-visible"
+                style={{ width: '100%', maxWidth: '390px', height: 'auto', minHeight: 'fit-content' }}
               >
-                <div className="text-center border-b border-dashed border-gray-300 pb-4">
-                  <h2 className="text-xl font-black uppercase text-[#5a0606]">EMPATUCA</h2>
-                  <p className="text-[10px] text-gray-500">Tucas Tucas como te gustan</p>
-                  <p className="text-[10px] text-gray-400 mt-1">Santo Domingo, Ecuador</p>
-                </div>
+                {/* Background Brand Pattern (Golden on Empatuca Red) */}
+                <div 
+                  className="absolute inset-0 pointer-events-none opacity-15 z-0 rounded-3xl"
+                  style={{
+                    backgroundImage: "url('/patron_m.svg')",
+                    backgroundRepeat: 'repeat',
+                    backgroundSize: '120px',
+                    backgroundPosition: 'center'
+                  }}
+                />
 
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between font-bold">
-                    <span>PEDIDO:</span>
-                    <span className="font-black text-base">#{formatOrderNumber(receiptModalOrder.numero_pedido)}</span>
+                {/* Ticket Content */}
+                <div className="relative z-10 space-y-4">
+                  {/* Header with real Logo - High contrast on Empatuca Red */}
+                  <div className="text-center pb-4 border-b-2 border-dashed border-[#fac124]/40">
+                    <div className="flex justify-center mb-1.5">
+                      <img 
+                        src="/logo.svg" 
+                        alt="Empatuca" 
+                        className="h-14 sm:h-16 w-auto max-w-[210px] object-contain drop-shadow-md"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                    <div className="flex justify-center mt-1">
+                      <img 
+                        src="/slogan.png" 
+                        alt="Tucas Tucas como te gustan" 
+                        className="h-4 w-auto object-contain brightness-125 drop-shadow-sm"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1 rounded-full bg-black/40 border border-[#fac124]/50 text-[#fac124] text-[11px] font-black tracking-wider uppercase shadow-inner">
+                      <span>Santo Domingo • Ecuador</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>FECHA:</span>
-                    <span>{new Date(receiptModalOrder.created_at || Date.now()).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>CLIENTE:</span>
-                    <span className="font-bold">{receiptModalOrder.nombre_cliente}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>TIPO:</span>
-                    <span className="uppercase font-bold">{receiptModalOrder.tipo}{receiptModalOrder.mesa ? ` (Mesa ${receiptModalOrder.mesa})` : ''}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>PAGO:</span>
-                    <span className="uppercase font-bold text-[#5a0606]">{(selectedMethods[receiptModalOrder.id] || receiptModalOrder.metodo_pago || 'efectivo')}</span>
-                  </div>
-                </div>
 
-                <div className="border-t border-dashed border-gray-300 pt-3">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Detalle de Productos</p>
-                  <div className="space-y-2">
-                    {(receiptModalOrder.productos || []).map((item: any, idx: number) => (
-                      <div key={idx} className="flex justify-between text-xs">
-                        <span className="pr-2">{item.quantity}x {item.name} ({item.size})</span>
-                        <span className="font-bold shrink-0">${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}</span>
+                  {/* Order & Customer Metadata */}
+                  <div className="bg-black/35 backdrop-blur-sm rounded-2xl p-4 border border-[#fac124]/30 space-y-2.5 text-xs text-white">
+                    <div className="flex justify-between items-center pb-2.5 border-b border-[#fac124]/30">
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-200/80 uppercase tracking-wider block">Pedido</span>
+                        <span className="text-xl font-black text-[#fac124] tracking-tight">
+                          #{formatOrderNumber(receiptModalOrder.numero_pedido)}
+                        </span>
                       </div>
-                    ))}
+                      <div className="text-right">
+                        <span className="inline-block px-3 py-1 bg-[#fac124] text-[#5a0606] text-[11px] font-black uppercase rounded-lg shadow-md">
+                          {receiptModalOrder.tipo}{receiptModalOrder.mesa ? ` • MESA ${receiptModalOrder.mesa}` : ''}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-200/80 uppercase block">Cliente</span>
+                        <span className="font-bold text-white truncate block">
+                          {receiptModalOrder.nombre_cliente || 'Consumidor Final'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-200/80 uppercase block">Fecha / Hora</span>
+                        <span className="text-amber-100 font-medium block">
+                          {formatEcuadorDateTime(receiptModalOrder.created_at || Date.now())}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-200/80 uppercase block">Forma de Pago</span>
+                        <span className="font-black uppercase text-[#fac124] block">
+                          {(selectedMethods[receiptModalOrder.id] || receiptModalOrder.metodo_pago || 'efectivo')}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-200/80 uppercase block">Estado</span>
+                        <span className="inline-flex items-center text-emerald-400 font-black">
+                          ✓ Pagado
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="border-t border-dashed border-gray-300 pt-4 flex justify-between items-center text-base font-black text-gray-900">
-                  <span>TOTAL:</span>
-                  <span className="text-xl text-[#5a0606]">${Number(receiptModalOrder.total || 0).toFixed(2)}</span>
-                </div>
+                  {/* Products Detail */}
+                  <div className="bg-black/25 rounded-2xl p-3.5 border border-[#fac124]/25 space-y-2">
+                    <div className="flex justify-between items-center text-[11px] font-black tracking-wider text-[#fac124] uppercase pb-1.5 border-b border-[#fac124]/30">
+                      <span>Cant. & Producto</span>
+                      <span>Subtotal</span>
+                    </div>
 
-                <div className="text-center pt-2 text-[10px] text-gray-400 border-t border-gray-100">
-                  ¡Gracias por tu compra! Conserva este recibo.
+                    <div className="space-y-2 divide-y divide-white/10">
+                      {getSafeProductos(receiptModalOrder).length === 0 ? (
+                        <p className="text-xs text-amber-200/80 italic py-2 text-center">
+                          Consumo de alimentos y bebidas
+                        </p>
+                      ) : (
+                        getSafeProductos(receiptModalOrder).map((item: any, idx: number) => {
+                          const itemQty = Number(item.quantity) || 1;
+                          const itemPrice = Number(item.price) || 0;
+                          const itemTotal = (itemPrice * itemQty).toFixed(2);
+                          return (
+                            <div key={idx} className="flex justify-between items-start pt-2 text-xs">
+                              <div className="flex items-start gap-2 pr-2">
+                                <span className="px-2 py-0.5 rounded-md bg-[#fac124] text-[#5a0606] font-black text-[11px] shrink-0 shadow-sm">
+                                  {itemQty}x
+                                </span>
+                                <div>
+                                  <p className="font-bold text-white leading-tight">
+                                    {item.name}
+                                  </p>
+                                  {item.size && (
+                                    <p className="text-[10px] text-amber-200/80 font-medium">
+                                      {item.size}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="font-mono font-bold text-[#fac124] text-xs shrink-0">
+                                ${itemTotal}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Total Section */}
+                  <div className="pt-3 border-t-2 border-dashed border-[#fac124]/40 space-y-1.5">
+                    <div className="flex justify-between items-center text-xs text-amber-100/90">
+                      <span>Artículos totales:</span>
+                      <span className="font-bold text-white">
+                        {getSafeProductos(receiptModalOrder).reduce((acc: number, cur: any) => acc + (Number(cur.quantity) || 1), 0)} unidades
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2 text-base font-black text-white">
+                      <span className="text-amber-200 text-sm tracking-wide uppercase font-bold">TOTAL A PAGAR:</span>
+                      <span className="text-3xl text-[#fac124] font-mono font-black drop-shadow-sm">
+                        ${Number(receiptModalOrder.total || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Parte Final - Dirección y Contacto */}
+                  <div className="pt-4 border-t-2 border-dashed border-[#fac124]/40 text-center space-y-3">
+                    <p className="text-xs font-bold text-amber-100">
+                      ¡Gracias por tu compra! Conserva este recibo.
+                    </p>
+
+                    {/* Dirección Real de Empatuca */}
+                    <div className="bg-black/35 rounded-xl p-3 border border-[#fac124]/30 text-[11px] text-amber-100/90 space-y-1">
+                      <p className="font-bold text-white leading-tight flex items-center justify-center gap-1.5">
+                        <span>📍</span>
+                        <span>{siteConfig.address}</span>
+                      </p>
+                      <p className="text-[10px] text-[#fac124] font-semibold">
+                        Horario: {siteConfig.hours}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-amber-200/90 pt-0.5">
+                      <span>WhatsApp: 099 817 9051</span>
+                      <span>•</span>
+                      <span>Instagram: @{siteConfig.instagram}</span>
+                    </div>
+
+                    {/* Barcode en marco blanco para contraste perfecto */}
+                    <div className="pt-1 flex flex-col items-center">
+                      <div className="bg-white px-5 py-2 rounded-xl flex flex-col items-center shadow-lg">
+                        <div className="flex items-center gap-[2px] h-6">
+                          <div className="w-1 h-full bg-black"></div>
+                          <div className="w-0.5 h-full bg-black"></div>
+                          <div className="w-1.5 h-full bg-black"></div>
+                          <div className="w-0.5 h-full bg-black"></div>
+                          <div className="w-2 h-full bg-black"></div>
+                          <div className="w-0.5 h-full bg-black"></div>
+                          <div className="w-1 h-full bg-black"></div>
+                          <div className="w-1.5 h-full bg-black"></div>
+                          <div className="w-0.5 h-full bg-black"></div>
+                          <div className="w-2 h-full bg-black"></div>
+                          <div className="w-1 h-full bg-black"></div>
+                          <div className="w-0.5 h-full bg-black"></div>
+                          <div className="w-1.5 h-full bg-black"></div>
+                          <div className="w-2 h-full bg-black"></div>
+                          <div className="w-0.5 h-full bg-black"></div>
+                          <div className="w-1 h-full bg-black"></div>
+                          <div className="w-0.5 h-full bg-black"></div>
+                          <div className="w-1.5 h-full bg-black"></div>
+                          <div className="w-2 h-full bg-black"></div>
+                          <div className="w-0.5 h-full bg-black"></div>
+                          <div className="w-1 h-full bg-black"></div>
+                        </div>
+                        <span className="text-[9px] font-mono font-bold text-black tracking-widest mt-1">
+                          EMPATUCA-{formatOrderNumber(receiptModalOrder.numero_pedido)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="w-full space-y-3 mt-6">
+              <div className="w-full max-w-sm space-y-3 mt-6">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Número de Celular WhatsApp (Prefijo 593)</label>
+                  <label className="text-xs font-bold text-stone-400 uppercase block mb-1">Número de Celular WhatsApp (Prefijo 593)</label>
                   <input 
                     type="tel"
                     placeholder="593991234567"
                     value={whatsappPhones[receiptModalOrder.id] !== undefined ? whatsappPhones[receiptModalOrder.id] : '593'}
                     onChange={(e) => setWhatsappPhones(prev => ({ ...prev, [receiptModalOrder.id]: e.target.value }))}
-                    className="w-full h-12 px-4 rounded-xl border-2 border-gray-200 font-bold text-sm focus:border-[#fac124] outline-none bg-white"
+                    className="w-full h-12 px-4 rounded-xl border-2 border-stone-700 font-bold text-sm focus:border-[#fac124] outline-none bg-stone-900 text-white"
                   />
                 </div>
 
@@ -893,7 +1329,7 @@ export default function Caja() {
                   <Button 
                     onClick={() => handleDownloadReceiptImage(receiptModalOrder)}
                     disabled={isGeneratingImage}
-                    className="bg-[#5a0606] hover:bg-[#4a0505] text-white font-bold h-12 rounded-xl text-xs uppercase flex items-center justify-center gap-2 shadow-md"
+                    className="bg-[#fac124] hover:bg-[#e0ad1f] text-[#5a0606] font-black h-12 rounded-xl text-xs uppercase flex items-center justify-center gap-2 shadow-md"
                   >
                     <Download className="w-4 h-4" /> {isGeneratingImage ? 'Generando...' : 'Descargar Imagen'}
                   </Button>

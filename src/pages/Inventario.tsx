@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Package, DollarSign, ArrowLeft } from "lucide-react";
 import { localOrders, supabase } from "../lib/supabase";
-import { formatOrderNumber } from "../lib/utils";
+import { formatOrderNumber, getEcuadorDateString, getEcuadorDayRange, formatEcuadorDate } from "../lib/utils";
 
 export default function Inventario() {
   const [inventory, setInventory] = useState<InventoryItem[]>(localInventory);
@@ -71,13 +71,12 @@ export default function Inventario() {
   useEffect(() => {
     if (isSupabaseConfigured && supabase) {
       const fetchOrders = async () => {
-        // Obtenemos solo los pedidos de hoy para el inventario
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Obtenemos solo los pedidos de hoy en horario Ecuador para el inventario
+        const { startOfDayUTC } = getEcuadorDayRange();
         const { data, error } = await supabase
           .from('pedidos')
           .select('*').neq('id', '00000000-0000-0000-0000-000000000000')
-          .gte('created_at', today.toISOString());
+          .gte('created_at', startOfDayUTC);
           
         if (!error && data) {
           setOrders(data);
@@ -126,8 +125,7 @@ export default function Inventario() {
       return;
     }
     setIsSavingClosure(true);
-    const now = new Date();
-    const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const today = getEcuadorDateString();
     const payload = {
       fecha: today,
       total_ventas: totalVentas,
@@ -329,7 +327,7 @@ export default function Inventario() {
                    <div key={closure.id} className="border-2 border-gray-100 rounded-2xl p-4 sm:p-6 bg-gray-50">
                       <div className="flex flex-row justify-between items-start mb-4 sm:mb-6 border-b border-gray-200 pb-4">
                         <div className="flex flex-col gap-2">
-                           <h3 className="text-lg sm:text-2xl font-black">{closure.fecha}</h3>
+                           <h3 className="text-lg sm:text-2xl font-black">{formatEcuadorDate(closure.fecha)}</h3>
                            <button onClick={() => handleDeleteClosure(closure.id)} className="text-[10px] sm:text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2 sm:px-3 py-1 rounded-md self-start transition-colors">
                              Eliminar Cierre
                            </button>
