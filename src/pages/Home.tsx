@@ -9,6 +9,7 @@ import { ProcessSection } from "../components/home/ProcessSection";
 import { ContactSection } from "../components/home/ContactSection";
 import { CTASection } from "../components/home/CTASection";
 import { FloatingButtons } from "../components/home/FloatingButtons";
+import { VisitorSourceSurvey } from "../components/home/VisitorSourceSurvey";
 
 export default function Home() {
   return (
@@ -26,6 +27,7 @@ export default function Home() {
       </main>
       <Footer />
       <FloatingButtons />
+      <VisitorSourceSurvey />
     </div>
   );
 }

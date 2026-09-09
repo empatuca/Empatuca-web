@@ -620,50 +620,55 @@ export default function Caja() {
       </header>
 
       <div className="container mx-auto p-4 md:p-8">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+        <div className="grid grid-cols-5 gap-1.5 sm:gap-3 lg:gap-4 mb-6 sm:mb-8">
           <button 
             onClick={() => setActiveTab('ingresos')}
-            className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'ingresos' ? 'bg-[#5a0606] text-white shadow-xl shadow-[#5a0606]/20' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+            title="Ingresos (Pedidos)"
+            className={`py-3 sm:py-4 px-1 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all flex items-center justify-center ${activeTab === 'ingresos' ? 'bg-[#5a0606] text-white shadow-xl shadow-[#5a0606]/20 ring-2 ring-[#fac124]/50 sm:ring-0' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
           >
             <div className="flex items-center justify-center gap-2">
               <ArrowUpCircle className="w-5 h-5 shrink-0" /> 
-              <span className="truncate">Ingresos (Pedidos)</span>
+              <span className="hidden sm:inline truncate">Ingresos</span>
             </div>
           </button>
           <button 
             onClick={() => setActiveTab('gastos')}
-            className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'gastos' ? 'bg-red-500 text-white shadow-xl shadow-red-200' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+            title="Egresos (Gastos)"
+            className={`py-3 sm:py-4 px-1 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all flex items-center justify-center ${activeTab === 'gastos' ? 'bg-red-500 text-white shadow-xl shadow-red-200 ring-2 ring-red-400 sm:ring-0' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
           >
             <div className="flex items-center justify-center gap-2">
               <ArrowDownCircle className="w-5 h-5 shrink-0" /> 
-              <span className="truncate">Egresos (Gastos)</span>
+              <span className="hidden sm:inline truncate">Egresos</span>
             </div>
           </button>
           <button 
             onClick={() => setActiveTab('dashboard')}
-            className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'dashboard' ? 'bg-amber-500 text-gray-950 shadow-xl shadow-amber-200' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+            title="Dashboard"
+            className={`py-3 sm:py-4 px-1 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all flex items-center justify-center ${activeTab === 'dashboard' ? 'bg-amber-500 text-gray-950 shadow-xl shadow-amber-200 ring-2 ring-amber-300 sm:ring-0' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
           >
             <div className="flex items-center justify-center gap-2">
               <TrendingUp className="w-5 h-5 shrink-0" /> 
-              <span className="truncate">Dashboard</span>
+              <span className="hidden sm:inline truncate">Dashboard</span>
             </div>
           </button>
           <button 
             onClick={() => setActiveTab('insumos')}
-            className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'insumos' ? 'bg-slate-900 text-white shadow-xl shadow-slate-300' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+            title="Stock Insumos"
+            className={`py-3 sm:py-4 px-1 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all flex items-center justify-center ${activeTab === 'insumos' ? 'bg-slate-900 text-white shadow-xl shadow-slate-300 ring-2 ring-slate-600 sm:ring-0' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
           >
             <div className="flex items-center justify-center gap-2">
               <Boxes className="w-5 h-5 shrink-0" /> 
-              <span className="truncate">Stock Insumos</span>
+              <span className="hidden sm:inline truncate">Insumos</span>
             </div>
           </button>
           <button 
             onClick={() => setActiveTab('produccion')}
-            className={`col-span-2 md:col-span-1 py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all ${activeTab === 'produccion' ? 'bg-[#fac124] text-gray-950 shadow-xl shadow-amber-200' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+            title="Recetas & Producción"
+            className={`py-3 sm:py-4 px-1 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base tracking-wide uppercase transition-all flex items-center justify-center ${activeTab === 'produccion' ? 'bg-[#fac124] text-gray-950 shadow-xl shadow-amber-200 ring-2 ring-amber-400 sm:ring-0' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
           >
             <div className="flex items-center justify-center gap-2">
               <ChefHat className="w-5 h-5 shrink-0" /> 
-              <span className="truncate">Recetas & Producción</span>
+              <span className="hidden sm:inline truncate">Producción</span>
             </div>
           </button>
         </div>
@@ -1130,24 +1135,16 @@ export default function Caja() {
                         crossOrigin="anonymous"
                       />
                     </div>
-                    <div className="flex justify-center mt-1">
-                      <img 
-                        src="/slogan.png" 
-                        alt="Tucas Tucas como te gustan" 
-                        className="h-4 w-auto object-contain brightness-125 drop-shadow-sm"
-                        crossOrigin="anonymous"
-                      />
-                    </div>
-                    <div className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1 rounded-full bg-black/40 border border-[#fac124]/50 text-[#fac124] text-[11px] font-black tracking-wider uppercase shadow-inner">
+                    <div className="inline-flex items-center gap-1.5 mt-2 px-3.5 py-1 rounded-full bg-black border border-[#fac124]/60 text-[#fac124] text-[11px] font-black tracking-wider uppercase shadow-md">
                       <span>Santo Domingo • Ecuador</span>
                     </div>
                   </div>
 
-                  {/* Order & Customer Metadata */}
-                  <div className="bg-black/35 backdrop-blur-sm rounded-2xl p-4 border border-[#fac124]/30 space-y-2.5 text-xs text-white">
-                    <div className="flex justify-between items-center pb-2.5 border-b border-[#fac124]/30">
+                  {/* Order & Customer Metadata - Fondo sólido negro de alto contraste */}
+                  <div className="bg-black rounded-2xl p-4 border-2 border-[#fac124]/60 space-y-2.5 text-xs text-white shadow-lg">
+                    <div className="flex justify-between items-center pb-2.5 border-b border-[#fac124]/40">
                       <div>
-                        <span className="text-[10px] font-bold text-amber-200/80 uppercase tracking-wider block">Pedido</span>
+                        <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider block">Pedido</span>
                         <span className="text-xl font-black text-[#fac124] tracking-tight">
                           #{formatOrderNumber(receiptModalOrder.numero_pedido)}
                         </span>
@@ -1161,25 +1158,25 @@ export default function Caja() {
 
                     <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
                       <div>
-                        <span className="text-[10px] font-bold text-amber-200/80 uppercase block">Cliente</span>
+                        <span className="text-[10px] font-bold text-amber-300 uppercase block">Cliente</span>
                         <span className="font-bold text-white truncate block">
                           {receiptModalOrder.nombre_cliente || 'Consumidor Final'}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-amber-200/80 uppercase block">Fecha / Hora</span>
+                        <span className="text-[10px] font-bold text-amber-300 uppercase block">Fecha / Hora</span>
                         <span className="text-amber-100 font-medium block">
                           {formatEcuadorDateTime(receiptModalOrder.created_at || Date.now())}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-amber-200/80 uppercase block">Forma de Pago</span>
+                        <span className="text-[10px] font-bold text-amber-300 uppercase block">Forma de Pago</span>
                         <span className="font-black uppercase text-[#fac124] block">
                           {(selectedMethods[receiptModalOrder.id] || receiptModalOrder.metodo_pago || 'efectivo')}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-amber-200/80 uppercase block">Estado</span>
+                        <span className="text-[10px] font-bold text-amber-300 uppercase block">Estado</span>
                         <span className="inline-flex items-center text-emerald-400 font-black">
                           ✓ Pagado
                         </span>
@@ -1187,14 +1184,14 @@ export default function Caja() {
                     </div>
                   </div>
 
-                  {/* Products Detail */}
-                  <div className="bg-black/25 rounded-2xl p-3.5 border border-[#fac124]/25 space-y-2">
-                    <div className="flex justify-between items-center text-[11px] font-black tracking-wider text-[#fac124] uppercase pb-1.5 border-b border-[#fac124]/30">
+                  {/* Products Detail - Fondo sólido negro */}
+                  <div className="bg-black rounded-2xl p-4 border-2 border-[#fac124]/60 space-y-2 shadow-lg">
+                    <div className="flex justify-between items-center text-[11px] font-black tracking-wider text-[#fac124] uppercase pb-2 border-b border-[#fac124]/40">
                       <span>Cant. & Producto</span>
                       <span>Subtotal</span>
                     </div>
 
-                    <div className="space-y-2 divide-y divide-white/10">
+                    <div className="space-y-2 divide-y divide-white/15">
                       {getSafeProductos(receiptModalOrder).length === 0 ? (
                         <p className="text-xs text-amber-200/80 italic py-2 text-center">
                           Consumo de alimentos y bebidas
@@ -1254,8 +1251,18 @@ export default function Caja() {
                       ¡Gracias por tu compra! Conserva este recibo.
                     </p>
 
-                    {/* Dirección Real de Empatuca */}
-                    <div className="bg-black/35 rounded-xl p-3 border border-[#fac124]/30 text-[11px] text-amber-100/90 space-y-1">
+                    {/* Slogan ubicado justo por debajo de gracias por tu compra */}
+                    <div className="flex justify-center py-1">
+                      <img 
+                        src="/slogan.png" 
+                        alt="Tucas Tucas como te gustan" 
+                        className="h-5 sm:h-6 w-auto object-contain brightness-125 drop-shadow-md"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+
+                    {/* Dirección Real de Empatuca - Fondo sólido negro */}
+                    <div className="bg-black rounded-xl p-3.5 border-2 border-[#fac124]/60 text-[11px] text-amber-100 space-y-1 shadow-lg">
                       <p className="font-bold text-white leading-tight flex items-center justify-center gap-1.5">
                         <span>📍</span>
                         <span>{siteConfig.address}</span>

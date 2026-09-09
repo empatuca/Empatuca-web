@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { UtensilsCrossed, ArrowDown } from "lucide-react";
 
 export function ProcessSection() {
   const steps = [
@@ -72,6 +73,33 @@ export function ProcessSection() {
             </motion.div>
           ))}
         </div>
+
+        {/* Botón de llamado a la acción para hacer el pedido y elegir del menú */}
+        <motion.div 
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="mt-12 md:mt-16 flex flex-col items-center justify-center text-center space-y-3"
+        >
+          <button
+            id="btn-ordenar-desde-proceso"
+            onClick={() => {
+              const menuSection = document.getElementById('menu');
+              if (menuSection) {
+                menuSection.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="group inline-flex items-center justify-center gap-3 bg-[#fac124] hover:bg-[#eab31b] text-[#5a0606] px-8 py-4 sm:px-10 sm:py-5 rounded-2xl font-black text-base sm:text-xl tracking-tight uppercase shadow-2xl shadow-[#fac124]/30 transition-all hover:scale-[1.03] active:scale-[0.97] cursor-pointer border-2 border-[#5a0606]/10"
+          >
+            <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:rotate-12" />
+            <span>¡Haz tu pedido ahora y elige del Menú!</span>
+            <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-y-1" />
+          </button>
+          <p className="text-xs sm:text-sm text-gray-600 font-bold uppercase tracking-wider">
+            Revisa nuestras variedades, combos y bebidas frescas preparadas al instante
+          </p>
+        </motion.div>
       </div>
     </section>
   );

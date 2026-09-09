@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -13,7 +13,8 @@ import {
   Layers, 
   Receipt,
   HelpCircle,
-  Filter
+  Filter,
+  Compass
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -37,6 +38,7 @@ import {
   getEcuadorDateString,
   getEcuadorDayRange 
 } from "../../lib/utils";
+import { obtenerEstadisticasOrigen } from "../../lib/encuestaService";
 
 interface CajaDashboardProps {
   orders: any[];
@@ -59,6 +61,11 @@ const EXPENSE_COLORS: Record<string, string> = {
 export default function CajaDashboard({ orders, allGastos, selectedDate }: CajaDashboardProps) {
   const [timeRange, setTimeRange] = useState<TimeRangeOption>('7d');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
+  const [origenStats, setOrigenStats] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    obtenerEstadisticasOrigen().then(stats => setOrigenStats(stats));
+  }, []);
 
   // Filter orders and expenses based on selected timeRange
   const { filteredOrders, filteredGastos, dateRangeLabel } = useMemo(() => {
@@ -909,6 +916,59 @@ export default function CajaDashboard({ orders, allGastos, selectedDate }: CajaD
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Sección: ¿Cómo nos conocieron los clientes? (Encuesta de Origen) */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mt-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <Compass className="w-5 h-5 text-amber-500" />
+                <h3 className="font-black text-lg text-gray-900 uppercase tracking-tight">
+                  Canales de Llegada de Clientes (Encuesta Web)
+                </h3>
+              </div>
+              <p className="text-xs text-gray-500 font-medium mt-0.5">
+                Respuestas recopiladas sobre cómo los clientes descubrieron Empatuca
+              </p>
+            </div>
+            <span className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200/60 rounded-full text-xs font-black uppercase">
+              Total respuestas: {(Object.values(origenStats) as number[]).reduce((a: number, b: number) => a + Number(b), 0)}
+            </span>
+          </div>
+
+          {Object.keys(origenStats).length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-xs">
+              Aún no hay respuestas registradas. La encuesta activa en el sitio web recopilará las respuestas automáticamente.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {(Object.entries(origenStats) as [string, number][])
+                .sort(([, a], [, b]) => Number(b) - Number(a))
+                .map(([canal, count]) => {
+                  const totalAnswers = (Object.values(origenStats) as number[]).reduce((a: number, b: number) => a + Number(b), 0);
+                  const pct = totalAnswers > 0 ? ((Number(count) / totalAnswers) * 100).toFixed(1) : '0';
+                  return (
+                    <div 
+                      key={canal} 
+                      className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200/70 flex items-center justify-between"
+                    >
+                      <div className="space-y-0.5 pr-2">
+                        <p className="font-bold text-gray-800 text-xs leading-tight">
+                          {canal}
+                        </p>
+                        <p className="text-[11px] text-gray-500 font-semibold">
+                          {pct}% del total
+                        </p>
+                      </div>
+                      <div className="px-3 py-1.5 rounded-xl bg-amber-500 text-gray-950 font-black text-xs shrink-0 shadow-sm">
+                        {count} {count === 1 ? 'voto' : 'votos'}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </div>
       </div>
     </div>
