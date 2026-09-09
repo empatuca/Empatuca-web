@@ -223,6 +223,7 @@ export default function Caja() {
          notifyLocalListeners();
      }
      setCashModalOrder(null);
+     openReceiptModal(order);
   };
 
   const openReceiptModal = (order: any) => {
