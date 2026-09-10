@@ -13,8 +13,20 @@ export default function Inventario() {
   const [closures, setClosures] = useState<any[]>([]);
   const [isSavingClosure, setIsSavingClosure] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [expandedSummaryIds, setExpandedSummaryIds] = useState<Set<string>>(new Set());
 
-  
+  const toggleSummary = (id: string) => {
+    setExpandedSummaryIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
   // Initialize inventory based on menu if empty locally without overwriting DB
   useEffect(() => {
     if (inventory.length === 0 && localInventory.length === 0) {
@@ -429,17 +441,48 @@ export default function Inventario() {
                       
                       {invDetails.length > 0 && (
                         <div>
-                          <h4 className="font-bold text-gray-700 uppercase tracking-widest text-sm mb-3">Resumen de Inventario (Vendidas / Sobraron)</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {invDetails.map((item: any) => (
-                              <div key={item.id} className="flex justify-between items-center bg-white border border-gray-200 p-3 rounded-xl shadow-sm">
-                                <span className="text-gray-700 font-bold truncate pr-2">{item.name}</span>
-                                <span className="font-black text-gray-900 bg-gray-100 px-3 py-1 rounded-lg">
-                                  {item.sold} vendidas / {item.initialStock > 0 ? Math.max(0, item.initialStock - item.sold) : 0} sobraron
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                          <Button 
+                            onClick={() => toggleSummary(closure.id)}
+                            variant="outline" 
+                            className="w-full justify-between items-center text-gray-700 border-gray-200 hover:bg-gray-100 mb-3"
+                          >
+                            <span className="font-bold uppercase tracking-widest text-sm">
+                              Resumen de Inventario
+                            </span>
+                            <span className="text-xs bg-gray-200 px-2 py-1 rounded-md">
+                              {expandedSummaryIds.has(closure.id) ? 'Ocultar' : 'Ver Detalles'}
+                            </span>
+                          </Button>
+                          
+                          {expandedSummaryIds.has(closure.id) && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-in slide-in-from-top-2 fade-in duration-200">
+                              {invDetails.map((item: any) => {
+                                const initial = item.initialStock || 0;
+                                const sold = item.sold || 0;
+                                const waste = item.waste || 0;
+                                const remaining = Math.max(0, initial - sold - waste);
+                                return (
+                                  <div key={item.id} className="flex flex-col gap-1 bg-white border border-gray-200 p-3 rounded-xl shadow-sm">
+                                    <span className="text-gray-900 font-bold truncate">{item.name}</span>
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                      <span className="font-black text-gray-800 bg-gray-100 px-2 py-1 rounded-md">
+                                        Prod: {initial}
+                                      </span>
+                                      <span className="font-black text-[#25D366] bg-[#25D366]/10 px-2 py-1 rounded-md">
+                                        Ven: {sold}
+                                      </span>
+                                      <span className="font-black text-[#fac124] bg-[#fac124]/10 px-2 py-1 rounded-md">
+                                        Sob: {remaining}
+                                      </span>
+                                      <span className="font-black text-red-600 bg-red-50 px-2 py-1 rounded-md">
+                                        Bajas: {waste}
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       )}
                          </>

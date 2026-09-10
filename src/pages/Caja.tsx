@@ -857,35 +857,50 @@ export default function Caja() {
              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Últimos Pedidos Confirmados</h3>
              <Button variant="outline" size="sm" onClick={() => setShowAllOrders(true)} className="text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-gray-800">Ver todos</Button>
            </div>
-           <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                 <thead>
-                    <tr className="border-b border-gray-200 text-gray-500">
-                       <th className="py-3 font-bold">Pedido</th>
-                       <th className="py-3 font-bold">Cliente</th>
-                       <th className="py-3 font-bold">Hora</th>
-                       <th className="py-3 font-bold">Total</th>
-                       <th className="py-3 font-bold">Método</th>
-                       <th className="py-3 font-bold">Estado</th>
-                    </tr>
-                 </thead>
-                 <tbody>
-                    {orders.filter(o => o.estado !== 'archivado' && o.estado !== 'pendiente_caja' && !(o.metodo_pago === 'pendiente')).slice(0, 10).map(order => (
-                       <tr key={order.id} className="border-b border-gray-100">
-                          <td className="py-3 font-black text-black">#{formatOrderNumber(order.numero_pedido)}</td>
-                          <td className="py-3 font-bold text-gray-800">{order.nombre_cliente}</td>
-                          <td className="py-3 text-xs font-bold text-gray-500">{order.created_at ? formatEcuadorTime(order.created_at) : '--:--'}</td>
-                          <td className="py-3 font-black text-[#5a0606]">${order.total}</td>
-                          <td className="py-3 text-gray-500 capitalize">{order.metodo_pago}</td>
-                          <td className="py-3">
-                             <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600 uppercase">
-                                {order.estado}
-                             </span>
-                          </td>
-                       </tr>
-                    ))}
-                 </tbody>
-              </table>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {orders
+                .filter(o => o.estado !== 'archivado' && o.estado !== 'pendiente_caja' && !(o.metodo_pago === 'pendiente'))
+                .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+                .slice(0, 8).map(order => (
+                 <div key={order.id} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col">
+                    <div className="absolute top-0 right-0 bg-gray-100 px-2 py-1 rounded-bl-lg text-[9px] font-black uppercase text-gray-500">
+                       {order.estado}
+                    </div>
+                    <div className="flex justify-between items-start mb-2">
+                       <div>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">Pedido</span>
+                          <span className="text-lg font-black text-black leading-none">#{formatOrderNumber(order.numero_pedido)}</span>
+                       </div>
+                       <div className="text-right mr-14">
+                          <span className="inline-block px-1.5 py-0.5 bg-[#fac124]/20 text-[#5a0606] text-[9px] font-black uppercase rounded mt-3">
+                             {order.tipo}{order.mesa ? ` (Mesa ${order.mesa})` : ''}
+                          </span>
+                       </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                       <div>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase block mb-0.5">Cliente</span>
+                          <span className="font-bold text-gray-800 text-[11px] truncate block">{order.nombre_cliente || 'Consumidor Final'}</span>
+                       </div>
+                       <div>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase block mb-0.5">Hora</span>
+                          <span className="font-bold text-gray-600 text-[11px]">{order.created_at ? formatEcuadorTime(order.created_at) : '--:--'}</span>
+                       </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-100">
+                       <div>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase block mb-0.5">Método</span>
+                          <span className="font-black text-gray-600 uppercase text-[10px]">{order.metodo_pago}</span>
+                       </div>
+                       <div className="text-right">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase block mb-0.5">Total</span>
+                          <span className="font-black text-lg text-[#5a0606] leading-none">${Number(order.total || 0).toFixed(2)}</span>
+                       </div>
+                    </div>
+                 </div>
+              ))}
            </div>
         </div>
           </div>
@@ -1204,34 +1219,51 @@ export default function Caja() {
                 </button>
              </div>
              <div className="p-6 overflow-y-auto">
-               <table className="w-full text-left text-sm">
-                 <thead>
-                    <tr className="border-b border-gray-200 text-gray-500">
-                       <th className="py-3 font-bold">Pedido</th>
-                       <th className="py-3 font-bold">Cliente</th>
-                       <th className="py-3 font-bold">Hora</th>
-                       <th className="py-3 font-bold">Total</th>
-                       <th className="py-3 font-bold">Método</th>
-                       <th className="py-3 font-bold">Estado</th>
-                    </tr>
-                 </thead>
-                 <tbody>
-                    {orders.filter(o => o.estado !== 'archivado' && o.estado !== 'pendiente_caja' && !(o.metodo_pago === 'pendiente')).map(order => (
-                       <tr key={order.id} className="border-b border-gray-100">
-                          <td className="py-3 font-black text-black">#{formatOrderNumber(order.numero_pedido)}</td>
-                          <td className="py-3 font-bold text-gray-800">{order.nombre_cliente}</td>
-                          <td className="py-3 text-xs font-bold text-gray-500">{order.created_at ? formatEcuadorTime(order.created_at) : '--:--'}</td>
-                          <td className="py-3 font-black text-[#5a0606]">${order.total}</td>
-                          <td className="py-3 text-gray-500 capitalize">{order.metodo_pago}</td>
-                          <td className="py-3">
-                             <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-600 uppercase">
-                                {order.estado}
-                             </span>
-                          </td>
-                       </tr>
-                    ))}
-                 </tbody>
-               </table>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {orders
+                    .filter(o => o.estado !== 'archivado' && o.estado !== 'pendiente_caja' && !(o.metodo_pago === 'pendiente'))
+                    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+                    .map(order => (
+                     <div key={order.id} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col">
+                        <div className="absolute top-0 right-0 bg-gray-100 px-2 py-1 rounded-bl-lg text-[9px] font-black uppercase text-gray-500">
+                           {order.estado}
+                        </div>
+                        <div className="flex justify-between items-start mb-2">
+                           <div>
+                              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">Pedido</span>
+                              <span className="text-lg font-black text-black leading-none">#{formatOrderNumber(order.numero_pedido)}</span>
+                           </div>
+                           <div className="text-right mr-14">
+                              <span className="inline-block px-1.5 py-0.5 bg-[#fac124]/20 text-[#5a0606] text-[9px] font-black uppercase rounded mt-3">
+                                 {order.tipo}{order.mesa ? ` (Mesa ${order.mesa})` : ''}
+                              </span>
+                           </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                           <div>
+                              <span className="text-[9px] font-bold text-gray-400 uppercase block mb-0.5">Cliente</span>
+                              <span className="font-bold text-gray-800 text-[11px] truncate block">{order.nombre_cliente || 'Consumidor Final'}</span>
+                           </div>
+                           <div>
+                              <span className="text-[9px] font-bold text-gray-400 uppercase block mb-0.5">Hora</span>
+                              <span className="font-bold text-gray-600 text-[11px]">{order.created_at ? formatEcuadorTime(order.created_at) : '--:--'}</span>
+                           </div>
+                        </div>
+                        
+                        <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-100">
+                           <div>
+                              <span className="text-[9px] font-bold text-gray-400 uppercase block mb-0.5">Método</span>
+                              <span className="font-black text-gray-600 uppercase text-[10px]">{order.metodo_pago}</span>
+                           </div>
+                           <div className="text-right">
+                              <span className="text-[9px] font-bold text-gray-400 uppercase block mb-0.5">Total</span>
+                              <span className="font-black text-lg text-[#5a0606] leading-none">${Number(order.total || 0).toFixed(2)}</span>
+                           </div>
+                        </div>
+                     </div>
+                  ))}
+               </div>
              </div>
           </div>
         </div>
