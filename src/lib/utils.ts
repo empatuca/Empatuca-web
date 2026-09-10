@@ -24,16 +24,12 @@ export function formatOrderNumber(num: number | undefined | null) {
 export function getEcuadorDateString(date: Date | string | number = new Date()): string {
   const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
   if (!d || isNaN(d.getTime())) return '';
-  const parts = new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Guayaquil',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
-  }).formatToParts(d);
-  const day = parts.find(p => p.type === 'day')?.value || '01';
-  const month = parts.find(p => p.type === 'month')?.value || '01';
-  const year = parts.find(p => p.type === 'year')?.value || '1970';
-  return `${year}-${month}-${day}`;
+  }).format(d);
 }
 
 /**
@@ -46,16 +42,12 @@ export function formatEcuadorDate(date: Date | string | number = new Date()): st
   }
   const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
   if (!d || isNaN(d.getTime())) return '';
-  const parts = new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('es-EC', {
     timeZone: 'America/Guayaquil',
-    year: 'numeric',
+    day: '2-digit',
     month: '2-digit',
-    day: '2-digit'
-  }).formatToParts(d);
-  const day = parts.find(p => p.type === 'day')?.value || '01';
-  const month = parts.find(p => p.type === 'month')?.value || '01';
-  const year = parts.find(p => p.type === 'year')?.value || '1970';
-  return `${day}/${month}/${year}`;
+    year: 'numeric'
+  }).format(d);
 }
 
 /**
