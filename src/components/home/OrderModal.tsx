@@ -97,8 +97,8 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
             item.variants.forEach((variant, vIdx) => {
               newItems.push({
                 id: `${item.id}-estandar-${variant.id}`,
-                name: `${item.name.replace(/^[^\w\s]+/, '').trim()} - ${variant.name}`,
-                size: "Estándar",
+                name: item.name,
+                size: variant.name,
                 price: item.prices.estandar || 0,
                 quantity: (isInitial && vIdx === 0) ? 1 : 0,
                 isVariant: true,

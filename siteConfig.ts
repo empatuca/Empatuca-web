@@ -87,7 +87,7 @@ export const siteConfig = {
     {
       id: "bandeja-crudas",
       name: "❄️ Bandeja Crudas (4x)",
-      category: "Para Llevar (Crudas)",
+      category: "Empanadas de Verde",
       description: "Paquete de 4 empanitas crudas listas para freír. Opciones: Queso, Carne, Pollo o Mixtas (combínalas como desees).",
       prices: {
         estandar: 1.75,

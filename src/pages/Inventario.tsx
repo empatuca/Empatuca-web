@@ -32,6 +32,7 @@ export default function Inventario() {
     if (inventory.length === 0 && localInventory.length === 0) {
       const init: InventoryItem[] = [];
       siteConfig.menu.forEach(item => {
+        if (item.id === 'bandeja-crudas') return; // Do not add bandejas to inventory tracking
         if (item.prices.empatuca !== undefined) {
           init.push({ id: `${item.id}-empatuca`, name: `${item.name} (Empatuca)`, initialStock: 0, currentStock: 0 });
         }
@@ -68,7 +69,19 @@ export default function Inventario() {
       const prods = typeof order.productos === 'string' ? JSON.parse(order.productos) : order.productos;
       if (Array.isArray(prods)) {
         prods.forEach((p: any) => {
-          soldMap[p.id] = (soldMap[p.id] || 0) + p.quantity;
+          if (p.id === 'bandeja-crudas-estandar-queso') {
+             soldMap['ev-queso-empanita'] = (soldMap['ev-queso-empanita'] || 0) + (p.quantity * 4);
+          } else if (p.id === 'bandeja-crudas-estandar-carne') {
+             soldMap['ev-carne-empanita'] = (soldMap['ev-carne-empanita'] || 0) + (p.quantity * 4);
+          } else if (p.id === 'bandeja-crudas-estandar-pollo') {
+             soldMap['ev-pollo-empanita'] = (soldMap['ev-pollo-empanita'] || 0) + (p.quantity * 4);
+          } else if (p.id === 'bandeja-crudas-estandar-mixtas') {
+             soldMap['ev-queso-empanita'] = (soldMap['ev-queso-empanita'] || 0) + (p.quantity * 2);
+             soldMap['ev-carne-empanita'] = (soldMap['ev-carne-empanita'] || 0) + (p.quantity * 1);
+             soldMap['ev-pollo-empanita'] = (soldMap['ev-pollo-empanita'] || 0) + (p.quantity * 1);
+          } else {
+             soldMap[p.id] = (soldMap[p.id] || 0) + p.quantity;
+          }
         });
       }
     });
@@ -234,7 +247,19 @@ export default function Inventario() {
       const prods = typeof order.productos === 'string' ? JSON.parse(order.productos) : order.productos;
       if (Array.isArray(prods)) {
         prods.forEach((p: any) => {
-          soldMap[p.id] = (soldMap[p.id] || 0) + p.quantity;
+          if (p.id === 'bandeja-crudas-estandar-queso') {
+             soldMap['ev-queso-empanita'] = (soldMap['ev-queso-empanita'] || 0) + (p.quantity * 4);
+          } else if (p.id === 'bandeja-crudas-estandar-carne') {
+             soldMap['ev-carne-empanita'] = (soldMap['ev-carne-empanita'] || 0) + (p.quantity * 4);
+          } else if (p.id === 'bandeja-crudas-estandar-pollo') {
+             soldMap['ev-pollo-empanita'] = (soldMap['ev-pollo-empanita'] || 0) + (p.quantity * 4);
+          } else if (p.id === 'bandeja-crudas-estandar-mixtas') {
+             soldMap['ev-queso-empanita'] = (soldMap['ev-queso-empanita'] || 0) + (p.quantity * 2);
+             soldMap['ev-carne-empanita'] = (soldMap['ev-carne-empanita'] || 0) + (p.quantity * 1);
+             soldMap['ev-pollo-empanita'] = (soldMap['ev-pollo-empanita'] || 0) + (p.quantity * 1);
+          } else {
+             soldMap[p.id] = (soldMap[p.id] || 0) + p.quantity;
+          }
         });
       }
     });
@@ -401,8 +426,20 @@ export default function Inventario() {
                              const prods = typeof order.productos === 'string' ? JSON.parse(order.productos) : order.productos;
                              if (Array.isArray(prods)) {
                                prods.forEach((p: any) => {
-                                 soldMap[p.id] = (soldMap[p.id] || 0) + p.quantity;
-                               });
+          if (p.id === 'bandeja-crudas-estandar-queso') {
+             soldMap['ev-queso-empanita'] = (soldMap['ev-queso-empanita'] || 0) + (p.quantity * 4);
+          } else if (p.id === 'bandeja-crudas-estandar-carne') {
+             soldMap['ev-carne-empanita'] = (soldMap['ev-carne-empanita'] || 0) + (p.quantity * 4);
+          } else if (p.id === 'bandeja-crudas-estandar-pollo') {
+             soldMap['ev-pollo-empanita'] = (soldMap['ev-pollo-empanita'] || 0) + (p.quantity * 4);
+          } else if (p.id === 'bandeja-crudas-estandar-mixtas') {
+             soldMap['ev-queso-empanita'] = (soldMap['ev-queso-empanita'] || 0) + (p.quantity * 2);
+             soldMap['ev-carne-empanita'] = (soldMap['ev-carne-empanita'] || 0) + (p.quantity * 1);
+             soldMap['ev-pollo-empanita'] = (soldMap['ev-pollo-empanita'] || 0) + (p.quantity * 1);
+          } else {
+             soldMap[p.id] = (soldMap[p.id] || 0) + p.quantity;
+          }
+        });
                              }
                            });
                          }
