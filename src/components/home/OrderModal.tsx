@@ -69,80 +69,51 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         return item.name;
       };
 
-      if (initialProduct.prices.empatuca) {
-        newItems.push({
-          id: `${initialProduct.id}-empatuca`,
-          name: getFormattedName(initialProduct),
-          size: "Empatuca",
-          price: initialProduct.prices.empatuca,
-          quantity: 1
-        });
-      }
-      
-      if (initialProduct.prices.empanita) {
-        newItems.push({
-          id: `${initialProduct.id}-empanita`,
-          name: getFormattedName(initialProduct),
-          size: "Empanita",
-          price: initialProduct.prices.empanita,
-          quantity: 0
-        });
-      }
-
-      if (!initialProduct.prices.empatuca && initialProduct.prices.estandar) {
-        newItems.push({
-          id: `${initialProduct.id}-estandar`,
-          name: getFormattedName(initialProduct),
-          size: "Estándar",
-          price: initialProduct.prices.estandar,
-          quantity: 1
-        });
-      }
-
-      siteConfig.menu.forEach(item => {
-        if (item.id !== initialProduct.id) {
-          if (item.category.includes('Empanadas')) {
-            if (item.prices.empatuca) {
+            siteConfig.menu.forEach(item => {
+        const isInitial = item.id === initialProduct.id;
+        
+        if (item.category.includes('Empanadas')) {
+          if (item.prices.empatuca) {
+            newItems.push({
+              id: `${item.id}-empatuca`,
+              name: getFormattedName(item),
+              size: "Empatuca",
+              price: item.prices.empatuca,
+              quantity: isInitial ? 1 : 0
+            });
+          }
+          if (item.prices.empanita) {
+            newItems.push({
+              id: `${item.id}-empanita`,
+              name: getFormattedName(item),
+              size: "Empanita",
+              price: item.prices.empanita,
+              quantity: 0
+            });
+          }
+        } else {
+          // Beverages and others like Crudas
+          if (item.variants) {
+            item.variants.forEach((variant, vIdx) => {
               newItems.push({
-                id: `${item.id}-empatuca`,
-                name: getFormattedName(item),
-                size: "Empatuca",
-                price: item.prices.empatuca,
-                quantity: 0
-              });
-            }
-            if (item.prices.empanita) {
-              newItems.push({
-                id: `${item.id}-empanita`,
-                name: getFormattedName(item),
-                size: "Empanita",
-                price: item.prices.empanita,
-                quantity: 0
-              });
-            }
-          } else if (item.category === 'Bebidas') {
-            if (item.variants) {
-              item.variants.forEach(variant => {
-                newItems.push({
-                  id: `${item.id}-estandar-${variant.id}`,
-                  name: `${item.name.replace('🥤', '').trim()} - ${variant.name}`,
-                  size: "Estándar",
-                  price: item.prices.estandar || 0,
-                  quantity: 0,
-                  isVariant: true,
-                  baseId: item.id,
-                  variantImage: (variant as any).image
-                });
-              });
-            } else {
-              newItems.push({
-                id: `${item.id}-estandar`,
-                name: item.name,
+                id: `${item.id}-estandar-${variant.id}`,
+                name: `${item.name.replace(/^[^\w\s]+/, '').trim()} - ${variant.name}`,
                 size: "Estándar",
                 price: item.prices.estandar || 0,
-                quantity: 0
+                quantity: (isInitial && vIdx === 0) ? 1 : 0,
+                isVariant: true,
+                baseId: item.id,
+                variantImage: (variant).image
               });
-            }
+            });
+          } else if (item.prices.estandar) {
+            newItems.push({
+              id: `${item.id}-estandar`,
+              name: item.name,
+              size: "Estándar",
+              price: item.prices.estandar || 0,
+              quantity: isInitial ? 1 : 0
+            });
           }
         }
       });

@@ -39,7 +39,13 @@ export default function Inventario() {
           init.push({ id: `${item.id}-empanita`, name: `${item.name} (Empanita)`, initialStock: 0, currentStock: 0 });
         }
         if (item.prices.estandar !== undefined) {
-          init.push({ id: `${item.id}-estandar`, name: item.name, initialStock: 0, currentStock: 0 });
+          if (item.variants) {
+            item.variants.forEach(variant => {
+              init.push({ id: `${item.id}-estandar-${variant.id}`, name: `${item.name.replace(/^[^\w\s]+/, '').trim()} - ${variant.name}`, initialStock: 0, currentStock: 0 });
+            });
+          } else {
+            init.push({ id: `${item.id}-estandar`, name: item.name, initialStock: 0, currentStock: 0 });
+          }
         }
       });
       // ONLY set locally so we don't accidentally overwrite DB on a fetch failure

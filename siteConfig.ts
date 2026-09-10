@@ -84,7 +84,22 @@ export const siteConfig = {
         empatuca: 1.25,
       },
     },
-        {
+    {
+      id: "bandeja-crudas",
+      name: "❄️ Bandeja Crudas (4x)",
+      category: "Para Llevar (Crudas)",
+      description: "Paquete de 4 empanitas crudas listas para freír. Opciones: Queso, Carne, Pollo o Mixtas (combínalas como desees).",
+      prices: {
+        estandar: 1.75,
+      },
+      variants: [
+        { id: 'queso', name: '4x Queso' },
+        { id: 'carne', name: '4x Carne' },
+        { id: 'pollo', name: '4x Pollo' },
+        { id: 'mixtas', name: 'Mixtas (Detallar al pedir)' },
+      ]
+    },
+    {
       id: "beb-cafe",
       name: "☕ Café Tradicional",
       category: "Bebidas",
