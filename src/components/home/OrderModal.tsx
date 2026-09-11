@@ -94,7 +94,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
         } else {
           // Beverages and others like Crudas
           if (item.variants) {
-            item.variants.forEach((variant, vIdx) => {
+            item.variants.forEach((variant: any, vIdx) => {
               newItems.push({
                 id: `${item.id}-estandar-${variant.id}`,
                 name: item.name,
@@ -103,7 +103,7 @@ export function OrderModal({ isOpen, onClose, initialProduct, isAdmin = false }:
                 quantity: (isInitial && vIdx === 0) ? 1 : 0,
                 isVariant: true,
                 baseId: item.id,
-                variantImage: (variant).image
+                variantImage: variant.image
               });
             });
           } else if (item.prices.estandar) {

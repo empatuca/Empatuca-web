@@ -44,6 +44,7 @@ interface CajaDashboardProps {
   orders: any[];
   allGastos: any[];
   selectedDate: string;
+  onSelectDate?: (date: string) => void;
 }
 
 type TimeRangeOption = '7d' | '14d' | '30d' | 'month' | 'today' | 'all';
@@ -58,7 +59,7 @@ const EXPENSE_COLORS: Record<string, string> = {
   'Otros': '#6b7280' // gray-500
 };
 
-export default function CajaDashboard({ orders, allGastos, selectedDate }: CajaDashboardProps) {
+export default function CajaDashboard({ orders, allGastos, selectedDate, onSelectDate }: CajaDashboardProps) {
   const [timeRange, setTimeRange] = useState<TimeRangeOption>('7d');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
   const [origenStats, setOrigenStats] = useState<Record<string, number>>({});
@@ -353,15 +354,32 @@ export default function CajaDashboard({ orders, allGastos, selectedDate }: CajaD
         </div>
 
         {/* Time Horizon Selector */}
-        <div className="flex items-center gap-1.5 bg-gray-100 p-1.5 rounded-2xl overflow-x-auto scrollbar-none shrink-0">
-          <button
-            onClick={() => setTimeRange('today')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-              timeRange === 'today' ? 'bg-[#5a0606] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Hoy
-          </button>
+        <div className="flex flex-wrap items-center gap-1.5 bg-gray-100 p-1.5 rounded-2xl shrink-0">
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl px-2 py-1 shadow-sm">
+            <button
+              onClick={() => {
+                setTimeRange('today');
+                onSelectDate?.(getEcuadorDateString());
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                timeRange === 'today' && selectedDate === getEcuadorDateString() ? 'bg-[#5a0606] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Hoy
+            </button>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={e => {
+                if (e.target.value) {
+                  onSelectDate?.(e.target.value);
+                  setTimeRange('today');
+                }
+              }}
+              className="bg-transparent text-xs font-bold text-gray-800 outline-none cursor-pointer"
+              title="Elegir fecha específica para revisar"
+            />
+          </div>
           <button
             onClick={() => setTimeRange('7d')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${

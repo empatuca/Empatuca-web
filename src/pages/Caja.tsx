@@ -1196,7 +1196,8 @@ export default function Caja() {
           <CajaDashboard 
             orders={allOrdersList.length > 0 ? allOrdersList : orders} 
             allGastos={allGastos} 
-            selectedDate={selectedDate} 
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
           />
         )}
 
