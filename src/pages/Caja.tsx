@@ -531,7 +531,7 @@ export default function Caja() {
           .from('pedidos')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(5000);
+          .limit(10000);
         if (allOData) {
           setAllOrdersList(allOData);
         }
