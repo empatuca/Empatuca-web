@@ -531,7 +531,7 @@ export default function Caja() {
           .from('pedidos')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(500);
+          .limit(5000);
         if (allOData) {
           setAllOrdersList(allOData);
         }
@@ -560,7 +560,10 @@ export default function Caja() {
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'pedidos' },
-          () => fetchOrders()
+          () => {
+            fetchOrders();
+            fetchData();
+          }
         )
         .subscribe();
 
