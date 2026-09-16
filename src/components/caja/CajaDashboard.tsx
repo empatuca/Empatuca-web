@@ -71,35 +71,51 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
   // Filter orders and expenses based on selected timeRange
   const { filteredOrders, filteredGastos, dateRangeLabel } = useMemo(() => {
     const todayStr = getEcuadorDateString();
-    const todayTs = new Date(`${todayStr}T12:00:00-05:00`).getTime();
+    const refDateStr = selectedDate || todayStr;
+    const refTs = new Date(`${refDateStr}T12:00:00-05:00`).getTime();
 
     let startDate: Date | null = null;
-    let endDate = new Date(`${todayStr}T23:59:59.999-05:00`);
+    let endDate = new Date(`${refDateStr}T23:59:59.999-05:00`);
     let label = '';
 
     if (timeRange === 'today') {
-      const { startOfDayUTC, endOfDayUTC } = getEcuadorDayRange(selectedDate || todayStr);
+      const { startOfDayUTC, endOfDayUTC } = getEcuadorDayRange(refDateStr);
       startDate = new Date(startOfDayUTC);
       endDate = new Date(endOfDayUTC);
-      label = `Día ${formatEcuadorDate(selectedDate || todayStr)}`;
+      label = `Día ${formatEcuadorDate(refDateStr)}`;
     } else if (timeRange === '7d') {
-      startDate = new Date(todayTs - 6 * 24 * 60 * 60 * 1000);
-      label = 'Últimos 7 días';
+      const startD = new Date(`${refDateStr}T00:00:00-05:00`);
+      const endD = new Date(startD.getTime() + 6 * 24 * 60 * 60 * 1000);
+      endD.setHours(23, 59, 59, 999);
+      startDate = startD;
+      endDate = endD;
+      label = `7 Días (${formatEcuadorDate(refDateStr)} al ${formatEcuadorDate(endD.toISOString().split('T')[0])})`;
     } else if (timeRange === '14d') {
-      startDate = new Date(todayTs - 13 * 24 * 60 * 60 * 1000);
-      label = 'Últimos 14 días';
+      const startD = new Date(`${refDateStr}T00:00:00-05:00`);
+      const endD = new Date(startD.getTime() + 13 * 24 * 60 * 60 * 1000);
+      endD.setHours(23, 59, 59, 999);
+      startDate = startD;
+      endDate = endD;
+      label = `14 Días (${formatEcuadorDate(refDateStr)} al ${formatEcuadorDate(endD.toISOString().split('T')[0])})`;
     } else if (timeRange === '30d') {
-      startDate = new Date(todayTs - 29 * 24 * 60 * 60 * 1000);
-      label = 'Últimos 30 días';
+      const startD = new Date(`${refDateStr}T00:00:00-05:00`);
+      const endD = new Date(startD.getTime() + 29 * 24 * 60 * 60 * 1000);
+      endD.setHours(23, 59, 59, 999);
+      startDate = startD;
+      endDate = endD;
+      label = `30 Días (${formatEcuadorDate(refDateStr)} al ${formatEcuadorDate(endD.toISOString().split('T')[0])})`;
     } else if (timeRange === 'month') {
-      const d = new Date(`${todayStr}T12:00:00-05:00`);
+      const d = new Date(`${refDateStr}T12:00:00-05:00`);
       const y = d.getFullYear();
       const m = d.getMonth() + 1;
       const mStr = m < 10 ? `0${m}` : `${m}`;
       startDate = new Date(`${y}-${mStr}-01T00:00:00-05:00`);
-      label = 'Mes en curso';
+      const lastDay = new Date(y, m, 0).getDate();
+      endDate = new Date(`${y}-${mStr}-${lastDay}T23:59:59.999-05:00`);
+      label = `Mes ${mStr}/${y}`;
     } else {
       startDate = null; // all
+      endDate = new Date('2099-12-31T23:59:59.999-05:00');
       label = 'Todo el historial';
     }
 
