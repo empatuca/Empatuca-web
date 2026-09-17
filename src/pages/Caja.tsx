@@ -37,13 +37,13 @@ export default function Caja() {
   const [allGastos, setAllGastos] = useState<any[]>([]);
   const [allOrdersList, setAllOrdersList] = useState<any[]>([]);
   const [editingGastoId, setEditingGastoId] = useState<string | null>(null);
-  const [editGastoForm, setEditGastoForm] = useState({ descripcion: '', monto: '', categoria: 'Operativo', socio: 'Socio 1' });
+  const [editGastoForm, setEditGastoForm] = useState({ descripcion: '', monto: '', categoria: 'Operativo', socio: 'Chris' });
   const [isAddingGasto, setIsAddingGasto] = useState(false);
   const [gastoForm, setGastoForm] = useState({
     descripcion: '',
     monto: '',
     categoria: 'Operativo',
-    socio: 'Socio 1',
+    socio: 'Chris',
     fecha: getEcuadorDateString(),
     vincularInsumo: false,
     insumoId: '',
@@ -605,7 +605,7 @@ export default function Caja() {
         descripcion: '', 
         monto: '', 
         categoria: 'Operativo', 
-        socio: 'Socio 1', 
+        socio: 'Chris', 
         fecha: getEcuadorDateString(),
         vincularInsumo: false,
         insumoId: '',
@@ -623,7 +623,7 @@ export default function Caja() {
 
   const handleEditClick = (gasto: any) => {
     setEditingGastoId(gasto.id);
-    let socioVal = 'Socio 1';
+    let socioVal = 'Chris';
     if (gasto.categoria === 'Pago Socios' && gasto.descripcion.startsWith('Retiro: ')) {
       socioVal = gasto.descripcion.replace('Retiro: ', '');
     } else if (gasto.categoria === 'Pago Socios') {
@@ -1080,9 +1080,9 @@ export default function Caja() {
                         <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Seleccionar Socio</label>
                           <select value={gastoForm.socio} onChange={e => setGastoForm({...gastoForm, socio: e.target.value})} className="w-full bg-fuchsia-50 border border-fuchsia-200 text-fuchsia-900 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-fuchsia-500">
-                            <option value="Socio 1">Socio 1</option>
-                            <option value="Socio 2">Socio 2</option>
-                            <option value="Socio 3">Socio 3</option>
+                            <option value="Chris">Chris</option>
+                            <option value="Evelyn">Evelyn</option>
+                            <option value="María">María</option>
                           </select>
                         </div>
                       )}
@@ -1266,12 +1266,8 @@ export default function Caja() {
                                       onChange={e => setEditGastoForm({...editGastoForm, socio: e.target.value})} 
                                       className="w-full bg-fuchsia-50 border border-fuchsia-200 text-fuchsia-900 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-fuchsia-500"
                                     >
-                                      <option value="Socio 1">Socio 1</option>
-                                      <option value="Socio 2">Socio 2</option>
-                                      <option value="Socio 3">Socio 3</option>
-                                      <option value="Socio 4">Socio 4</option>
-                                      <option value="Evelyn">Evelyn</option>
                                       <option value="Chris">Chris</option>
+                                      <option value="Evelyn">Evelyn</option>
                                       <option value="María">María</option>
                                     </select>
                                   </div>
