@@ -60,6 +60,8 @@ const EXPENSE_COLORS: Record<string, string> = {
   'Pago Socios (Evelyn)': '#a855f7', // purple-500
   'Pago Socios (María)': '#8b5cf6', // violet-500
   'Servicios Básicos': '#f59e0b', // amber-500
+  'Consumo Familiar': '#f97316', // orange-500
+  'Inversión / Equipamiento': '#06b6d4', // cyan-500
   'Otros': '#6b7280' // gray-500
 };
 
@@ -240,6 +242,12 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
     let serviciosBasicos = 0;
     let countServicios = 0;
 
+    let consumoFamiliar = 0;
+    let countConsumo = 0;
+
+    let inversion = 0;
+    let countInversion = 0;
+
     let otrosGastos = 0;
     let countOtros = 0;
 
@@ -274,6 +282,12 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
       } else if (cat.toLowerCase().includes('operativo')) {
         gastoOperativo += monto;
         countOperativo++;
+      } else if (cat.toLowerCase().includes('consumo')) {
+        consumoFamiliar += monto;
+        countConsumo++;
+      } else if (cat.toLowerCase().includes('inversi') || cat.toLowerCase().includes('equipamiento')) {
+        inversion += monto;
+        countInversion++;
       } else {
         otrosGastos += monto;
         countOtros++;
@@ -309,6 +323,16 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
         total: Math.round(serviciosBasicos * 100) / 100,
         count: countServicios,
         pct: (serviciosBasicos / totalCalc) * 100
+      },
+      consumo: {
+        total: Math.round(consumoFamiliar * 100) / 100,
+        count: countConsumo,
+        pct: (consumoFamiliar / totalCalc) * 100
+      },
+      inversion: {
+        total: Math.round(inversion * 100) / 100,
+        count: countInversion,
+        pct: (inversion / totalCalc) * 100
       },
       otros: {
         total: Math.round(otrosGastos * 100) / 100,
@@ -407,6 +431,12 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
     }
     if (expenseBreakdown.servicios.total > 0) {
       list.push({ name: 'Servicios Básicos', value: expenseBreakdown.servicios.total, color: EXPENSE_COLORS['Servicios Básicos'] });
+    }
+    if (expenseBreakdown.consumo.total > 0) {
+      list.push({ name: 'Consumo Familiar', value: expenseBreakdown.consumo.total, color: EXPENSE_COLORS['Consumo Familiar'] });
+    }
+    if (expenseBreakdown.inversion.total > 0) {
+      list.push({ name: 'Inversión / Equipamiento', value: expenseBreakdown.inversion.total, color: EXPENSE_COLORS['Inversión / Equipamiento'] });
     }
     if (expenseBreakdown.otros.total > 0) {
       list.push({ name: 'Otros Egresos', value: expenseBreakdown.otros.total, color: EXPENSE_COLORS['Otros'] });
@@ -709,7 +739,7 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
             <PieIcon className="w-5 h-5 text-red-500" /> Destino y Distribución de Egresos
           </h3>
           <p className="text-xs sm:text-sm text-gray-500 font-medium">
-            Desglose exacto de los valores totales destinados a Gasto Operativo, Insumos/Producción y Pago a Socios (Chris, Evelyn, María).
+            Desglose exacto de los valores destinados a Operación, Insumos, Socios, Consumo e Inversiones.
           </p>
         </div>
 
@@ -784,6 +814,54 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
             </div>
             <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400">
               Retiros y anticipos de utilidades distribuidos entre socios.
+            </div>
+          </div>
+
+          {/* 4. CONSUMO FAMILIAR */}
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-orange-100 flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-orange-50 rounded-full pointer-events-none opacity-60" />
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-black uppercase tracking-wider text-orange-700 bg-orange-50 px-3 py-1 rounded-xl">
+                  Consumo Familiar
+                </span>
+                <span className="text-xs font-bold text-gray-400">
+                  {expenseBreakdown.consumo.count} consumos
+                </span>
+              </div>
+              <div className="text-3xl sm:text-4xl font-black text-orange-900">
+                ${expenseBreakdown.consumo.total.toFixed(2)}
+              </div>
+              <p className="text-xs text-gray-500 font-medium mt-1">
+                Representa el <strong className="text-orange-800">{expenseBreakdown.consumo.pct.toFixed(1)}%</strong> del total de egresos.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400">
+              Consumo interno para personal o familiares.
+            </div>
+          </div>
+
+          {/* 5. INVERSIÓN / EQUIPAMIENTO */}
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-cyan-100 flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-cyan-50 rounded-full pointer-events-none opacity-60" />
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-black uppercase tracking-wider text-cyan-700 bg-cyan-50 px-3 py-1 rounded-xl">
+                  Inversión / Equipos
+                </span>
+                <span className="text-xs font-bold text-gray-400">
+                  {expenseBreakdown.inversion.count} inversiones
+                </span>
+              </div>
+              <div className="text-3xl sm:text-4xl font-black text-cyan-900">
+                ${expenseBreakdown.inversion.total.toFixed(2)}
+              </div>
+              <p className="text-xs text-gray-500 font-medium mt-1">
+                Representa el <strong className="text-cyan-800">{expenseBreakdown.inversion.pct.toFixed(1)}%</strong> del total de egresos.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400">
+              Compra de activos o equipos para el local.
             </div>
           </div>
         </div>
@@ -1004,6 +1082,32 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
                   <div className="text-right">
                     <span className="font-black text-gray-900">${expenseBreakdown.servicios.total.toFixed(2)}</span>
                     <span className="text-gray-400 text-[10px] ml-1.5">({expenseBreakdown.servicios.pct.toFixed(1)}%)</span>
+                  </div>
+                </div>
+              )}
+
+              {expenseBreakdown.consumo.total > 0 && (
+                <div className="py-2.5 flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-orange-500 shrink-0" />
+                    <span className="font-bold text-gray-700">Consumo Familiar</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-black text-gray-900">${expenseBreakdown.consumo.total.toFixed(2)}</span>
+                    <span className="text-gray-400 text-[10px] ml-1.5">({expenseBreakdown.consumo.pct.toFixed(1)}%)</span>
+                  </div>
+                </div>
+              )}
+
+              {expenseBreakdown.inversion.total > 0 && (
+                <div className="py-2.5 flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-cyan-500 shrink-0" />
+                    <span className="font-bold text-gray-700">Inversión / Equipos</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-black text-gray-900">${expenseBreakdown.inversion.total.toFixed(2)}</span>
+                    <span className="text-gray-400 text-[10px] ml-1.5">({expenseBreakdown.inversion.pct.toFixed(1)}%)</span>
                   </div>
                 </div>
               )}
