@@ -1,0 +1,13 @@
+--- src/components/caja/CajaDashboard.tsx
++++ src/components/caja/CajaDashboard.tsx
+@@ -16,3 +16,5 @@
+   Filter,
+-  Compass
++  Compass,
++  Trash2,
++  Plus
+ } from "lucide-react";
+@@ -39,2 +41,3 @@
+ } from "../../lib/utils";
++import { supabase } from "../../lib/supabase";
+ import { obtenerEstadisticasOrigen } from "../../lib/encuestaService";

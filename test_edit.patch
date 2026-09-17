@@ -1,0 +1,12 @@
+--- src/pages/Caja.tsx
++++ src/pages/Caja.tsx
+@@ -5,3 +5,3 @@
+ import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
+-import { Trash2, Package } from "lucide-react";
++import { Trash2, Package, Pencil, Check } from "lucide-react";
+ import {
+@@ -37,2 +37,4 @@
+   const [allOrdersList, setAllOrdersList] = useState<any[]>([]);
++  const [editingGasto, setEditingGasto] = useState<string | null>(null);
++  const [editGastoForm, setEditGastoForm] = useState({ descripcion: '', monto: '', categoria: 'Operativo', socio: 'Socio 1' });
+   const [isAddingGasto, setIsAddingGasto] = useState(false);

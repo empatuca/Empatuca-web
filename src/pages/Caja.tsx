@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { requestNotificationPermission, sendNotification } from "../lib/notification";
 import { BellRing } from "lucide-react";
 import { supabase, localOrders, notifyLocalListeners } from "../lib/supabase";
-import { Trash2, Package } from "lucide-react";
+import { Trash2, Package, Pencil, Check } from "lucide-react";
 import { 
   formatOrderNumber, 
   getEcuadorDateString, 
@@ -36,6 +36,8 @@ export default function Caja() {
   const [gastos, setGastos] = useState<any[]>([]);
   const [allGastos, setAllGastos] = useState<any[]>([]);
   const [allOrdersList, setAllOrdersList] = useState<any[]>([]);
+  const [editingGastoId, setEditingGastoId] = useState<string | null>(null);
+  const [editGastoForm, setEditGastoForm] = useState({ descripcion: '', monto: '', categoria: 'Operativo', socio: 'Socio 1' });
   const [isAddingGasto, setIsAddingGasto] = useState(false);
   const [gastoForm, setGastoForm] = useState({
     descripcion: '',
@@ -616,6 +618,69 @@ export default function Caja() {
     setIsUploading(false);
   };
 
+  const handleEditClick = (gasto: any) => {
+    setEditingGastoId(gasto.id);
+    let socioVal = 'Socio 1';
+    if (gasto.categoria === 'Pago Socios' && gasto.descripcion.startsWith('Retiro: ')) {
+      socioVal = gasto.descripcion.replace('Retiro: ', '');
+    } else if (gasto.categoria === 'Pago Socios') {
+       socioVal = gasto.descripcion; // fallback
+    }
+    setEditGastoForm({
+      descripcion: gasto.descripcion,
+      monto: Number(gasto.monto).toString(),
+      categoria: gasto.categoria,
+      socio: socioVal
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingGastoId(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editGastoForm.descripcion.trim() || !editGastoForm.monto || Number(editGastoForm.monto) <= 0) {
+      alert("Por favor ingresa una descripción y un monto válido.");
+      return;
+    }
+    
+    let finalDesc = editGastoForm.descripcion.trim();
+    if (editGastoForm.categoria === 'Pago Socios' && editGastoForm.socio) {
+      finalDesc = `Retiro: ${editGastoForm.socio}`;
+    }
+
+    try {
+      if (supabase) {
+        await supabase
+          .from('gastos_diarios')
+          .update({
+            descripcion: finalDesc,
+            monto: Number(editGastoForm.monto),
+            categoria: editGastoForm.categoria
+          })
+          .eq('id', editingGastoId);
+      }
+      
+      const updateList = (list: any[]) => list.map(g => 
+        g.id === editingGastoId 
+          ? { ...g, descripcion: finalDesc, monto: Number(editGastoForm.monto), categoria: editGastoForm.categoria }
+          : g
+      );
+      
+      setGastos(prev => updateList(prev));
+      setAllGastos(prev => {
+        const updated = updateList(prev);
+        localStorage.setItem('empatuca_all_gastos', JSON.stringify(updated));
+        return updated;
+      });
+      
+      setEditingGastoId(null);
+    } catch (err: any) {
+      console.error(err);
+      alert("Error al actualizar el gasto: " + err.message);
+    }
+  };
+
   const handleDeleteGasto = async (id: string) => {
     if (!confirm('¿Deseas eliminar este registro de egreso?')) return;
     try {
@@ -634,10 +699,12 @@ export default function Caja() {
   };
 
   const getCategoryColor = (cat: string) => {
+    if (!cat) return 'bg-gray-100 text-gray-700 border-gray-300';
     if (cat.includes('Operativo')) return 'bg-slate-100 text-slate-700 border-slate-300';
     if (cat.includes('Servicios Básicos')) return 'bg-amber-100 text-amber-800 border-amber-300';
     if (cat.includes('Producción')) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
     if (cat.includes('Socios')) return 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300';
+    if (cat.includes('Consumo Propio')) return 'bg-indigo-100 text-indigo-800 border-indigo-300';
     return 'bg-gray-100 text-gray-700';
   };
 
@@ -1000,7 +1067,8 @@ export default function Caja() {
                           <option value="Operativo">Gasto Operativo (Normal)</option>
                           <option value="Producción">Producción e Insumos</option>
                           <option value="Servicios Básicos">Servicios Básicos</option>
-                          <option value="Pago Socios">Pago a Socios</option>
+                          <option value="Pago Socios">Pago a Socios (Retiros)</option>
+                          <option value="Consumo Propio">Consumo Propio / Familiar</option>
                         </select>
                       </div>
                       {gastoForm.categoria === 'Pago Socios' && (
@@ -1155,36 +1223,115 @@ export default function Caja() {
                     ) : (
                       <div className="space-y-4">
                         {gastos.map(gasto => (
-                          <div key={gasto.id} className="flex flex-row items-center justify-between p-3 sm:p-4 rounded-2xl border border-gray-100 hover:shadow-md transition-shadow bg-gray-50">
-                            <div className="flex flex-col gap-1.5 sm:gap-2 flex-1 min-w-0 pr-2 sm:pr-4">
-                               <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
-                                 <span className={`px-2 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider border inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px] sm:max-w-none ${getCategoryColor(gasto.categoria)}`}>
-                                   {gasto.categoria}
-                                 </span>
-                                 <span className="text-[9px] sm:text-xs text-gray-400 font-bold whitespace-nowrap shrink-0">
-                                   {gasto.created_at ? formatEcuadorTime(gasto.created_at) : ''}
-                                 </span>
-                               </div>
-                               <p className="font-bold text-gray-800 text-sm sm:text-lg leading-tight break-words">{gasto.descripcion}</p>
-                               {gasto.comprobante_url && (
-                                 <a href={gasto.comprobante_url} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 w-fit">
-                                   <Receipt className="w-3 h-3" /> Ver comprobante
-                                 </a>
-                               )}
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <div className="text-right">
-                                <span className="font-black text-lg sm:text-2xl text-red-600 block">-${Number(gasto.monto).toFixed(2)}</span>
+                          <div key={gasto.id} className="p-3 sm:p-4 rounded-2xl border border-gray-100 hover:shadow-md transition-shadow bg-gray-50">
+                            {editingGastoId === gasto.id ? (
+                              <div className="flex flex-col gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Categoría</label>
+                                    <select 
+                                      value={editGastoForm.categoria} 
+                                      onChange={e => setEditGastoForm({...editGastoForm, categoria: e.target.value})} 
+                                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-red-500"
+                                    >
+                                      <option value="Operativo">Gasto Operativo (Normal)</option>
+                                      <option value="Producción">Producción e Insumos</option>
+                                      <option value="Servicios Básicos">Servicios Básicos</option>
+                                      <option value="Pago Socios">Pago a Socios (Retiros)</option>
+                                      <option value="Consumo Propio">Consumo Propio / Familiar</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Monto ($)</label>
+                                    <input 
+                                      type="number" 
+                                      step="0.01"
+                                      value={editGastoForm.monto} 
+                                      onChange={e => setEditGastoForm({...editGastoForm, monto: e.target.value})} 
+                                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-red-500"
+                                    />
+                                  </div>
+                                </div>
+                                {editGastoForm.categoria === 'Pago Socios' ? (
+                                  <div>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Socio</label>
+                                    <select 
+                                      value={editGastoForm.socio} 
+                                      onChange={e => setEditGastoForm({...editGastoForm, socio: e.target.value})} 
+                                      className="w-full bg-fuchsia-50 border border-fuchsia-200 text-fuchsia-900 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-fuchsia-500"
+                                    >
+                                      <option value="Socio 1">Socio 1</option>
+                                      <option value="Socio 2">Socio 2</option>
+                                      <option value="Socio 3">Socio 3</option>
+                                      <option value="Socio 4">Socio 4</option>
+                                      <option value="Evelyn">Evelyn</option>
+                                      <option value="Chris">Chris</option>
+                                      <option value="María">María</option>
+                                    </select>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Descripción</label>
+                                    <input 
+                                      type="text" 
+                                      value={editGastoForm.descripcion} 
+                                      onChange={e => setEditGastoForm({...editGastoForm, descripcion: e.target.value})} 
+                                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-red-500"
+                                    />
+                                  </div>
+                                )}
+                                <div className="flex justify-end gap-2 mt-2">
+                                  <button onClick={handleCancelEdit} className="px-3 py-1.5 text-xs font-bold text-gray-500 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-1">
+                                    <X className="w-3 h-3" /> Cancelar
+                                  </button>
+                                  <button onClick={handleSaveEdit} className="px-3 py-1.5 text-xs font-bold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors flex items-center gap-1">
+                                    <Check className="w-3 h-3" /> Guardar
+                                  </button>
+                                </div>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteGasto(gasto.id)}
-                                title="Eliminar egreso"
-                                className="p-1.5 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                            ) : (
+                              <div className="flex flex-row items-center justify-between">
+                                <div className="flex flex-col gap-1.5 sm:gap-2 flex-1 min-w-0 pr-2 sm:pr-4">
+                                   <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
+                                     <span className={`px-2 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider border inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px] sm:max-w-none ${getCategoryColor(gasto.categoria)}`}>
+                                       {gasto.categoria}
+                                     </span>
+                                     <span className="text-[9px] sm:text-xs text-gray-400 font-bold whitespace-nowrap shrink-0">
+                                       {gasto.created_at ? formatEcuadorTime(gasto.created_at) : ''}
+                                     </span>
+                                   </div>
+                                   <p className="font-bold text-gray-800 text-sm sm:text-lg leading-tight break-words">{gasto.descripcion}</p>
+                                   {gasto.comprobante_url && (
+                                     <a href={gasto.comprobante_url} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 w-fit">
+                                       <Receipt className="w-3 h-3" /> Ver comprobante
+                                     </a>
+                                   )}
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <div className="text-right">
+                                    <span className="font-black text-lg sm:text-2xl text-red-600 block">-${Number(gasto.monto).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEditClick(gasto)}
+                                      title="Editar egreso"
+                                      className="p-1.5 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    >
+                                      <Pencil className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteGasto(gasto.id)}
+                                      title="Eliminar egreso"
+                                      className="p-1.5 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

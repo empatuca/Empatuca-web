@@ -14,7 +14,10 @@ import {
   Receipt,
   HelpCircle,
   Filter,
-  Compass
+  Compass,
+  Trash2,
+  Plus,
+  MessageSquare
 } from "lucide-react";
 import { 
   ResponsiveContainer, 
@@ -38,6 +41,7 @@ import {
   getEcuadorDateString,
   getEcuadorDayRange 
 } from "../../lib/utils";
+import { supabase } from "../../lib/supabase";
 import { obtenerEstadisticasOrigen } from "../../lib/encuestaService";
 
 interface CajaDashboardProps {
@@ -63,10 +67,64 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
   const [timeRange, setTimeRange] = useState<TimeRangeOption>('7d');
   const [chartType, setChartType] = useState<'area' | 'bar'>('area');
   const [origenStats, setOrigenStats] = useState<Record<string, number>>({});
+  
+  const [observaciones, setObservaciones] = useState<any[]>([]);
+  const [newObservacion, setNewObservacion] = useState('');
+  const [isSavingObs, setIsSavingObs] = useState(false);
 
   useEffect(() => {
     obtenerEstadisticasOrigen().then(stats => setOrigenStats(stats));
   }, []);
+
+  const loadObservaciones = async (dateStr: string) => {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.from('observaciones_diarias')
+        .select('*')
+        .eq('fecha', dateStr)
+        .order('created_at', { ascending: false });
+      if (data) setObservaciones(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    const todayStr = getEcuadorDateString();
+    const refDateStr = selectedDate || todayStr;
+    loadObservaciones(refDateStr);
+  }, [selectedDate]);
+
+  const handleAddObservacion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newObservacion.trim() || !supabase) return;
+    setIsSavingObs(true);
+    const todayStr = getEcuadorDateString();
+    const refDateStr = selectedDate || todayStr;
+    try {
+      const { data, error } = await supabase.from('observaciones_diarias')
+        .insert([{ fecha: refDateStr, nota: newObservacion.trim() }])
+        .select();
+      if (!error && data) {
+        setObservaciones(prev => [data[0], ...prev]);
+        setNewObservacion('');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSavingObs(false);
+    }
+  };
+
+  const handleDeleteObservacion = async (id: string) => {
+    if (!confirm('¿Borrar esta observación?')) return;
+    try {
+      await supabase.from('observaciones_diarias').delete().eq('id', id);
+      setObservaciones(prev => prev.filter(o => o.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // Filter orders and expenses based on selected timeRange
   const { filteredOrders, filteredGastos, dateRangeLabel } = useMemo(() => {
@@ -1005,6 +1063,63 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
           )}
         </div>
       </div>
+
+      {/* Observaciones Section */}
+      <div className="mt-8 bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+            <MessageSquare className="w-5 h-5 text-orange-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-gray-900">Observaciones del Día</h3>
+            <p className="text-xs text-gray-500 font-bold">Anota faltas, novedades o reportes diarios</p>
+          </div>
+        </div>
+        
+        <form onSubmit={handleAddObservacion} className="mb-6 flex gap-3">
+          <input 
+            type="text"
+            value={newObservacion}
+            onChange={e => setNewObservacion(e.target.value)}
+            placeholder="Escribe una observación aquí..."
+            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <button 
+            type="submit"
+            disabled={isSavingObs || !newObservacion.trim()}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-black text-sm px-6 rounded-xl flex items-center gap-2 disabled:opacity-50 transition-colors shadow-sm"
+          >
+            {isSavingObs ? '...' : <><Plus className="w-4 h-4" /> Agregar</>}
+          </button>
+        </form>
+
+        <div className="space-y-3">
+          {observaciones.length === 0 ? (
+             <div className="text-center py-8">
+               <p className="text-gray-400 text-sm font-bold">No hay observaciones registradas en esta fecha.</p>
+             </div>
+          ) : (
+            observaciones.map(obs => (
+              <div key={obs.id} className="p-4 bg-orange-50/50 border border-orange-100 rounded-2xl flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-gray-800 leading-relaxed">{obs.nota}</p>
+                  <span className="text-[10px] font-black text-orange-400 uppercase tracking-wider mt-2 block">
+                    {formatEcuadorTime(obs.created_at)}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => handleDeleteObservacion(obs.id)}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                  title="Eliminar observación"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }
