@@ -67,6 +67,40 @@ export function WaitersPOS({ onCancel, initialOrder }: { onCancel: () => void, i
   const [success, setSuccess] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  const [showMixtasModal, setShowMixtasModal] = useState(false);
+  const [mixtasSelection, setMixtasSelection] = useState({ queso: 0, carne: 0, pollo: 0 });
+  const [mixtasProductInfo, setMixtasProductInfo] = useState<any>(null);
+
+  const addMixtasToCart = () => {
+    const total = mixtasSelection.queso + mixtasSelection.carne + mixtasSelection.pollo;
+    if (total !== 4) {
+      alert("Debes seleccionar exactamente 4 empanadas para la bandeja mixta.");
+      return;
+    }
+    
+    // Create a unique ID for this specific mix combination so they stack if they order the exact same mix
+    const mixHash = `${mixtasSelection.queso}Q-${mixtasSelection.carne}C-${mixtasSelection.pollo}P`;
+    const itemId = `${mixtasProductInfo.id}-estandar-mixtas-${mixHash}`;
+    
+    setItems(prev => {
+      const existing = prev.find(i => i.id === itemId);
+      if (existing) {
+        return prev.map(i => i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i);
+      }
+      return [...prev, {
+        id: itemId,
+        name: mixtasProductInfo.name,
+        size: `Mixta (${mixtasSelection.queso} Queso, ${mixtasSelection.carne} Carne, ${mixtasSelection.pollo} Pollo)`,
+        price: mixtasProductInfo.prices.estandar || 1.75,
+        quantity: 1,
+        mixDetails: { ...mixtasSelection }
+      } as any];
+    });
+    
+    setShowMixtasModal(false);
+    setMixtasSelection({ queso: 0, carne: 0, pollo: 0 });
+  };
+
   const updateQuantity = (id: string, name: string, size: string, price: number, delta: number) => {
     const invItem = inventory.find(i => i.id === id);
     if (invItem && delta > 0 && invItem.initialStock > 0) {
@@ -253,20 +287,55 @@ export function WaitersPOS({ onCancel, initialOrder }: { onCancel: () => void, i
                     </div>
                   )}
                   {product.variants ? (
-                    product.variants.map((variant) => (
-                      <div key={variant.id} className="flex items-center justify-between border-t border-dashed pt-2">
-                        <span className="text-sm font-semibold text-gray-600 truncate mr-2">{variant.name} (${(product.prices.estandar || 0).toFixed(2)})</span>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-gray-100 text-gray-700 border-none" onClick={() => updateQuantity(`${product.id}-estandar-${variant.id}`, `${product.name}`, variant.name, product.prices.estandar || 0, -1)}>
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="font-bold text-lg w-6 text-center text-black">{items.find(i => i.id === `${product.id}-estandar-${variant.id}`)?.quantity || 0}</span>
-                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full bg-[#fac124] text-black border-none" onClick={() => updateQuantity(`${product.id}-estandar-${variant.id}`, `${product.name}`, variant.name, product.prices.estandar || 0, 1)}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                    product.variants.map((variant) => {
+                      const isMixta = variant.id === 'mixtas';
+                      const mixtasCount = isMixta 
+                        ? items.filter(i => i.id.startsWith(`${product.id}-estandar-mixtas`)).reduce((sum, i) => sum + i.quantity, 0)
+                        : (items.find(i => i.id === `${product.id}-estandar-${variant.id}`)?.quantity || 0);
+
+                      return (
+                        <div key={variant.id} className="flex items-center justify-between border-t border-dashed pt-2">
+                          <span className="text-sm font-semibold text-gray-600 truncate mr-2">{variant.name} (${(product.prices.estandar || 0).toFixed(2)})</span>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="h-8 w-8 rounded-full bg-gray-100 text-gray-700 border-none" 
+                              onClick={() => {
+                                if (isMixta) {
+                                  // Just remove the last added mixta item for simplicity when clicking minus
+                                  const mixtaItems = items.filter(i => i.id.startsWith(`${product.id}-estandar-mixtas`));
+                                  if (mixtaItems.length > 0) {
+                                    const last = mixtaItems[mixtaItems.length - 1];
+                                    updateQuantity(last.id, last.name, last.size, last.price, -1);
+                                  }
+                                } else {
+                                  updateQuantity(`${product.id}-estandar-${variant.id}`, `${product.name}`, variant.name, product.prices.estandar || 0, -1);
+                                }
+                              }}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span className="font-bold text-lg w-6 text-center text-black">{mixtasCount}</span>
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="h-8 w-8 rounded-full bg-[#fac124] text-black border-none" 
+                              onClick={() => {
+                                if (isMixta) {
+                                  setMixtasProductInfo(product);
+                                  setShowMixtasModal(true);
+                                } else {
+                                  updateQuantity(`${product.id}-estandar-${variant.id}`, `${product.name}`, variant.name, product.prices.estandar || 0, 1);
+                                }
+                              }}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : product.prices.estandar !== undefined && (
                     <div className="flex items-center justify-between border-t border-dashed pt-2">
                       <span className="text-sm font-semibold text-gray-600">Unidad (${product.prices.estandar.toFixed(2)})</span>
@@ -395,6 +464,60 @@ export function WaitersPOS({ onCancel, initialOrder }: { onCancel: () => void, i
           </Button>
         </div>
       </div>
+
+      {showMixtasModal && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl relative animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95">
+            <button onClick={() => setShowMixtasModal(false)} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-2">
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-black text-gray-900 mb-2">Bandeja Mixta</h3>
+            <p className="text-sm text-gray-500 font-semibold mb-6">Selecciona exactamente 4 empanadas para armar tu bandeja cruda mixta.</p>
+
+            <div className="space-y-4 mb-8">
+              {['queso', 'carne', 'pollo'].map(flavor => (
+                <div key={flavor} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl border border-gray-100">
+                  <span className="font-bold text-gray-800 capitalize">{flavor}</span>
+                  <div className="flex items-center gap-4">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setMixtasSelection(prev => ({ ...prev, [flavor]: Math.max(0, prev[flavor as keyof typeof prev] - 1) }))}
+                      className="h-10 w-10 rounded-full border-none bg-white shadow-sm text-gray-700"
+                    >
+                      <Minus className="h-5 w-5" />
+                    </Button>
+                    <span className="font-black text-xl w-6 text-center">{mixtasSelection[flavor as keyof typeof mixtasSelection]}</span>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setMixtasSelection(prev => ({ ...prev, [flavor]: prev[flavor as keyof typeof prev] + 1 }))}
+                      className="h-10 w-10 rounded-full border-none bg-[#fac124] shadow-sm text-black"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-2xl mb-6">
+              <span className="font-bold text-yellow-800">Total seleccionadas:</span>
+              <span className={`font-black text-2xl ${mixtasSelection.queso + mixtasSelection.carne + mixtasSelection.pollo === 4 ? 'text-green-600' : 'text-red-500'}`}>
+                {mixtasSelection.queso + mixtasSelection.carne + mixtasSelection.pollo} / 4
+              </span>
+            </div>
+
+            <Button 
+              className="w-full h-14 bg-black text-white rounded-xl font-bold text-lg"
+              disabled={mixtasSelection.queso + mixtasSelection.carne + mixtasSelection.pollo !== 4}
+              onClick={addMixtasToCart}
+            >
+              Agregar Bandeja
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

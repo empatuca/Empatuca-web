@@ -233,7 +233,7 @@ export default function Caja() {
             id: 'gasto-demo-3',
             descripcion: 'Retiro utilidades semana',
             monto: 60.00,
-            categoria: 'Pago Socios (Socio 1)',
+            categoria: 'Pago Socios (Chris)',
             created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
           },
           {
@@ -623,16 +623,22 @@ export default function Caja() {
 
   const handleEditClick = (gasto: any) => {
     setEditingGastoId(gasto.id);
+    
+    let baseCategory = gasto.categoria;
     let socioVal = 'Chris';
-    if (gasto.categoria === 'Pago Socios' && gasto.descripcion.startsWith('Retiro: ')) {
-      socioVal = gasto.descripcion.replace('Retiro: ', '');
-    } else if (gasto.categoria === 'Pago Socios') {
-       socioVal = gasto.descripcion; // fallback
+    
+    if (baseCategory.startsWith('Pago Socios')) {
+      baseCategory = 'Pago Socios';
+      const match = gasto.categoria.match(/\((.*?)\)/);
+      if (match) {
+        socioVal = match[1];
+      }
     }
+    
     setEditGastoForm({
       descripcion: gasto.descripcion,
       monto: Number(gasto.monto).toString(),
-      categoria: gasto.categoria,
+      categoria: baseCategory,
       socio: socioVal
     });
   };
@@ -647,10 +653,8 @@ export default function Caja() {
       return;
     }
     
-    let finalDesc = editGastoForm.descripcion.trim();
-    if (editGastoForm.categoria === 'Pago Socios' && editGastoForm.socio) {
-      finalDesc = `Retiro: ${editGastoForm.socio}`;
-    }
+    const finalDesc = editGastoForm.descripcion.trim();
+    const finalCategory = editGastoForm.categoria === 'Pago Socios' ? `Pago Socios (${editGastoForm.socio})` : editGastoForm.categoria;
 
     try {
       if (supabase) {
@@ -659,14 +663,14 @@ export default function Caja() {
           .update({
             descripcion: finalDesc,
             monto: Number(editGastoForm.monto),
-            categoria: editGastoForm.categoria
+            categoria: finalCategory
           })
           .eq('id', editingGastoId);
       }
       
       const updateList = (list: any[]) => list.map(g => 
         g.id === editingGastoId 
-          ? { ...g, descripcion: finalDesc, monto: Number(editGastoForm.monto), categoria: editGastoForm.categoria }
+          ? { ...g, descripcion: finalDesc, monto: Number(editGastoForm.monto), categoria: finalCategory }
           : g
       );
       
@@ -1258,8 +1262,17 @@ export default function Caja() {
                                     />
                                   </div>
                                 </div>
-                                {editGastoForm.categoria === 'Pago Socios' ? (
-                                  <div>
+                                <div>
+                                  <label className="text-[10px] font-bold text-gray-500 uppercase">Descripción</label>
+                                  <input 
+                                    type="text" 
+                                    value={editGastoForm.descripcion} 
+                                    onChange={e => setEditGastoForm({...editGastoForm, descripcion: e.target.value})} 
+                                    className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-red-500"
+                                  />
+                                </div>
+                                {editGastoForm.categoria === 'Pago Socios' && (
+                                  <div className="mt-2">
                                     <label className="text-[10px] font-bold text-gray-500 uppercase">Socio</label>
                                     <select 
                                       value={editGastoForm.socio} 
@@ -1270,16 +1283,6 @@ export default function Caja() {
                                       <option value="Evelyn">Evelyn</option>
                                       <option value="María">María</option>
                                     </select>
-                                  </div>
-                                ) : (
-                                  <div>
-                                    <label className="text-[10px] font-bold text-gray-500 uppercase">Descripción</label>
-                                    <input 
-                                      type="text" 
-                                      value={editGastoForm.descripcion} 
-                                      onChange={e => setEditGastoForm({...editGastoForm, descripcion: e.target.value})} 
-                                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-red-500"
-                                    />
                                   </div>
                                 )}
                                 <div className="flex justify-end gap-2 mt-2">

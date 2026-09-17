@@ -56,9 +56,9 @@ type TimeRangeOption = '7d' | '14d' | '30d' | 'month' | 'today' | 'all';
 const EXPENSE_COLORS: Record<string, string> = {
   'Operativo': '#3b82f6', // blue-500
   'Insumos / Producción': '#10b981', // emerald-500
-  'Pago Socios (Socio 1)': '#ec4899', // pink-500
-  'Pago Socios (Socio 2)': '#a855f7', // purple-500
-  'Pago Socios (Socio 3)': '#8b5cf6', // violet-500
+  'Pago Socios (Chris)': '#ec4899', // pink-500
+  'Pago Socios (Evelyn)': '#a855f7', // purple-500
+  'Pago Socios (María)': '#8b5cf6', // violet-500
   'Servicios Básicos': '#f59e0b', // amber-500
   'Otros': '#6b7280' // gray-500
 };
@@ -217,7 +217,7 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
   // Breakdown of Gastos strictly as requested:
   // - Gasto Operativo
   // - Insumo / Producción
-  // - Pago a Socios (Total and individually Socio 1, Socio 2, Socio 3)
+  // - Pago a Socios (Total and individually Chris, Evelyn, María)
   const expenseBreakdown = useMemo(() => {
     let gastoOperativo = 0;
     let countOperativo = 0;
@@ -225,14 +225,14 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
     let gastoProduccion = 0;
     let countProduccion = 0;
 
-    let socio1 = 0;
-    let countSocio1 = 0;
+    let chris = 0;
+    let countChris = 0;
 
-    let socio2 = 0;
-    let countSocio2 = 0;
+    let evelyn = 0;
+    let countEvelyn = 0;
 
-    let socio3 = 0;
-    let countSocio3 = 0;
+    let maria = 0;
+    let countMaria = 0;
 
     let otrosSocios = 0;
     let countOtrosSocios = 0;
@@ -247,15 +247,15 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
       const monto = Number(g.monto || 0);
       const cat = (g.categoria || '').trim();
 
-      if (cat.includes('Socio 1')) {
-        socio1 += monto;
-        countSocio1++;
-      } else if (cat.includes('Socio 2')) {
-        socio2 += monto;
-        countSocio2++;
-      } else if (cat.includes('Socio 3')) {
-        socio3 += monto;
-        countSocio3++;
+      if (cat.includes('Chris') || cat.includes('Socio 1')) {
+        chris += monto;
+        countChris++;
+      } else if (cat.includes('Evelyn') || cat.includes('Socio 2')) {
+        evelyn += monto;
+        countEvelyn++;
+      } else if (cat.includes('María') || cat.includes('Socio 3')) {
+        maria += monto;
+        countMaria++;
       } else if (cat.toLowerCase().includes('socio')) {
         otrosSocios += monto;
         countOtrosSocios++;
@@ -274,7 +274,7 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
       }
     });
 
-    const totalSocios = Math.round((socio1 + socio2 + socio3 + otrosSocios) * 100) / 100;
+    const totalSocios = Math.round((chris + evelyn + maria + otrosSocios) * 100) / 100;
     const totalCalc = Math.max(0.001, totalGastosMonto);
 
     return {
@@ -290,13 +290,13 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
       },
       totalSocios: {
         total: totalSocios,
-        count: countSocio1 + countSocio2 + countSocio3 + countOtrosSocios,
+        count: countChris + countEvelyn + countMaria + countOtrosSocios,
         pct: (totalSocios / totalCalc) * 100
       },
       socios: {
-        socio1: { total: Math.round(socio1 * 100) / 100, count: countSocio1, pctOfTotal: (socio1 / totalCalc) * 100, pctOfSocios: totalSocios > 0 ? (socio1 / totalSocios) * 100 : 0 },
-        socio2: { total: Math.round(socio2 * 100) / 100, count: countSocio2, pctOfTotal: (socio2 / totalCalc) * 100, pctOfSocios: totalSocios > 0 ? (socio2 / totalSocios) * 100 : 0 },
-        socio3: { total: Math.round(socio3 * 100) / 100, count: countSocio3, pctOfTotal: (socio3 / totalCalc) * 100, pctOfSocios: totalSocios > 0 ? (socio3 / totalSocios) * 100 : 0 },
+        chris: { total: Math.round(chris * 100) / 100, count: countChris, pctOfTotal: (chris / totalCalc) * 100, pctOfSocios: totalSocios > 0 ? (chris / totalSocios) * 100 : 0 },
+        evelyn: { total: Math.round(evelyn * 100) / 100, count: countEvelyn, pctOfTotal: (evelyn / totalCalc) * 100, pctOfSocios: totalSocios > 0 ? (evelyn / totalSocios) * 100 : 0 },
+        maria: { total: Math.round(maria * 100) / 100, count: countMaria, pctOfTotal: (maria / totalCalc) * 100, pctOfSocios: totalSocios > 0 ? (maria / totalSocios) * 100 : 0 },
         otros: { total: Math.round(otrosSocios * 100) / 100, count: countOtrosSocios }
       },
       servicios: {
@@ -390,14 +390,14 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
     if (expenseBreakdown.produccion.total > 0) {
       list.push({ name: 'Insumos / Producción', value: expenseBreakdown.produccion.total, color: EXPENSE_COLORS['Insumos / Producción'] });
     }
-    if (expenseBreakdown.socios.socio1.total > 0) {
-      list.push({ name: 'Pago Socio 1', value: expenseBreakdown.socios.socio1.total, color: EXPENSE_COLORS['Pago Socios (Socio 1)'] });
+    if (expenseBreakdown.socios.chris.total > 0) {
+      list.push({ name: 'Pago Chris', value: expenseBreakdown.socios.chris.total, color: EXPENSE_COLORS['Pago Socios (Chris)'] });
     }
-    if (expenseBreakdown.socios.socio2.total > 0) {
-      list.push({ name: 'Pago Socio 2', value: expenseBreakdown.socios.socio2.total, color: EXPENSE_COLORS['Pago Socios (Socio 2)'] });
+    if (expenseBreakdown.socios.evelyn.total > 0) {
+      list.push({ name: 'Pago Evelyn', value: expenseBreakdown.socios.evelyn.total, color: EXPENSE_COLORS['Pago Socios (Evelyn)'] });
     }
-    if (expenseBreakdown.socios.socio3.total > 0) {
-      list.push({ name: 'Pago Socio 3', value: expenseBreakdown.socios.socio3.total, color: EXPENSE_COLORS['Pago Socios (Socio 3)'] });
+    if (expenseBreakdown.socios.maria.total > 0) {
+      list.push({ name: 'Pago María', value: expenseBreakdown.socios.maria.total, color: EXPENSE_COLORS['Pago Socios (María)'] });
     }
     if (expenseBreakdown.servicios.total > 0) {
       list.push({ name: 'Servicios Básicos', value: expenseBreakdown.servicios.total, color: EXPENSE_COLORS['Servicios Básicos'] });
@@ -703,7 +703,7 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
             <PieIcon className="w-5 h-5 text-red-500" /> Destino y Distribución de Egresos
           </h3>
           <p className="text-xs sm:text-sm text-gray-500 font-medium">
-            Desglose exacto de los valores totales destinados a Gasto Operativo, Insumos/Producción y Pago a Socios (Socio 1, Socio 2, Socio 3).
+            Desglose exacto de los valores totales destinados a Gasto Operativo, Insumos/Producción y Pago a Socios (Chris, Evelyn, María).
           </p>
         </div>
 
@@ -782,7 +782,7 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
           </div>
         </div>
 
-        {/* DESGLOSE ESPECÍFICO DE SOCIOS: SOCIO 1, SOCIO 2, SOCIO 3 */}
+        {/* DESGLOSE ESPECÍFICO DE SOCIOS: CHRIS, EVELYN, MARÍA */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
             <div>
@@ -790,7 +790,7 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
                 <Users className="w-5 h-5 text-fuchsia-600" /> Desglose Detallado por Socio
               </h4>
               <p className="text-xs text-gray-500 font-medium mt-0.5">
-                Valores individuales acumulados entregados a Socio 1, Socio 2 y Socio 3.
+                Valores individuales acumulados entregados a Chris, Evelyn y María.
               </p>
             </div>
             <span className="text-xs font-black bg-fuchsia-50 text-fuchsia-800 px-3 py-1.5 rounded-xl border border-fuchsia-200">
@@ -799,83 +799,83 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Socio 1 */}
+            {/* Chris */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-50/70 to-pink-50/20 border border-pink-100">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-xs font-black uppercase text-pink-700 bg-pink-100 px-2.5 py-1 rounded-lg">
-                  Socio 1
+                  Chris
                 </span>
                 <span className="text-[11px] font-bold text-gray-400">
-                  {expenseBreakdown.socios.socio1.count} entregas
+                  {expenseBreakdown.socios.chris.count} entregas
                 </span>
               </div>
               <div className="text-2xl sm:text-3xl font-black text-pink-900 mt-2">
-                ${expenseBreakdown.socios.socio1.total.toFixed(2)}
+                ${expenseBreakdown.socios.chris.total.toFixed(2)}
               </div>
               <div className="mt-3 flex items-center justify-between text-xs font-bold text-gray-600">
                 <span>Participación:</span>
                 <span className="text-pink-700 font-black">
-                  {expenseBreakdown.socios.socio1.pctOfSocios.toFixed(1)}% del total socios
+                  {expenseBreakdown.socios.chris.pctOfSocios.toFixed(1)}% del total socios
                 </span>
               </div>
               <div className="w-full bg-pink-200/50 h-2 rounded-full mt-2 overflow-hidden">
                 <div 
                   className="bg-pink-600 h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.min(100, expenseBreakdown.socios.socio1.pctOfSocios)}%` }} 
+                  style={{ width: `${Math.min(100, expenseBreakdown.socios.chris.pctOfSocios)}%` }} 
                 />
               </div>
             </div>
 
-            {/* Socio 2 */}
+            {/* Evelyn */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-50/70 to-purple-50/20 border border-purple-100">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-xs font-black uppercase text-purple-700 bg-purple-100 px-2.5 py-1 rounded-lg">
-                  Socio 2
+                  Evelyn
                 </span>
                 <span className="text-[11px] font-bold text-gray-400">
-                  {expenseBreakdown.socios.socio2.count} entregas
+                  {expenseBreakdown.socios.evelyn.count} entregas
                 </span>
               </div>
               <div className="text-2xl sm:text-3xl font-black text-purple-900 mt-2">
-                ${expenseBreakdown.socios.socio2.total.toFixed(2)}
+                ${expenseBreakdown.socios.evelyn.total.toFixed(2)}
               </div>
               <div className="mt-3 flex items-center justify-between text-xs font-bold text-gray-600">
                 <span>Participación:</span>
                 <span className="text-purple-700 font-black">
-                  {expenseBreakdown.socios.socio2.pctOfSocios.toFixed(1)}% del total socios
+                  {expenseBreakdown.socios.evelyn.pctOfSocios.toFixed(1)}% del total socios
                 </span>
               </div>
               <div className="w-full bg-purple-200/50 h-2 rounded-full mt-2 overflow-hidden">
                 <div 
                   className="bg-purple-600 h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.min(100, expenseBreakdown.socios.socio2.pctOfSocios)}%` }} 
+                  style={{ width: `${Math.min(100, expenseBreakdown.socios.evelyn.pctOfSocios)}%` }} 
                 />
               </div>
             </div>
 
-            {/* Socio 3 */}
+            {/* María */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-violet-50/70 to-violet-50/20 border border-violet-100">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-xs font-black uppercase text-violet-700 bg-violet-100 px-2.5 py-1 rounded-lg">
-                  Socio 3
+                  María
                 </span>
                 <span className="text-[11px] font-bold text-gray-400">
-                  {expenseBreakdown.socios.socio3.count} entregas
+                  {expenseBreakdown.socios.maria.count} entregas
                 </span>
               </div>
               <div className="text-2xl sm:text-3xl font-black text-violet-900 mt-2">
-                ${expenseBreakdown.socios.socio3.total.toFixed(2)}
+                ${expenseBreakdown.socios.maria.total.toFixed(2)}
               </div>
               <div className="mt-3 flex items-center justify-between text-xs font-bold text-gray-600">
                 <span>Participación:</span>
                 <span className="text-violet-700 font-black">
-                  {expenseBreakdown.socios.socio3.pctOfSocios.toFixed(1)}% del total socios
+                  {expenseBreakdown.socios.maria.pctOfSocios.toFixed(1)}% del total socios
                 </span>
               </div>
               <div className="w-full bg-violet-200/50 h-2 rounded-full mt-2 overflow-hidden">
                 <div 
                   className="bg-violet-600 h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.min(100, expenseBreakdown.socios.socio3.pctOfSocios)}%` }} 
+                  style={{ width: `${Math.min(100, expenseBreakdown.socios.maria.pctOfSocios)}%` }} 
                 />
               </div>
             </div>
@@ -959,33 +959,33 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
               <div className="py-2.5 flex justify-between items-center text-xs">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-pink-500 shrink-0" />
-                  <span className="font-bold text-gray-700">Pago Socio 1</span>
+                  <span className="font-bold text-gray-700">Pago Chris</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-black text-gray-900">${expenseBreakdown.socios.socio1.total.toFixed(2)}</span>
-                  <span className="text-gray-400 text-[10px] ml-1.5">({expenseBreakdown.socios.socio1.pctOfTotal.toFixed(1)}%)</span>
+                  <span className="font-black text-gray-900">${expenseBreakdown.socios.chris.total.toFixed(2)}</span>
+                  <span className="text-gray-400 text-[10px] ml-1.5">({expenseBreakdown.socios.chris.pctOfTotal.toFixed(1)}%)</span>
                 </div>
               </div>
 
               <div className="py-2.5 flex justify-between items-center text-xs">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-purple-500 shrink-0" />
-                  <span className="font-bold text-gray-700">Pago Socio 2</span>
+                  <span className="font-bold text-gray-700">Pago Evelyn</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-black text-gray-900">${expenseBreakdown.socios.socio2.total.toFixed(2)}</span>
-                  <span className="text-gray-400 text-[10px] ml-1.5">({expenseBreakdown.socios.socio2.pctOfTotal.toFixed(1)}%)</span>
+                  <span className="font-black text-gray-900">${expenseBreakdown.socios.evelyn.total.toFixed(2)}</span>
+                  <span className="text-gray-400 text-[10px] ml-1.5">({expenseBreakdown.socios.evelyn.pctOfTotal.toFixed(1)}%)</span>
                 </div>
               </div>
 
               <div className="py-2.5 flex justify-between items-center text-xs">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-violet-500 shrink-0" />
-                  <span className="font-bold text-gray-700">Pago Socio 3</span>
+                  <span className="font-bold text-gray-700">Pago María</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-black text-gray-900">${expenseBreakdown.socios.socio3.total.toFixed(2)}</span>
-                  <span className="text-gray-400 text-[10px] ml-1.5">({expenseBreakdown.socios.socio3.pctOfTotal.toFixed(1)}%)</span>
+                  <span className="font-black text-gray-900">${expenseBreakdown.socios.maria.total.toFixed(2)}</span>
+                  <span className="text-gray-400 text-[10px] ml-1.5">({expenseBreakdown.socios.maria.pctOfTotal.toFixed(1)}%)</span>
                 </div>
               </div>
 
