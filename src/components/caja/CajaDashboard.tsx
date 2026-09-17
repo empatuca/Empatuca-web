@@ -246,17 +246,23 @@ export default function CajaDashboard({ orders, allGastos, selectedDate, onSelec
     filteredGastos.forEach(g => {
       const monto = Number(g.monto || 0);
       const cat = (g.categoria || '').trim();
+      const desc = (g.descripcion || '').trim();
 
-      if (cat.includes('Chris') || cat.includes('Socio 1')) {
+      const isSocioCat = cat.toLowerCase().includes('socio');
+      const isChris = cat.includes('Chris') || cat.includes('Socio 1') || (isSocioCat && (desc.includes('Chris') || desc.includes('Socio 1')));
+      const isEvelyn = cat.includes('Evelyn') || cat.includes('Socio 2') || (isSocioCat && (desc.includes('Evelyn') || desc.includes('Socio 2')));
+      const isMaria = cat.includes('María') || cat.includes('Maria') || cat.includes('Socio 3') || (isSocioCat && (desc.includes('María') || desc.includes('Maria') || desc.includes('Socio 3')));
+
+      if (isChris) {
         chris += monto;
         countChris++;
-      } else if (cat.includes('Evelyn') || cat.includes('Socio 2')) {
+      } else if (isEvelyn) {
         evelyn += monto;
         countEvelyn++;
-      } else if (cat.includes('María') || cat.includes('Socio 3')) {
+      } else if (isMaria) {
         maria += monto;
         countMaria++;
-      } else if (cat.toLowerCase().includes('socio')) {
+      } else if (isSocioCat) {
         otrosSocios += monto;
         countOtrosSocios++;
       } else if (cat.toLowerCase().includes('producc') || cat.toLowerCase().includes('insumo')) {
