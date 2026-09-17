@@ -705,6 +705,7 @@ export default function Caja() {
     if (cat.includes('Producción')) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
     if (cat.includes('Socios')) return 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300';
     if (cat.includes('Consumo Propio')) return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+    if (cat.includes('Inversión') || cat.includes('Equipamiento')) return 'bg-cyan-100 text-cyan-800 border-cyan-300';
     return 'bg-gray-100 text-gray-700';
   };
 
@@ -1069,6 +1070,7 @@ export default function Caja() {
                           <option value="Servicios Básicos">Servicios Básicos</option>
                           <option value="Pago Socios">Pago a Socios (Retiros)</option>
                           <option value="Consumo Propio">Consumo Propio / Familiar</option>
+                          <option value="Inversión / Equipamiento">Inversión / Equipamiento (Activos)</option>
                         </select>
                       </div>
                       {gastoForm.categoria === 'Pago Socios' && (
@@ -1239,6 +1241,7 @@ export default function Caja() {
                                       <option value="Servicios Básicos">Servicios Básicos</option>
                                       <option value="Pago Socios">Pago a Socios (Retiros)</option>
                                       <option value="Consumo Propio">Consumo Propio / Familiar</option>
+                                      <option value="Inversión / Equipamiento">Inversión / Equipamiento (Activos)</option>
                                     </select>
                                   </div>
                                   <div>
