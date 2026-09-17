@@ -156,7 +156,9 @@ export default function Caja() {
           .gte('created_at', startOfDayUTC)
           .lte('created_at', endOfDayUTC)
           .not('estado', 'in', '("cancelado","rechazado")'); // Include archivado as valid income
+        
         const sumIngresos = (ingresosData || []).reduce((sum, o) => sum + Math.round(Number(o.total || 0) * 100), 0) / 100;
+        
         setIngresosDelDia(sumIngresos);
 
         // 2.b Fetch All Orders for Dashboard
@@ -269,6 +271,7 @@ export default function Caja() {
           return t >= startTs && t <= endTs && o.estado !== 'cancelado' && o.estado !== 'rechazado';
         });
         const sum = dayLocalOrders.reduce((s, o) => s + Math.round(Number(o.total || 0) * 100), 0) / 100;
+        
         setIngresosDelDia(sum);
 
         const dayGastos = currentLocalGastos.filter(g => {
