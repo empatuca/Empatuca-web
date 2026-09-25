@@ -109,6 +109,15 @@ export const siteConfig = {
       },
     },
     {
+      id: "beb-chocolate-manaba",
+      name: "🍫 Chocolate Manaba",
+      category: "Bebidas",
+      description: "Delicioso chocolate caliente tradicional de Manabí, preparado con cacao fino artesanal.",
+      prices: {
+        estandar: 0.75,
+      },
+    },
+    {
       id: "beb-mora",
       name: "🥤 Jugo de Mora",
       category: "Bebidas",

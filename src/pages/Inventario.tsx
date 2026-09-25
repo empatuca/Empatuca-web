@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { siteConfig } from "../../siteConfig";
-import { localInventory, updateLocalInventory, InventoryItem, inventoryListeners } from "../lib/supabase";
+import { localInventory, updateLocalInventory, InventoryItem, inventoryListeners, getDefaultMenuInventory } from "../lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Package, DollarSign, ArrowLeft } from "lucide-react";
@@ -27,31 +27,21 @@ export default function Inventario() {
     });
   };
 
-  // Initialize inventory based on menu if empty locally without overwriting DB
+  // Initialize inventory based on menu if empty or merge missing menu items
   useEffect(() => {
+    const defaults = getDefaultMenuInventory();
     if (inventory.length === 0 && localInventory.length === 0) {
-      const init: InventoryItem[] = [];
-      siteConfig.menu.forEach(item => {
-        if (item.id === 'bandeja-crudas') return; // Do not add bandejas to inventory tracking
-        if (item.prices.empatuca !== undefined) {
-          init.push({ id: `${item.id}-empatuca`, name: `${item.name} (Empatuca)`, initialStock: 0, currentStock: 0 });
-        }
-        if (item.prices.empanita !== undefined) {
-          init.push({ id: `${item.id}-empanita`, name: `${item.name} (Empanita)`, initialStock: 0, currentStock: 0 });
-        }
-        if (item.prices.estandar !== undefined) {
-          if (item.variants) {
-            item.variants.forEach(variant => {
-              init.push({ id: `${item.id}-estandar-${variant.id}`, name: `${item.name.replace(/^[^\w\s]+/, '').trim()} - ${variant.name}`, initialStock: 0, currentStock: 0 });
-            });
-          } else {
-            init.push({ id: `${item.id}-estandar`, name: item.name, initialStock: 0, currentStock: 0 });
-          }
-        }
-      });
-      // ONLY set locally so we don't accidentally overwrite DB on a fetch failure
-      setInventory(init);
-      localInventory.splice(0, localInventory.length, ...init);
+      setInventory(defaults);
+      localInventory.splice(0, localInventory.length, ...defaults);
+    } else {
+      const active = inventory.length > 0 ? inventory : localInventory;
+      const existingIds = new Set(active.map(i => i.id));
+      const missing = defaults.filter(d => !existingIds.has(d.id));
+      if (missing.length > 0) {
+        const merged = [...active, ...missing];
+        setInventory(merged);
+        localInventory.splice(0, localInventory.length, ...merged);
+      }
     }
 
     const listener = (newInv: InventoryItem[]) => setInventory([...newInv]);

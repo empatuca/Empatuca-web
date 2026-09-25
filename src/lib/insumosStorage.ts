@@ -33,7 +33,8 @@ export const INITIAL_INSUMOS: InsumoItem[] = [
   { id: 'beb-3', name: 'Canela en Rama & Clavo de Olor', category: 'bebidas', currentStock: 5, minStock: 2, unit: 'paquetes' },
   { id: 'beb-4', name: 'Azúcar Morena / Blanca', category: 'bebidas', currentStock: 12, minStock: 4, unit: 'libras' },
   { id: 'beb-5', name: 'Gaseosas Surtidas (Lata / Botella)', category: 'bebidas', currentStock: 36, minStock: 18, unit: 'unidades' },
-  { id: 'beb-6', name: 'Agua Personal sin Gas', category: 'bebidas', currentStock: 24, minStock: 10, unit: 'unidades' }
+  { id: 'beb-6', name: 'Agua Personal sin Gas', category: 'bebidas', currentStock: 24, minStock: 10, unit: 'unidades' },
+  { id: 'beb-7', name: 'Tabletas de Chocolate de Cacao Manaba', category: 'bebidas', currentStock: 15, minStock: 5, unit: 'unidades' }
 ];
 
 let cachedInsumos: InsumoItem[] | null = null;
@@ -58,6 +59,14 @@ export function getLocalInsumos(): InsumoItem[] {
     if (stored) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        const existingIds = new Set(parsed.map((item: any) => item.id));
+        const missing = INITIAL_INSUMOS.filter(item => !existingIds.has(item.id));
+        if (missing.length > 0) {
+          const merged = [...parsed, ...missing];
+          cachedInsumos = merged;
+          saveLocalInsumos(merged);
+          return merged;
+        }
         cachedInsumos = parsed;
         return parsed;
       }

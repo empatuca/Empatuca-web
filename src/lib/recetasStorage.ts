@@ -102,6 +102,22 @@ export const INITIAL_RECIPES: Recipe[] = [
       { insumoName: 'Vasos 16oz para Morocho / Bebidas', quantity: 20, unit: 'unidades' },
       { insumoName: 'Tapas para Vasos 16oz', quantity: 20, unit: 'unidades' }
     ]
+  },
+  {
+    id: 'rec-chocolate-manaba',
+    name: 'Chocolate Caliente Manaba Tradicional (Jarra de 15 Tazas)',
+    category: 'Bebidas',
+    baseYield: 15,
+    yieldUnit: 'tazas / vasos',
+    notes: 'Preparación de chocolate artesanal de cacao manaba con leche y un toque de canela.',
+    ingredients: [
+      { insumoName: 'Tabletas de Chocolate de Cacao Manaba', quantity: 3.0, unit: 'unidades' },
+      { insumoName: 'Leche Entera (Para Morocho)', quantity: 3.0, unit: 'litros' },
+      { insumoName: 'Canela en Rama & Clavo de Olor', quantity: 0.5, unit: 'paquetes' },
+      { insumoName: 'Azúcar Morena / Blanca', quantity: 0.5, unit: 'libras' },
+      { insumoName: 'Vasos 16oz para Morocho / Bebidas', quantity: 15, unit: 'unidades' },
+      { insumoName: 'Tapas para Vasos 16oz', quantity: 15, unit: 'unidades' }
+    ]
   }
 ];
 
@@ -114,6 +130,14 @@ export function getLocalRecipes(): Recipe[] {
     if (stored) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        const existingIds = new Set(parsed.map((item: any) => item.id));
+        const missing = INITIAL_RECIPES.filter(item => !existingIds.has(item.id));
+        if (missing.length > 0) {
+          const merged = [...parsed, ...missing];
+          cachedRecipes = merged;
+          saveLocalRecipes(merged);
+          return merged;
+        }
         cachedRecipes = parsed;
         return parsed;
       }
