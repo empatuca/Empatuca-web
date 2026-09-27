@@ -8,11 +8,12 @@ export const INITIAL_INSUMOS: InsumoItem[] = [
   // Descartables y Empaques
   { id: 'desc-1', name: 'Fundas de Papel Kraft (Empanadas)', category: 'descartables', currentStock: 250, minStock: 80, unit: 'unidades' },
   { id: 'desc-2', name: 'Tarrinas 2oz con tapa (Ají y Salsas)', category: 'descartables', currentStock: 180, minStock: 60, unit: 'unidades' },
-  { id: 'desc-3', name: 'Vasos 16oz para Morocho / Bebidas', category: 'descartables', currentStock: 75, minStock: 40, unit: 'unidades' },
+  { id: 'desc-3', name: 'Vasos / Jarritos para Café, Morocho y Chocolate', category: 'descartables', currentStock: 75, minStock: 40, unit: 'unidades' },
   { id: 'desc-4', name: 'Tapas para Vasos 16oz', category: 'descartables', currentStock: 70, minStock: 40, unit: 'unidades' },
   { id: 'desc-5', name: 'Servilletas Interfoliadas', category: 'descartables', currentStock: 12, minStock: 4, unit: 'paquetes' },
   { id: 'desc-6', name: 'Fundas Plásticas Tipo Camiseta (Delivery)', category: 'descartables', currentStock: 8, minStock: 3, unit: 'paquetes' },
   { id: 'desc-7', name: 'Papel Manteca Antigrasa', category: 'descartables', currentStock: 120, minStock: 40, unit: 'pliegos' },
+  { id: 'desc-8', name: 'Tarrinas Grandes 32oz con tapa (Café y Morocho)', category: 'descartables', currentStock: 35, minStock: 15, unit: 'unidades' },
 
   // Materia Prima e Ingredientes de Producción
   { id: 'mat-1', name: 'Plátano Verde Dominico', category: 'materia_prima', currentStock: 6, minStock: 3, unit: 'racimos' },
@@ -34,7 +35,8 @@ export const INITIAL_INSUMOS: InsumoItem[] = [
   { id: 'beb-4', name: 'Azúcar Morena / Blanca', category: 'bebidas', currentStock: 12, minStock: 4, unit: 'libras' },
   { id: 'beb-5', name: 'Gaseosas Surtidas (Lata / Botella)', category: 'bebidas', currentStock: 36, minStock: 18, unit: 'unidades' },
   { id: 'beb-6', name: 'Agua Personal sin Gas', category: 'bebidas', currentStock: 24, minStock: 10, unit: 'unidades' },
-  { id: 'beb-7', name: 'Tabletas de Chocolate de Cacao Manaba', category: 'bebidas', currentStock: 15, minStock: 5, unit: 'unidades' }
+  { id: 'beb-7', name: 'Tabletas de Chocolate de Cacao Manaba', category: 'bebidas', currentStock: 15, minStock: 5, unit: 'unidades' },
+  { id: 'beb-8', name: 'Café Tradicional de Pasada (Materia Prima)', category: 'bebidas', currentStock: 8, minStock: 3, unit: 'libras' }
 ];
 
 let cachedInsumos: InsumoItem[] | null = null;

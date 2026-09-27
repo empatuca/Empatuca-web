@@ -105,18 +105,31 @@ export const INITIAL_RECIPES: Recipe[] = [
   },
   {
     id: 'rec-chocolate-manaba',
-    name: 'Chocolate Caliente Manaba Tradicional (Jarra de 15 Tazas)',
+    name: 'Chocolate con Leche Manaba Tradicional (Jarra de 15 Tazas / Jarritos)',
     category: 'Bebidas',
     baseYield: 15,
-    yieldUnit: 'tazas / vasos',
-    notes: 'Preparación de chocolate artesanal de cacao manaba con leche y un toque de canela.',
+    yieldUnit: 'jarritos / tazas',
+    notes: 'Preparación de chocolate artesanal de cacao manaba hervido con leche entera y canela, servido en el mismo jarrito o taza del café y morocho.',
     ingredients: [
       { insumoName: 'Tabletas de Chocolate de Cacao Manaba', quantity: 3.0, unit: 'unidades' },
       { insumoName: 'Leche Entera (Para Morocho)', quantity: 3.0, unit: 'litros' },
       { insumoName: 'Canela en Rama & Clavo de Olor', quantity: 0.5, unit: 'paquetes' },
       { insumoName: 'Azúcar Morena / Blanca', quantity: 0.5, unit: 'libras' },
-      { insumoName: 'Vasos 16oz para Morocho / Bebidas', quantity: 15, unit: 'unidades' },
+      { insumoName: 'Vasos / Jarritos para Bebidas Calientes', quantity: 15, unit: 'unidades' },
       { insumoName: 'Tapas para Vasos 16oz', quantity: 15, unit: 'unidades' }
+    ]
+  },
+  {
+    id: 'rec-cafe-tarrina',
+    name: 'Tarrina de Café Tradicional (Porción Grande 32oz)',
+    category: 'Bebidas',
+    baseYield: 1,
+    yieldUnit: 'tarrinas',
+    notes: 'Café de pasada tradicional caliente en tarrina grande de 32oz con tapa hermética para llevar o compartir.',
+    ingredients: [
+      { insumoName: 'Café Tradicional de Pasada (Materia Prima)', quantity: 0.15, unit: 'libras' },
+      { insumoName: 'Azúcar Morena / Blanca', quantity: 0.1, unit: 'libras' },
+      { insumoName: 'Tarrinas Grandes 32oz con tapa (Café y Morocho)', quantity: 1, unit: 'unidades' }
     ]
   }
 ];

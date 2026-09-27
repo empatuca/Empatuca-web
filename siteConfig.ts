@@ -101,18 +101,27 @@ export const siteConfig = {
     },
     {
       id: "beb-cafe",
-      name: "☕ Café Tradicional",
+      name: "☕ Café Tradicional (Normal)",
       category: "Bebidas",
-      description: "Café calientito, ideal para acompañar tus empanadas.",
+      description: "Café calientito en taza, ideal para acompañar tus empanadas.",
       prices: {
         estandar: 0.50,
       },
     },
     {
-      id: "beb-chocolate-manaba",
-      name: "🍫 Chocolate Manaba",
+      id: "beb-cafe-tarrina",
+      name: "🥣 Café Tradicional (Tarrina)",
       category: "Bebidas",
-      description: "Delicioso chocolate caliente tradicional de Manabí, preparado con cacao fino artesanal.",
+      description: "Café tradicional calientito en tarrina grande para compartir o llevar.",
+      prices: {
+        estandar: 2.00,
+      },
+    },
+    {
+      id: "beb-chocolate-manaba",
+      name: "☕ Chocolate con Leche Manaba",
+      category: "Bebidas",
+      description: "Taza de delicioso chocolate con leche manaba calientito, servido en jarrito tradicional.",
       prices: {
         estandar: 0.75,
       },
